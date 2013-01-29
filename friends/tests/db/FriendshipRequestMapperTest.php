@@ -61,12 +61,12 @@ class FriendshipRequestMapperTest extends \PHPUnit_Framework_TestCase {
 			->will($this->returnValue(false));
 
 		$query = $this->getMock('query', array('execute'));
-		$query->expects($this->any())
+		$query->expects($this->once())
 			->method('execute')
 			->with($this->equalTo(array($userId)))
 			->will($this->returnValue($cursor));
 
-		$this->api->expects($this->any())
+		$this->api->expects($this->once())
 			->method('prepareQuery')
 			->with($this->equalTo($expected))
 			->will($this->returnValue($query));
@@ -89,12 +89,12 @@ class FriendshipRequestMapperTest extends \PHPUnit_Framework_TestCase {
 			->will($this->returnValue(false));
 
 		$query = $this->getMock('query', array('execute'));
-		$query->expects($this->any())
+		$query->expects($this->once())
 			->method('execute')
 			->with($this->equalTo(array($userId)))
 			->will($this->returnValue($cursor));
 
-		$this->api->expects($this->any())
+		$this->api->expects($this->once())
 			->method('prepareQuery')
 			->with($this->equalTo($expected))
 			->will($this->returnValue($query));

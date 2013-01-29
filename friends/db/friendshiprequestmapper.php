@@ -56,7 +56,8 @@ class FriendshipRequestMapper extends Mapper {
 
 		$result = array();
 		
-		while($row =  $this->execute($sql, $params)->fetchRow()){
+		$query_result = $this->execute($sql, $params);
+		while($row = $query_result->fetchRow()){
 			$requester = $row['requester_uid'];
 			array_push($result, $requester);
 		}
@@ -75,8 +76,8 @@ class FriendshipRequestMapper extends Mapper {
 		$params = array($userId);
 
 		$result = array();
-		
-		while($row =  $this->execute($sql, $params)->fetchRow()){
+		$query_result = $this->execute($sql, $params);
+		while($row =  $query_result->fetchRow()){
 			$recipient = $row['recipient_uid'];
 			array_push($result, $recipient);
 		}

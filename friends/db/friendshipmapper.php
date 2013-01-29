@@ -59,11 +59,11 @@ class FriendshipMapper extends Mapper {
 
 		$result = array();
 		
-		while($row =  $this->execute($sql, $params)->fetchRow()){
+		$query_result = $this->execute($sql, $params);
+		while($row =  $query_result->fetchRow()){
 			$friend = $row['friend'];
 			array_push($result, $friend);
 		}
-
 		return $result;
 	}
 
