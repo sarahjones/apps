@@ -82,8 +82,8 @@ class FriendshipController extends Controller {
 		try {
 			$friends = $this->friendshipMapper->findAllFriendsByUser($this->api->getUserId());
 		} catch (DoesNotExistException $e) {
+			$friends = array();
 		}
-
 		$templateName = 'main';
 		$params = array(
 			'somesetting' => $this->api->getSystemValue('somesetting'),
