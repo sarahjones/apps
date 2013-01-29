@@ -1,0 +1,107 @@
+<?php
+/**
+* ownCloud - App Template Example
+*
+* @author Bernhard Posselt
+* @copyright 2012 Bernhard Posselt nukeawhale@gmail.com
+*
+* This library is free software; you can redistribute it and/or
+* modify it under the terms of the GNU AFFERO GENERAL PUBLIC LICENSE
+* License as published by the Free Software Foundation; either
+* version 3 of the License, or any later version.
+*
+* This library is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU AFFERO GENERAL PUBLIC LICENSE for more details.
+*
+* You should have received a copy of the GNU Affero General Public
+* License along with this library.  If not, see <http://www.gnu.org/licenses/>.
+*
+*/
+
+
+namespace OCA\Friends\Db;
+
+use \OCA\AppFramework\Core\API as API;
+use \OCA\AppFramework\Db\Mapper as Mapper;
+use \OCA\AppFramework\Db\DoesNotExistException as DoesNotExistException;
+
+
+class FriendshipMapper extends Mapper {
+
+
+
+	private $tableName;
+
+	/**
+	 * @param API $api: Instance of the API abstraction layer
+	 */
+	public function __construct($api){
+		parent::__construct($api);
+		$this->tableName = '*PREFIX*friends_friendships';
+	}
+
+
+
+
+	/**
+	 * Finds all friends for a user 
+	 * @param string $userId: the id of the user that we want to find friends for
+	 * @throws DoesNotExistException: if the item does not exist
+	 * @return an array of friends
+	 */
+	public function findAllFriendsByUser($userId){
+		$sql = 'SELECT friend_uid2 as friend FROM `' . $this->tableName . '` WHERE friend_uid1 = ?
+			UNION
+			SELECT friend_uid1 as friend FROM `' . $this->tableName . '` WHERE friend_uid2 = ?';
+		$params = array($userId, $userId);
+
+		$result = array();
+		
+		while($row =  $this->execute($sql, $params)->fetchRow()){
+			$friend = $row['friend'];
+			array_push($result, $friend);
+		}
+
+		return $result;
+	}
+
+
+
+
+	/**
+	 * Saves a friendship into the database
+	 * @param  $friendship: the friendship to be saved
+	 * @return true if successful
+	 */
+	public function save($friendship){
+		$sql = 'INSERT INTO `'. $this->tableName . '` (friend_uid1, friend_uid2)'.
+				' VALUES(?, ?)';
+
+		$params = array(
+			$friendship->getUser1(),
+			$friendship->getUser2()
+		);
+
+		return $this->execute($sql, $params);
+	}
+
+
+
+	/**
+	 * Deletes a friendship
+	 * @param userId1: the first user
+	 * @param userId2: the second user
+	 */
+	public function delete($userId1, $userId2){
+		//must check both ways to delete friend
+		$sql = 'DELETE FROM `' . $this->tableName . '` WHERE (friend_uid1 = ? AND friend_uid2 = ?) OR (friend_uid1 = ? AND friend_uid2 = ?)';
+		$params = array($userId1, $userId2, $userId2, $userId1);
+		
+		return $this->execute($sql, $params);
+	
+	}
+
+
+}
