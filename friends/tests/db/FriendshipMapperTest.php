@@ -48,29 +48,6 @@ class FriendshipMapperTest extends \PHPUnit_Framework_TestCase {
 
 
 
-/*
-	private function query($method, $sql, $params=array()){
-
-		$query = $this->getMock('query', array('execute'));
-		
-		$query->expects($this->once())
-				->method('execute')
-				->with($this->equalTo($params));
-
-		$this->api->expects($this->once())
-				->method('prepareQuery')
-				->with($this->equalTo($sql))
-				->will($this->returnValue($query));
-
-		$mapper = new FriendshipMapper($this->api);
-
-		if(count($params) > 0){
-			$mapper->$method('hihi', $params[0]);
-		} else {
-			$mapper->$method('hihi');
-		}
-	}
-*/
  	public function testFindAllFriendsByUser(){
 		$userId = 'thisisuser1';
 		$expected = 'SELECT friend_uid2 as friend FROM `*PREFIX*friends_friendships` WHERE friend_uid1 = ?
@@ -89,12 +66,12 @@ class FriendshipMapperTest extends \PHPUnit_Framework_TestCase {
 			->will($this->returnValue(false));
 
 		$query = $this->getMock('query', array('execute'));
-		$query->expects($this->any())
+		$query->expects($this->once())
 			->method('execute')
 			->with($this->equalTo(array($userId, $userId)))
 			->will($this->returnValue($cursor));
 
-		$this->api->expects($this->any())
+		$this->api->expects($this->once())
 			->method('prepareQuery')
 			->with($this->equalTo($expected))
 			->will($this->returnValue($query));
