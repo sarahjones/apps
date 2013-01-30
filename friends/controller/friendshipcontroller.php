@@ -28,6 +28,7 @@ use OCA\AppFramework\Db\DoesNotExistException as DoesNotExistException;
 use OCA\AppFramework\Http\RedirectResponse as RedirectResponse;
 
 use OCA\Friends\Db\Friendship as Friendship;
+use OCA\Friends\Db\FriendshipRequest as FriendshipRequest;
 
 
 class FriendshipController extends Controller {
@@ -38,9 +39,10 @@ class FriendshipController extends Controller {
 	 * @param API $api: an api wrapper instance
 	 * @param ItemMapper $friendshipMapper: an itemwrapper instance
 	 */
-	public function __construct($api, $request, $friendshipMapper){
+	public function __construct($api, $request, $friendshipMapper, $friendshipRequestMapper){
 		parent::__construct($api, $request);
 		$this->friendshipMapper = $friendshipMapper;
+		$this->friendshipRequestMapper = $friendshipRequestMapper;
 	}
 
 
@@ -111,5 +113,38 @@ class FriendshipController extends Controller {
 		);
 
 		return $this->renderJSON($params);
+	}
+
+	/** 
+	 * @Ajax
+	 *
+	 * @brief creates a FriendshipRequest
+	 * @param 
+	 */
+	public function createFriendRequest(){
+error_log("In createFriendRequest!!!");
+		$recipientId = $this->params('recipient');
+
+		$friendshipRequest = new FriendshipRequest();
+		$friendshipRequest->setRequester($this->api->getUserId()); 
+		$friendshipRequest->setRecipient($requesterId);
+
+		#surround with try block?
+		if($this->friendshipRequestMapper->save($requesterId))
+			return $this->renderJSON(true);
+		else
+			return $this->renderJSON(false);
+			
+	}
+
+	public function acceptFriendRequest(){
+		OCP\DB::beginTransaction();
+		#find friendrequest
+		#delete in friendrequest
+		#verify not in friends
+		#add to friends
+		OCP\DB::commit();
+		#need to capture exception and change return value?
+		return $this->renderJSON(true);
 	}
 }

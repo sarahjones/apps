@@ -28,6 +28,8 @@ angular.module('Friends', ['OC']).config ['$provide', '$interpolateProvider',
 	# http:#docs.angularjs.org/api/ng.$route
 	Config.routes =
 		saveNameRoute: 'friends_ajax_setsystemvalue'
+		createFriendshipRequestRoute: 'friends_ajax_createFriendshipRequest'
+		acceptFriendshipRequestRoute: 'friends_ajax_acceptFriendshipRequest'
 
 	return $provide.value('Config', Config)
 ]

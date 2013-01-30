@@ -34,5 +34,20 @@ angular.module('Friends').factory '_FriendsRequest',
 		# myReqest: (route, ...) ->
 
 
+		#accept a friend request
+		acceptFriendshipRequest: (route, friendUid) ->
+			data =
+				acceptedfriend: friendUid
+
+			@post(route, {}, data)
+
+		#create a friend request
+		createFriendRequest: (route, recipientUid) ->
+			data =
+				recipient: recipientUid
+			
+			@post(route, {}, data)
+
+
 	return FriendsRequest
 ]

@@ -26,3 +26,11 @@ angular.module('Friends').factory 'ItemModel',
 	model = new _ItemModel()
 	return model
 ]
+
+angular.module('Friends').factory 'FRModel',
+['_FRModel', 'Publisher',
+(_FRModel, Publisher) ->
+
+	model = new _FRModel()
+	return model
+]

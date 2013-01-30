@@ -9,16 +9,16 @@
 #
 ###
 
-angular.module('Friends').factory '_ItemModel',
+angular.module('Friends').factory '_FRModel',
 ['_Model',
 (_Model) ->
 
-	class ItemModel extends _Model
+	class FRModel extends _Model
 
 		constructor: ->
 			super()
 			#@hasForeignKey('user')
 
 
-	return ItemModel
+	return FRModel
 ]
