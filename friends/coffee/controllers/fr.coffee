@@ -41,7 +41,7 @@ angular.module('Friends').factory '_FRController', ->
 			@request.acceptFriendshipRequest(@config.routes.acceptFriendshipRequestRoute, friendUid)
 
 		createFriendshipRequest: (recipient) ->
-			alert("About to send request");
+			alert("About to send request")
 			@request.createFriendshipRequest(@config.routes.createFriendshipRequestRoute, recipient)
 
 	return FRController
