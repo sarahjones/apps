@@ -13,6 +13,26 @@
 
 (function() {
 
+  angular.module('OC', []);
+
+}).call(this);
+
+
+
+/*
+# ownCloud
+#
+# @author Sarah Jones
+# Copyright (c) 2012 - Bernhard Posselt <nukeawhale@gmail.com>
+#
+# This file is licensed under the Affero General Public License version 3 or later.
+# See the COPYING-README file
+#
+*/
+
+
+(function() {
+
   angular.module('Friends', ['OC']).config([
     '$provide', '$interpolateProvider', function($provide, $interpolateProvider) {
       var Config;
@@ -22,7 +42,9 @@
         myParam: 'test'
       };
       Config.routes = {
-        saveNameRoute: 'friends_ajax_setsystemvalue'
+        saveNameRoute: 'friends_ajax_setsystemvalue',
+        createFriendshipRequestRoute: 'friends_ajax_createFriendshipRequest',
+        acceptFriendshipRequestRoute: 'friends_ajax_acceptFriendshipRequest'
       };
       return $provide.value('Config', Config);
     }
@@ -56,7 +78,11 @@
 
 (function() {
 
-  angular.module('OC', []);
+  angular.module('Friends').filter('leetIt', function() {
+    return function(leetThis) {
+      return leetThis.replace('e', '3').replace('i', '1');
+    };
+  });
 
 }).call(this);
 
@@ -74,16 +100,49 @@
 */
 
 
-/*
-# This file creates instances of classes
-*/
-
-
 (function() {
+  var __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  angular.module('OC').factory('Publisher', [
-    '_Publisher', function(_Publisher) {
-      return new _Publisher();
+  angular.module('Friends').factory('_FriendsRequest', [
+    '_Request', function(_Request) {
+      var FriendsRequest;
+      FriendsRequest = (function(_super) {
+
+        __extends(FriendsRequest, _super);
+
+        function FriendsRequest($http, $rootScope, Config, Publisher) {
+          FriendsRequest.__super__.constructor.call(this, $http, $rootScope, Config, Publisher);
+        }
+
+        FriendsRequest.prototype.saveName = function(route, name) {
+          var data;
+          data = {
+            somesetting: name
+          };
+          return this.post(route, {}, data);
+        };
+
+        FriendsRequest.prototype.acceptFriendshipRequest = function(route, friendUid) {
+          var data;
+          data = {
+            acceptedfriend: friendUid
+          };
+          return this.post(route, {}, data);
+        };
+
+        FriendsRequest.prototype.createFriendshipRequest = function(route, recipientUid) {
+          var data;
+          data = {
+            recipient: recipientUid
+          };
+          return this.post(route, {}, data);
+        };
+
+        return FriendsRequest;
+
+      })(_Request);
+      return FriendsRequest;
     }
   ]);
 
@@ -103,43 +162,27 @@
 */
 
 
-/*
-# Used for properly distributing received model data from the server
-*/
-
-
 (function() {
+  var __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  angular.module('OC').factory('_Publisher', function() {
-    var Publisher;
-    Publisher = (function() {
+  angular.module('Friends').factory('_FRModel', [
+    '_Model', function(_Model) {
+      var FRModel;
+      FRModel = (function(_super) {
 
-      function Publisher() {
-        this.subscriptions = {};
-      }
+        __extends(FRModel, _super);
 
-      Publisher.prototype.subscribeModelTo = function(model, name) {
-        var _base;
-        (_base = this.subscriptions)[name] || (_base[name] = []);
-        return this.subscriptions[name].push(model);
-      };
-
-      Publisher.prototype.publishDataTo = function(data, name) {
-        var subscriber, _i, _len, _ref, _results;
-        _ref = this.subscriptions[name] || [];
-        _results = [];
-        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-          subscriber = _ref[_i];
-          _results.push(subscriber.handle(data));
+        function FRModel() {
+          FRModel.__super__.constructor.call(this);
         }
-        return _results;
-      };
 
-      return Publisher;
+        return FRModel;
 
-    })();
-    return Publisher;
-  });
+      })(_Model);
+      return FRModel;
+    }
+  ]);
 
 }).call(this);
 
@@ -159,81 +202,20 @@
 
 (function() {
 
-  angular.module('OC').factory('_Request', function() {
-    var Request;
-    Request = (function() {
+  angular.module('Friends').factory('FriendsRequest', [
+    '$http', '$rootScope', 'Config', '_FriendsRequest', 'Publisher', 'FRModel', function($http, $rootScope, Config, _FriendsRequest, Publisher, FRModel) {
+      Publisher.subscribeModelTo(FRModel, 'friendrequests');
+      return new _FriendsRequest($http, $rootScope, Config, Publisher);
+    }
+  ]);
 
-      function Request($http, $rootScope, Config, publisher) {
-        var _this = this;
-        this.$http = $http;
-        this.$rootScope = $rootScope;
-        this.Config = Config;
-        this.publisher = publisher;
-        this.initialized = false;
-        this.shelvedRequests = [];
-        this.$rootScope.$on('routesLoaded', function() {
-          var req, _i, _len, _ref;
-          _ref = _this.shelvedRequests;
-          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-            req = _ref[_i];
-            _this.post(req.route, req.routeParams, req.data, req.onSuccess, req.onFailure);
-          }
-          _this.initialized = true;
-          return _this.shelvedRequests = [];
-        });
-      }
-
-      Request.prototype.post = function(route, routeParams, data, onSuccess, onFailure) {
-        var headers, postData, request, url,
-          _this = this;
-        if (!this.initialized) {
-          request = {
-            route: route,
-            routeParams: routeParams,
-            data: data,
-            onSuccess: onSuccess,
-            onFailure: onFailure
-          };
-          this.shelvedRequests.push(request);
-          return;
-        }
-        if (routeParams) {
-          url = OC.Router.generate(route, routeParams);
-        } else {
-          url = OC.Router.generate(route);
-        }
-        data || (data = {});
-        postData = $.param(data);
-        headers = {
-          headers: {
-            'requesttoken': requesttoken,
-            'Content-Type': 'application/x-www-form-urlencoded'
-          }
-        };
-        return this.$http.post(url, postData, headers).success(function(data, status, headers, config) {
-          var name, value, _ref, _results;
-          if (onSuccess) {
-            onSuccess(data);
-          }
-          _ref = data.data;
-          _results = [];
-          for (name in _ref) {
-            value = _ref[name];
-            _results.push(_this.publisher.publishDataTo(name, value));
-          }
-          return _results;
-        }).error(function(data, status, headers, config) {
-          if (onFailure) {
-            return onFailure(data);
-          }
-        });
-      };
-
-      return Request;
-
-    })();
-    return Request;
-  });
+  angular.module('Friends').factory('FRModel', [
+    '_FRModel', 'Publisher', function(_FRModel, Publisher) {
+      var model;
+      model = new _FRModel();
+      return model;
+    }
+  ]);
 
 }).call(this);
 
@@ -417,43 +399,80 @@
 
 (function() {
 
-  angular.module('Friends').factory('FriendsRequest', [
-    '$http', '$rootScope', 'Config', '_FriendsRequest', 'Publisher', 'ItemModel', function($http, $rootScope, Config, _FriendsRequest, Publisher, ItemModel) {
-      Publisher.subscribeModelTo(ItemModel, 'items');
-      return new _FriendsRequest($http, $rootScope, Config, Publisher);
-    }
-  ]);
+  angular.module('OC').factory('_Request', function() {
+    var Request;
+    Request = (function() {
 
-  angular.module('Friends').factory('ItemModel', [
-    '_ItemModel', 'Publisher', function(_ItemModel, Publisher) {
-      var model;
-      model = new _ItemModel();
-      return model;
-    }
-  ]);
+      function Request($http, $rootScope, Config, publisher) {
+        var _this = this;
+        this.$http = $http;
+        this.$rootScope = $rootScope;
+        this.Config = Config;
+        this.publisher = publisher;
+        this.initialized = false;
+        this.shelvedRequests = [];
+        this.$rootScope.$on('routesLoaded', function() {
+          var req, _i, _len, _ref;
+          _ref = _this.shelvedRequests;
+          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+            req = _ref[_i];
+            _this.post(req.route, req.routeParams, req.data, req.onSuccess, req.onFailure);
+          }
+          _this.initialized = true;
+          return _this.shelvedRequests = [];
+        });
+      }
 
-}).call(this);
+      Request.prototype.post = function(route, routeParams, data, onSuccess, onFailure) {
+        var headers, postData, request, url,
+          _this = this;
+        if (!this.initialized) {
+          request = {
+            route: route,
+            routeParams: routeParams,
+            data: data,
+            onSuccess: onSuccess,
+            onFailure: onFailure
+          };
+          this.shelvedRequests.push(request);
+          return;
+        }
+        if (routeParams) {
+          url = OC.Router.generate(route, routeParams);
+        } else {
+          url = OC.Router.generate(route);
+        }
+        data || (data = {});
+        postData = $.param(data);
+        headers = {
+          headers: {
+            'requesttoken': requesttoken,
+            'Content-Type': 'application/x-www-form-urlencoded'
+          }
+        };
+        return this.$http.post(url, postData, headers).success(function(data, status, headers, config) {
+          var name, value, _ref, _results;
+          if (onSuccess) {
+            onSuccess(data);
+          }
+          _ref = data.data;
+          _results = [];
+          for (name in _ref) {
+            value = _ref[name];
+            _results.push(_this.publisher.publishDataTo(name, value));
+          }
+          return _results;
+        }).error(function(data, status, headers, config) {
+          if (onFailure) {
+            return onFailure(data);
+          }
+        });
+      };
 
+      return Request;
 
-
-/*
-# ownCloud
-#
-# @author Sarah Jones
-# Copyright (c) 2012 - Bernhard Posselt <nukeawhale@gmail.com>
-#
-# This file is licensed under the Affero General Public License version 3 or later.
-# See the COPYING-README file
-#
-*/
-
-
-(function() {
-
-  angular.module('Friends').filter('leetIt', function() {
-    return function(leetThis) {
-      return leetThis.replace('e', '3').replace('i', '1');
-    };
+    })();
+    return Request;
   });
 
 }).call(this);
@@ -472,33 +491,16 @@
 */
 
 
+/*
+# This file creates instances of classes
+*/
+
+
 (function() {
-  var __hasProp = {}.hasOwnProperty,
-    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  angular.module('Friends').factory('_FriendsRequest', [
-    '_Request', function(_Request) {
-      var FriendsRequest;
-      FriendsRequest = (function(_super) {
-
-        __extends(FriendsRequest, _super);
-
-        function FriendsRequest($http, $rootScope, Config, Publisher) {
-          FriendsRequest.__super__.constructor.call(this, $http, $rootScope, Config, Publisher);
-        }
-
-        FriendsRequest.prototype.saveName = function(route, name) {
-          var data;
-          data = {
-            somesetting: name
-          };
-          return this.post(route, {}, data);
-        };
-
-        return FriendsRequest;
-
-      })(_Request);
-      return FriendsRequest;
+  angular.module('OC').factory('Publisher', [
+    '_Publisher', function(_Publisher) {
+      return new _Publisher();
     }
   ]);
 
@@ -518,51 +520,43 @@
 */
 
 
-(function() {
-  var __hasProp = {}.hasOwnProperty,
-    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
-
-  angular.module('Friends').factory('_ItemModel', [
-    '_Model', function(_Model) {
-      var ItemModel;
-      ItemModel = (function(_super) {
-
-        __extends(ItemModel, _super);
-
-        function ItemModel() {
-          ItemModel.__super__.constructor.call(this);
-        }
-
-        return ItemModel;
-
-      })(_Model);
-      return ItemModel;
-    }
-  ]);
-
-}).call(this);
-
-
-
 /*
-# ownCloud
-#
-# @author Sarah Jones
-# Copyright (c) 2012 - Bernhard Posselt <nukeawhale@gmail.com>
-#
-# This file is licensed under the Affero General Public License version 3 or later.
-# See the COPYING-README file
-#
+# Used for properly distributing received model data from the server
 */
 
 
 (function() {
 
-  angular.module('Friends').controller('ExampleController', [
-    '$scope', 'Config', 'FriendsRequest', '_ExampleController', 'ItemModel', function($scope, Config, FriendsRequest, _ExampleController, ItemModel) {
-      return new _ExampleController($scope, Config, FriendsRequest, ItemModel);
-    }
-  ]);
+  angular.module('OC').factory('_Publisher', function() {
+    var Publisher;
+    Publisher = (function() {
+
+      function Publisher() {
+        this.subscriptions = {};
+      }
+
+      Publisher.prototype.subscribeModelTo = function(model, name) {
+        var _base;
+        (_base = this.subscriptions)[name] || (_base[name] = []);
+        return this.subscriptions[name].push(model);
+      };
+
+      Publisher.prototype.publishDataTo = function(data, name) {
+        var subscriber, _i, _len, _ref, _results;
+        _ref = this.subscriptions[name] || [];
+        _results = [];
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          subscriber = _ref[_i];
+          _results.push(subscriber.handle(data));
+        }
+        return _results;
+      };
+
+      return Publisher;
+
+    })();
+    return Publisher;
+  });
 
 }).call(this);
 
@@ -606,5 +600,87 @@
     })();
     return ExampleController;
   });
+
+}).call(this);
+
+
+
+/*
+# ownCloud
+#
+# @author Sarah Jones
+# Copyright (c) 2012 - Bernhard Posselt <nukeawhale@gmail.com>
+#
+# This file is licensed under the Affero General Public License version 3 or later.
+# See the COPYING-README file
+#
+*/
+
+
+(function() {
+
+  angular.module('Friends').factory('_FRController', function() {
+    var FRController;
+    FRController = (function() {
+
+      function FRController($scope, config, request, frModel) {
+        var _this = this;
+        this.$scope = $scope;
+        this.config = config;
+        this.request = request;
+        this.frModel = frModel;
+        this.$scope.saveName = function(name) {
+          return _this.saveName(name);
+        };
+        this.$scope.acceptFriendshipRequest = function(requestor) {
+          return _this.acceptFriendshipRequest(requestor);
+        };
+        this.$scope.createFriendshipRequest = function(recipient) {
+          return _this.createFriendshipRequest(recipient);
+        };
+      }
+
+      FRController.prototype.saveName = function(name) {
+        return this.request.saveName(this.config.routes.saveNameRoute, name);
+      };
+
+      FRController.prototype.acceptFriendshipRequest = function(friendUid) {
+        return this.request.acceptFriendshipRequest(this.config.routes.acceptFriendshipRequestRoute, friendUid);
+      };
+
+      FRController.prototype.createFriendshipRequest = function(recipient) {
+        alert("About to send request");
+        return this.request.createFriendshipRequest(this.config.routes.createFriendshipRequestRoute, recipient);
+      };
+
+      return FRController;
+
+    })();
+    return FRController;
+  });
+
+}).call(this);
+
+
+
+/*
+# ownCloud
+#
+# @author Sarah Jones
+# Copyright (c) 2012 - Bernhard Posselt <nukeawhale@gmail.com>
+#
+# This file is licensed under the Affero General Public License version 3 or later.
+# See the COPYING-README file
+#
+*/
+
+
+(function() {
+
+  angular.module('Friends').controller('FRController', [
+    '$scope', 'Config', 'FriendsRequest', '_FRController', 'FRModel', function($scope, Config, FriendsRequest, _FRController, FRModel) {
+      return new _FRController($scope, Config, FriendsRequest, FRModel);
+    }
+  ]);
 
 }).call(this);

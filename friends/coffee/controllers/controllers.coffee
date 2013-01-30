@@ -9,11 +9,11 @@
 #
 ###
 
-angular.module('Friends').controller 'ExampleController',
-['$scope', 'Config', 'FriendsRequest', '_ExampleController', 'ItemModel',
-($scope, Config, FriendsRequest, _ExampleController, ItemModel) ->
-	return new _ExampleController($scope, Config, FriendsRequest, ItemModel)
-]
+#angular.module('Friends').controller 'ExampleController',
+#['$scope', 'Config', 'FriendsRequest', '_ExampleController', 'ItemModel',
+#($scope, Config, FriendsRequest, _ExampleController, ItemModel) ->
+#	return new _ExampleController($scope, Config, FriendsRequest, ItemModel)
+#]
 
 
 #Injection
