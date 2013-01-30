@@ -13,11 +13,13 @@
 # This is an example of a controller. We pass in the Config via Dependency
 # Injection. A factory creates a shared instance. You can also share objects
 # across controllers this way
+
+#FriendRequest Controller (named FR so not to be confused with FriendsRequest as in AppRequest)
 angular.module('Friends').factory '_FRController', ->
 
 	class FRController
 
-		constructor: (@$scope, @config, @request, @friendshipRequestModel) ->
+		constructor: (@$scope, @config, @request, @frModel) ->
 
 			# bind methods on the scope so that you can access them in the
 			# controllers child HTML
@@ -27,13 +29,19 @@ angular.module('Friends').factory '_FRController', ->
 			@$scope.acceptFriendshipRequest = (requestor) =>
 				@acceptFriendshipRequest(requestor)
 
+			@$scope.createFriendshipRequest = (recipient) =>
+				@createFriendshipRequest(recipient)
+
 		#ajax queries
 
 		saveName: (name) ->
 			@request.saveName(@config.routes.saveNameRoute, name)
 
-		acceptFriendshipRequest: (requestor) ->
-			@request.acceptFriendshipRequest(requestor)
+		acceptFriendshipRequest: (friendUid) ->
+			@request.acceptFriendshipRequest(@config.routes.acceptFriendshipRequestRoute, friendUid)
 
+		createFriendshipRequest: (recipient) ->
+			alert("About to send request");
+			@request.createFriendshipRequest(@config.routes.createFriendshipRequestRoute, recipient)
 
 	return FRController
