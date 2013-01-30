@@ -16,8 +16,9 @@ angular.module('Friends').controller 'ExampleController',
 ]
 
 
+#Injection
 angular.module('Friends').controller 'FRController',
-['$scope', 'Config', 'FriendsRequest', '_FRController', 'FriendRequestModel',
-($scope, Config, FriendsRequest, _FRController, FriendRequestModel) ->
-	return new _FRController($scope, Config, FriendsRequest, FriendRequestModel)
+['$scope', 'Config', 'FriendsRequest', '_FRController', 'FRModel',
+($scope, Config, FriendsRequest, _FRController, FRModel) ->
+	return new _FRController($scope, Config, FriendsRequest, FRModel)
 ]
