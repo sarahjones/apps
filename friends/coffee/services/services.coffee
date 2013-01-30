@@ -11,20 +11,12 @@
 
 angular.module('Friends').factory 'FriendsRequest',
 ['$http', '$rootScope', 'Config', '_FriendsRequest', 'Publisher',
-'ItemModel',
+'FRModel',
 ($http, $rootScope, Config, _FriendsRequest, Publisher,
-ItemModel) ->
+FRModel) ->
 
-	Publisher.subscribeModelTo(ItemModel, 'items')
+	Publisher.subscribeModelTo(FRModel, 'friendrequests')
 	return new _FriendsRequest($http, $rootScope, Config, Publisher)
-]
-
-angular.module('Friends').factory 'ItemModel',
-['_ItemModel', 'Publisher',
-(_ItemModel, Publisher) ->
-
-	model = new _ItemModel()
-	return model
 ]
 
 angular.module('Friends').factory 'FRModel',

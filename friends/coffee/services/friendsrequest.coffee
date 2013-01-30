@@ -42,7 +42,7 @@ angular.module('Friends').factory '_FriendsRequest',
 			@post(route, {}, data)
 
 		#create a friend request
-		createFriendRequest: (route, recipientUid) ->
+		createFriendshipRequest: (route, recipientUid) ->
 			data =
 				recipient: recipientUid
 			

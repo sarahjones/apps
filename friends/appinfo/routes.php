@@ -61,3 +61,10 @@ $this->create('friends_ajax_setsystemvalue', '/setsystemvalue')->post()->action(
 		App::main('FriendshipController', 'setSystemValue', $params, new DIContainer());
 	}
 );
+
+
+$this->create('friends_ajax_createFriendshipRequest', '/friendRequest')->post()->action(
+	function($params){
+		App::main('FriendshipController', 'createFriendRequest', $params, new DIContainer());
+	}
+);
