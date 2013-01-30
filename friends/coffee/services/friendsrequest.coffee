@@ -36,9 +36,11 @@ angular.module('Friends').factory '_FriendsRequest',
 
 		#accept a friend request
 		acceptFriendshipRequest: (route, friendUid) ->
+			alert('in friendsrequest')
 			data =
 				acceptedfriend: friendUid
 
+			alert("In FriendsRequest class")
 			@post(route, {}, data)
 
 		#create a friend request

@@ -20,7 +20,7 @@
 *
 */
 
-namespace OCA\Friends;
+namespace OCA\Friends\Db;
 
 
 class Friendship {

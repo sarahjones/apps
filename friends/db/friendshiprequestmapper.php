@@ -97,10 +97,11 @@ class FriendshipRequestMapper extends Mapper {
 				' VALUES(?, ?)';
 
 		$params = array(
-			$friendship->getRequester(),
-			$friendship->getRecipient()
+			$friendship_request->getRequester(),
+			$friendship_request->getRecipient()
 		);
 
+error_log("about to execute sql");
 		return $this->execute($sql, $params);
 	}
 
