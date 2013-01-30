@@ -1,7 +1,7 @@
 ###
 # ownCloud
 #
-# @author Sarah Jones
+# @author Bernhard Posselt
 # Copyright (c) 2012 - Bernhard Posselt <nukeawhale@gmail.com>
 #
 # This file is licensed under the Affero General Public License version 3 or later.
@@ -64,9 +64,10 @@ angular.module('OC').factory '_Request', ->
 			# pass the CSRF token as header
 			headers =
 				headers:
-					'requesttoken': requesttoken
+					'requesttoken': oc_requesttoken
 					'Content-Type': 'application/x-www-form-urlencoded'
 
+			alert('about to the the http.post')
 			# do the actual request
 			@$http.post(url, postData, headers)
 				.success (data, status, headers, config) =>

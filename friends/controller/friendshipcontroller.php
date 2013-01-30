@@ -117,6 +117,8 @@ class FriendshipController extends Controller {
 
 	/** 
 	 * @Ajax
+	 * @IsSubAdminExemption
+	 * @IsAdminExemption
 	 *
 	 * @brief creates a FriendshipRequest
 	 * @param 
@@ -130,11 +132,14 @@ error_log("In createFriendRequest!!!");
 		$friendshipRequest->setRecipient($requesterId);
 
 		#surround with try block?
-		if($this->friendshipRequestMapper->save($requesterId))
+		if($this->friendshipRequestMapper->save($friendshipRequest)){
+error_log("successful");
 			return $this->renderJSON(true);
-		else
+		}
+		else {
+error_log("unsuccessful");
 			return $this->renderJSON(false);
-			
+		}	
 	}
 
 	public function acceptFriendRequest(){
