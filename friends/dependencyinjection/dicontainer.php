@@ -28,6 +28,7 @@ use OCA\AppFramework\DependencyInjection\DIContainer as BaseContainer;
 use OCA\Friends\Controller\FriendshipController as FriendshipController;
 use OCA\Friends\Controller\SettingsController as SettingsController;
 use OCA\Friends\Db\FriendshipMapper as FriendshipMapper;
+use OCA\Friends\Db\FriendshipRequestMapper as FriendshipRequestMapper;
 
 
 class DIContainer extends BaseContainer {
@@ -54,7 +55,7 @@ class DIContainer extends BaseContainer {
 		 * CONTROLLERS
 		 */
 		$this['FriendshipController'] = $this->share(function($c){
-			return new FriendshipController($c['API'], $c['Request'], $c['FriendshipMapper']);
+			return new FriendshipController($c['API'], $c['Request'], $c['FriendshipMapper'], $c['FriendshipRequestMapper']);
 		});
 
 		$this['SettingsController'] = $this->share(function($c){
@@ -68,6 +69,10 @@ class DIContainer extends BaseContainer {
 		$this['FriendshipMapper'] = $this->share(function($c){
 			return new FriendshipMapper($c['API']);
 		});
+		$this['FriendshipRequestMapper'] = $this->share(function($c){
+			return new FriendshipRequestMapper($c['API']);
+		});
+ 
 
 
 	}
