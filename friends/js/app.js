@@ -2,7 +2,7 @@
 /*
 # ownCloud
 #
-# @author Sarah Jones
+# @author Bernhard Posselt
 # Copyright (c) 2012 - Bernhard Posselt <nukeawhale@gmail.com>
 #
 # This file is licensed under the Affero General Public License version 3 or later.
@@ -104,68 +104,6 @@
   var __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  angular.module('Friends').factory('_FriendsRequest', [
-    '_Request', function(_Request) {
-      var FriendsRequest;
-      FriendsRequest = (function(_super) {
-
-        __extends(FriendsRequest, _super);
-
-        function FriendsRequest($http, $rootScope, Config, Publisher) {
-          FriendsRequest.__super__.constructor.call(this, $http, $rootScope, Config, Publisher);
-        }
-
-        FriendsRequest.prototype.saveName = function(route, name) {
-          var data;
-          data = {
-            somesetting: name
-          };
-          return this.post(route, {}, data);
-        };
-
-        FriendsRequest.prototype.acceptFriendshipRequest = function(route, friendUid) {
-          var data;
-          data = {
-            acceptedfriend: friendUid
-          };
-          return this.post(route, {}, data);
-        };
-
-        FriendsRequest.prototype.createFriendshipRequest = function(route, recipientUid) {
-          var data;
-          data = {
-            recipient: recipientUid
-          };
-          return this.post(route, {}, data);
-        };
-
-        return FriendsRequest;
-
-      })(_Request);
-      return FriendsRequest;
-    }
-  ]);
-
-}).call(this);
-
-
-
-/*
-# ownCloud
-#
-# @author Sarah Jones
-# Copyright (c) 2012 - Bernhard Posselt <nukeawhale@gmail.com>
-#
-# This file is licensed under the Affero General Public License version 3 or later.
-# See the COPYING-README file
-#
-*/
-
-
-(function() {
-  var __hasProp = {}.hasOwnProperty,
-    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
-
   angular.module('Friends').factory('_FRModel', [
     '_Model', function(_Model) {
       var FRModel;
@@ -224,7 +162,7 @@
 /*
 # ownCloud
 #
-# @author Sarah Jones
+# @author Bernhard Posselt
 # Copyright (c) 2012 - Bernhard Posselt <nukeawhale@gmail.com>
 #
 # This file is licensed under the Affero General Public License version 3 or later.
@@ -388,7 +326,7 @@
 /*
 # ownCloud
 #
-# @author Sarah Jones
+# @author Bernhard Posselt
 # Copyright (c) 2012 - Bernhard Posselt <nukeawhale@gmail.com>
 #
 # This file is licensed under the Affero General Public License version 3 or later.
@@ -446,10 +384,11 @@
         postData = $.param(data);
         headers = {
           headers: {
-            'requesttoken': requesttoken,
+            'requesttoken': oc_requesttoken,
             'Content-Type': 'application/x-www-form-urlencoded'
           }
         };
+        alert('about to the the http.post');
         return this.$http.post(url, postData, headers).success(function(data, status, headers, config) {
           var name, value, _ref, _results;
           if (onSuccess) {
@@ -482,7 +421,7 @@
 /*
 # ownCloud
 #
-# @author Sarah Jones
+# @author Bernhard Posselt
 # Copyright (c) 2012 - Bernhard Posselt <nukeawhale@gmail.com>
 #
 # This file is licensed under the Affero General Public License version 3 or later.
@@ -511,7 +450,7 @@
 /*
 # ownCloud
 #
-# @author Sarah Jones
+# @author Bernhard Posselt
 # Copyright (c) 2012 - Bernhard Posselt <nukeawhale@gmail.com>
 #
 # This file is licensed under the Affero General Public License version 3 or later.
@@ -680,6 +619,70 @@
   angular.module('Friends').controller('FRController', [
     '$scope', 'Config', 'FriendsRequest', '_FRController', 'FRModel', function($scope, Config, FriendsRequest, _FRController, FRModel) {
       return new _FRController($scope, Config, FriendsRequest, FRModel);
+    }
+  ]);
+
+}).call(this);
+
+
+
+/*
+# ownCloud
+#
+# @author Sarah Jones
+# Copyright (c) 2012 - Bernhard Posselt <nukeawhale@gmail.com>
+#
+# This file is licensed under the Affero General Public License version 3 or later.
+# See the COPYING-README file
+#
+*/
+
+
+(function() {
+  var __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  angular.module('Friends').factory('_FriendsRequest', [
+    '_Request', function(_Request) {
+      var FriendsRequest;
+      FriendsRequest = (function(_super) {
+
+        __extends(FriendsRequest, _super);
+
+        function FriendsRequest($http, $rootScope, Config, Publisher) {
+          FriendsRequest.__super__.constructor.call(this, $http, $rootScope, Config, Publisher);
+        }
+
+        FriendsRequest.prototype.saveName = function(route, name) {
+          var data;
+          data = {
+            somesetting: name
+          };
+          return this.post(route, {}, data);
+        };
+
+        FriendsRequest.prototype.acceptFriendshipRequest = function(route, friendUid) {
+          var data;
+          alert('in friendsrequest');
+          data = {
+            acceptedfriend: friendUid
+          };
+          alert("In FriendsRequest class");
+          return this.post(route, {}, data);
+        };
+
+        FriendsRequest.prototype.createFriendshipRequest = function(route, recipientUid) {
+          var data;
+          data = {
+            recipient: recipientUid
+          };
+          return this.post(route, {}, data);
+        };
+
+        return FriendsRequest;
+
+      })(_Request);
+      return FriendsRequest;
     }
   ]);
 
