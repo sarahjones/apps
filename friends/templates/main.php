@@ -24,6 +24,7 @@
 	<p>Your friends are: </p>
 	{% for friend in friends %}
 		* {{ friend }}
+		<br />
 	{% else %}
 		You don't have any friends.
 	{% endfor %}
