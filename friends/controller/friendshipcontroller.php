@@ -82,14 +82,29 @@ class FriendshipController extends Controller {
 		// check if an entry with the current user is in the database, if not
 		// create a new entry
 		try {
+
 			$friends = $this->friendshipMapper->findAllFriendsByUser($this->api->getUserId());
 		} catch (DoesNotExistException $e) {
 			$friends = array();
+		}
+
+
+		try {
+			$friendrequests = $this->friendshipRequestMapper->findAllRequesterFriendshipRequestsByUser($this->api->getUserId());
+		} catch (DoesNotExistException $e) {
+			$friendrequests = array();
+		}
+		try {
+			$receivedfriendrequests = $this->friendshipRequestMapper->findAllRecipientFriendshipRequestsByUser($this->api->getUserId());
+		} catch (DoesNotExistException $e) {
+			$receivedfriendrequests = array();
 		}
 		$templateName = 'main';
 		$params = array(
 			'somesetting' => $this->api->getSystemValue('somesetting'),
 			'friends' => $friends,
+			'friendrequests' => $friendrequests,
+			'receivedfriendrequests' => $receivedfriendrequests,
 			'test' => $this->params('test')
 		);
 		return $this->render($templateName, $params);
@@ -124,21 +139,19 @@ class FriendshipController extends Controller {
 	 * @param 
 	 */
 	public function createFriendRequest(){
-error_log("In createFriendRequest!!!");
 		$recipientId = $this->params('recipient');
 
 		$friendshipRequest = new FriendshipRequest();
 		$friendshipRequest->setRequester($this->api->getUserId()); 
-		$friendshipRequest->setRecipient($requesterId);
+		$friendshipRequest->setRecipient($recipientId);
 
 		#surround with try block?
+		#need to fix return
 		if($this->friendshipRequestMapper->save($friendshipRequest)){
-error_log("successful");
-			return $this->renderJSON(true);
+			return $this->renderJSON(array(true));
 		}
 		else {
-error_log("unsuccessful");
-			return $this->renderJSON(false);
+			return $this->renderJSON(array(false));
 		}	
 	}
 
@@ -150,6 +163,6 @@ error_log("unsuccessful");
 		#add to friends
 		OCP\DB::commit();
 		#need to capture exception and change return value?
-		return $this->renderJSON(true);
+		return $this->renderJSON(array(true));
 	}
 }
