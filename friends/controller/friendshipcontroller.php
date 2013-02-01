@@ -165,4 +165,55 @@ class FriendshipController extends Controller {
 		#need to capture exception and change return value?
 		return $this->renderJSON(array(true));
 	}
+
+
+	/** 
+	 * @Ajax
+	 * @IsSubAdminExemption
+	 * @IsAdminExemption
+	 *
+	 * @brief creates a FriendshipRequest
+	 * @param 
+	 */
+	public function getFriendshipRequests(){
+		try {
+			$receivedfriendrequests = $this->friendshipRequestMapper->findAllRecipientFriendshipRequestsByUser($this->api->getUserId());
+		} catch (DoesNotExistException $e) {
+			$receivedfriendrequests = array();
+		}
+		try {
+			$sentfriendrequests = $this->friendshipRequestMapper->findAllRequesterFriendshipRequestsByUser($this->api->getUserId());
+		} catch (DoesNotExistException $e) {
+			$sentfriendrequests = array();
+		}
+		$params = array(
+			'receivedFriendshipRequests' => $receivedfriendrequests,
+			'sentFriendshipRequests' => $sentfriendrequests
+		);
+		return $this->renderJSON($params);
+		
+	}
+
+
+	/** 
+	 * @Ajax
+	 * @IsSubAdminExemption
+	 * @IsAdminExemption
+	 *
+	 * @brief creates a FriendshipRequest
+	 * @param 
+	 */
+	public function getFriendships(){
+		try {
+
+			$friends = $this->friendshipMapper->findAllFriendsByUser($this->api->getUserId());
+		} catch (DoesNotExistException $e) {
+			$friends = array();
+		}
+		$params = array(
+			'friendships' => $friends
+		);
+		return $this->renderJSON($params);
+		
+	}
 }

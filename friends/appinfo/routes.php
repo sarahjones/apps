@@ -68,3 +68,15 @@ $this->create('friends_ajax_createFriendshipRequest', '/friendRequest')->post()-
 		App::main('FriendshipController', 'createFriendRequest', $params, new DIContainer());
 	}
 );
+
+$this->create('friends_ajax_getFriendshipRequests', '/friendRequests')->post()->action(
+	function($params){
+		App::main('FriendshipController', 'getFriendshipRequests', $params, new DIContainer());
+	}
+);
+
+$this->create('friends_ajax_getFriendships', '/friendships')->post()->action(
+	function($params){
+		App::main('FriendshipController', 'getFriendships', $params, new DIContainer());
+	}
+);

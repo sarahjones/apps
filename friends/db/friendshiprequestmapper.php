@@ -141,10 +141,10 @@ class FriendshipRequestMapper extends Mapper {
 	 * @param userId1: the first user
 	 * @param userId2: the second user
 	 */
-	public function delete($requester, $recipient){
+	public function delete($userId1, $userId2){
 		//must check both ways to delete friend
-		$sql = 'DELETE FROM `' . $this->tableName . '` WHERE requester_uid = ? AND recipient_uid = ?';
-		$params = array($requester, $recipient);
+		$sql = 'DELETE FROM `' . $this->tableName . '` WHERE (requester_uid = ? AND recipient_uid = ?) OR (requester_uid = ? AND recipient_uid = ?)';
+		$params = array($userId1, $userId2, $userId2, $userId1);
 		
 		return $this->execute($sql, $params);
 	

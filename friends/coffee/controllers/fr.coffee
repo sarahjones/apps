@@ -32,6 +32,10 @@ angular.module('Friends').factory '_FRController', ->
 			@$scope.createFriendshipRequest = (recipient) =>
 				@createFriendshipRequest(recipient)
 
+			@$scope.$on 'routesLoaded', =>
+                                @getFriendshipRequests(@$scope)
+
+
 		#ajax queries
 
 		saveName: (name) ->
@@ -43,4 +47,6 @@ angular.module('Friends').factory '_FRController', ->
 		createFriendshipRequest: (recipient) ->
 			@request.createFriendshipRequest(@config.routes.createFriendshipRequestRoute, recipient)
 
+		getFriendshipRequests: (scope) ->
+			@request.getFriendshipRequests(@config.routes.getFriendshipRequestsRoute, scope)
 	return FRController

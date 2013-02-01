@@ -9,6 +9,8 @@
 #
 ###
 
+#FriendshipRequest
+
 angular.module('Friends').factory 'FriendsRequest',
 ['$http', '$rootScope', 'Config', '_FriendsRequest', 'Publisher',
 'FRModel',
@@ -25,4 +27,27 @@ angular.module('Friends').factory 'FRModel',
 
 	model = new _FRModel()
 	return model
+]
+
+
+
+
+#Friendship
+
+angular.module('Friends').factory 'FriendshipModel',
+['_FriendshipModel', 'Publisher',
+(_FriendshipModel, Publisher) ->
+
+	model = new _FriendshipModel()
+	return model
+]
+
+angular.module('Friends').factory 'FriendsRequest',
+['$http', '$rootScope', 'Config', '_FriendsRequest', 'Publisher',
+'FriendshipModel',
+($http, $rootScope, Config, _FriendsRequest, Publisher,
+FriendshipModel) ->
+
+	Publisher.subscribeModelTo(FriendshipModel, 'friendships')
+	return new _FriendsRequest($http, $rootScope, Config, Publisher)
 ]

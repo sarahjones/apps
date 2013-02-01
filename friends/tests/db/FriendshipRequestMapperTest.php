@@ -142,7 +142,7 @@ class FriendshipRequestMapperTest extends \PHPUnit_Framework_TestCase {
 		$this->assertEquals(true, $result);
 		
 	}
-	public function testSaveValidation(){
+	public function testSaveShouldFailIfFriendRequestAlreadyExists(){
 		$userId1 = 'thisisuser1';
 		$userId2 = 'thisisuser2';
 
@@ -162,12 +162,68 @@ class FriendshipRequestMapperTest extends \PHPUnit_Framework_TestCase {
 		
 	}
 
+	/* FriendRequest exists */
+	public function testFind(){
+		$userId1 = 'thisisuser1';
+		$userId2 = 'thisisuser2'; //requester
+		$expected = 'SELECT * FROM `*PREFIX*friends_friendship_requests` WHERE requester_uid = ? AND recipient_uid = ?';
+
+		$cursor = $this->getMock('cursor', array('fetchRow'));
+		$cursor->expects($this->once())
+			->method('fetchRow')
+			->will($this->returnValue($this->row3));
+
+		$query = $this->getMock('query', array('execute'));
+		$query->expects($this->once())
+			->method('execute')
+			->with($this->equalTo(array($userId2, $userId1)))
+			->will($this->returnValue($cursor));
+
+		$this->api->expects($this->once())
+			->method('prepareQuery')
+			->with($this->equalTo($expected))
+			->will($this->returnValue($query));
+
+		$result = $this->mapper->find($userId2, $userId1);
+		$this->assertEquals($userId2, $result->getRequester());
+		$this->assertEquals($userId1, $result->getRecipient());
+		
+
+	}
+
+	/* FriendRequest does not exist */
+	public function testFindNotExist(){
+		$userId1 = 'thisisuser1';
+		$userId2 = 'thisisuser2'; //requester
+		$expected = 'SELECT * FROM `*PREFIX*friends_friendship_requests` WHERE requester_uid = ? AND recipient_uid = ?';
+
+		$cursor = $this->getMock('cursor', array('fetchRow'));
+		$cursor->expects($this->once())
+			->method('fetchRow')
+			->will($this->returnValue(NULL));
+
+		$query = $this->getMock('query', array('execute'));
+		$query->expects($this->once())
+			->method('execute')
+			->with($this->equalTo(array($userId2, $userId1)))
+			->will($this->returnValue($cursor));
+
+		$this->api->expects($this->once())
+			->method('prepareQuery')
+			->with($this->equalTo($expected))
+			->will($this->returnValue($query));
+
+		$this->setExpectedException('OCA\AppFramework\Db\DoesNotExistException');
+
+		$this->mapper->find($userId2, $userId1);
+	}
+
 	public function testDelete(){
 		
 		$userId1 = 'thisisuser1';
 		$userId2 = 'thisisuser2';
-		$params = array($userId1, $userId2);
-		$expected = 'DELETE FROM `*PREFIX*friends_friendship_requests` WHERE requester_uid = ? AND recipient_uid = ?';
+		$params = array($userId1, $userId2, $userId2, $userId1);
+		$expected = 'DELETE FROM `*PREFIX*friends_friendship_requests` WHERE (requester_uid = ? AND recipient_uid = ?) OR (requester_uid = ? AND recipient_uid = ?)';
 		
 		$query = $this->getMock('query', array('execute'));
 		$query->expects($this->once())
