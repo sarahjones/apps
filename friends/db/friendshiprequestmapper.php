@@ -93,18 +93,47 @@ class FriendshipRequestMapper extends Mapper {
 	 * @return true if successful
 	 */
 	public function save($friendship_request){
-		$sql = 'INSERT INTO `'. $this->tableName . '` (requester_uid, recipient_uid)'.
+		try {
+			$this->find($friendship_request->getRequester(), $friendship_request->getRecipient());
+			
+		}
+		catch (DoesNotExistException $e) {
+			//friendship does not already exist
+			$sql = 'INSERT INTO `'. $this->tableName . '` (requester_uid, recipient_uid)'.
 				' VALUES(?, ?)';
 
-		$params = array(
-			$friendship_request->getRequester(),
-			$friendship_request->getRecipient()
-		);
+			$params = array(
+				$friendship_request->getRequester(),
+				$friendship_request->getRecipient()
+			);
 
-error_log("about to execute sql");
-		return $this->execute($sql, $params);
+			return $this->execute($sql, $params);
+		}
+		return false;
+
+
 	}
 
+	/**
+	 * Finds a friendship request
+	 * @param requester: the user initiating the friend request
+	 * @param recipient: the user receiving the friend request
+	 */
+	public function find($requester, $recipient){
+		$sql = 'SELECT * FROM `'. $this->tableName . '` WHERE requester_uid = ? AND recipient_uid = ?';
+		$params = array(
+			$requester,
+			$recipient
+		);
+
+		$result = $this->execute($sql, $params)->fetchRow();
+		if($result){
+			return new FriendshipRequest($result);
+		} else {
+			throw new DoesNotExistException('FriendshipRequest with requester ' . $requester . ' and recipient ' . $recipient . ' does not exist!');
+		}
+		
+	}
 
 
 	/**
