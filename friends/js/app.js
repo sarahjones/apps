@@ -44,7 +44,9 @@
       Config.routes = {
         saveNameRoute: 'friends_ajax_setsystemvalue',
         createFriendshipRequestRoute: 'friends_ajax_createFriendshipRequest',
-        acceptFriendshipRequestRoute: 'friends_ajax_acceptFriendshipRequest'
+        acceptFriendshipRequestRoute: 'friends_ajax_acceptFriendshipRequest',
+        getFriendshipRequestsRoute: 'friends_ajax_getFriendshipRequests',
+        getFriendshipsRoute: 'friends_ajax_getFriendships'
       };
       return $provide.value('Config', Config);
     }
@@ -83,6 +85,127 @@
       return leetThis.replace('e', '3').replace('i', '1');
     };
   });
+
+}).call(this);
+
+
+
+/*
+# ownCloud
+#
+# @author Sarah Jones
+# Copyright (c) 2012 - Bernhard Posselt <nukeawhale@gmail.com>
+#
+# This file is licensed under the Affero General Public License version 3 or later.
+# See the COPYING-README file
+#
+*/
+
+
+(function() {
+  var __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  angular.module('Friends').factory('_FriendshipModel', [
+    '_Model', function(_Model) {
+      var FriendshipModel;
+      FriendshipModel = (function(_super) {
+
+        __extends(FriendshipModel, _super);
+
+        function FriendshipModel() {
+          FriendshipModel.__super__.constructor.call(this);
+        }
+
+        return FriendshipModel;
+
+      })(_Model);
+      return FriendshipModel;
+    }
+  ]);
+
+}).call(this);
+
+
+
+/*
+# ownCloud
+#
+# @author Sarah Jones
+# Copyright (c) 2012 - Bernhard Posselt <nukeawhale@gmail.com>
+#
+# This file is licensed under the Affero General Public License version 3 or later.
+# See the COPYING-README file
+#
+*/
+
+
+(function() {
+  var __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  angular.module('Friends').factory('_FriendsRequest', [
+    '_Request', function(_Request) {
+      var FriendsRequest;
+      FriendsRequest = (function(_super) {
+
+        __extends(FriendsRequest, _super);
+
+        function FriendsRequest($http, $rootScope, Config, Publisher) {
+          FriendsRequest.__super__.constructor.call(this, $http, $rootScope, Config, Publisher);
+        }
+
+        FriendsRequest.prototype.saveName = function(route, name) {
+          var data;
+          data = {
+            somesetting: name
+          };
+          return this.post(route, {}, data);
+        };
+
+        FriendsRequest.prototype.getFriendshipRequests = function(route, scope) {
+          var success;
+          success = function(data) {
+            scope.receivedFriendshipRequests = data.data.receivedFriendshipRequests;
+            scope.sentFriendshipRequests = data.data.sentFriendshipRequests;
+            return console.log(data);
+          };
+          return this.post(route, {}, {}, success);
+        };
+
+        FriendsRequest.prototype.acceptFriendshipRequest = function(route, friendUid) {
+          var data;
+          alert('in friendsrequest');
+          data = {
+            acceptedfriend: friendUid
+          };
+          alert("In FriendsRequest class");
+          return this.post(route, {}, data);
+        };
+
+        FriendsRequest.prototype.createFriendshipRequest = function(route, recipientUid) {
+          var data;
+          console.log(route);
+          data = {
+            recipient: recipientUid
+          };
+          return this.post(route, {}, data);
+        };
+
+        FriendsRequest.prototype.getFriendships = function(route, scope) {
+          var success;
+          success = function(data) {
+            return scope.friendships = data.data.friendships;
+          };
+          return this.post(route, {}, {}, success);
+        };
+
+        return FriendsRequest;
+
+      })(_Request);
+      return FriendsRequest;
+    }
+  ]);
 
 }).call(this);
 
@@ -152,6 +275,21 @@
       var model;
       model = new _FRModel();
       return model;
+    }
+  ]);
+
+  angular.module('Friends').factory('FriendshipModel', [
+    '_FriendshipModel', 'Publisher', function(_FriendshipModel, Publisher) {
+      var model;
+      model = new _FriendshipModel();
+      return model;
+    }
+  ]);
+
+  angular.module('Friends').factory('FriendsRequest', [
+    '$http', '$rootScope', 'Config', '_FriendsRequest', 'Publisher', 'FriendshipModel', function($http, $rootScope, Config, _FriendsRequest, Publisher, FriendshipModel) {
+      Publisher.subscribeModelTo(FriendshipModel, 'friendships');
+      return new _FriendsRequest($http, $rootScope, Config, Publisher);
     }
   ]);
 
@@ -558,6 +696,49 @@
 
 (function() {
 
+  angular.module('Friends').factory('_FriendshipController', function() {
+    var FriendshipController;
+    FriendshipController = (function() {
+
+      function FriendshipController($scope, config, request, frienshipModel) {
+        var _this = this;
+        this.$scope = $scope;
+        this.config = config;
+        this.request = request;
+        this.frienshipModel = frienshipModel;
+        this.$scope.$on('routesLoaded', function() {
+          return _this.getFriendships(_this.$scope);
+        });
+      }
+
+      FriendshipController.prototype.getFriendships = function(scope) {
+        return this.request.getFriendships(this.config.routes.getFriendshipsRoute, scope);
+      };
+
+      return FriendshipController;
+
+    })();
+    return FriendshipController;
+  });
+
+}).call(this);
+
+
+
+/*
+# ownCloud
+#
+# @author Sarah Jones
+# Copyright (c) 2012 - Bernhard Posselt <nukeawhale@gmail.com>
+#
+# This file is licensed under the Affero General Public License version 3 or later.
+# See the COPYING-README file
+#
+*/
+
+
+(function() {
+
   angular.module('Friends').factory('_FRController', function() {
     var FRController;
     FRController = (function() {
@@ -577,6 +758,9 @@
         this.$scope.createFriendshipRequest = function(recipient) {
           return _this.createFriendshipRequest(recipient);
         };
+        this.$scope.$on('routesLoaded', function() {
+          return _this.getFriendshipRequests(_this.$scope);
+        });
       }
 
       FRController.prototype.saveName = function(name) {
@@ -588,8 +772,11 @@
       };
 
       FRController.prototype.createFriendshipRequest = function(recipient) {
-        alert("About to send request");
         return this.request.createFriendshipRequest(this.config.routes.createFriendshipRequestRoute, recipient);
+      };
+
+      FRController.prototype.getFriendshipRequests = function(scope) {
+        return this.request.getFriendshipRequests(this.config.routes.getFriendshipRequestsRoute, scope);
       };
 
       return FRController;
@@ -622,67 +809,9 @@
     }
   ]);
 
-}).call(this);
-
-
-
-/*
-# ownCloud
-#
-# @author Sarah Jones
-# Copyright (c) 2012 - Bernhard Posselt <nukeawhale@gmail.com>
-#
-# This file is licensed under the Affero General Public License version 3 or later.
-# See the COPYING-README file
-#
-*/
-
-
-(function() {
-  var __hasProp = {}.hasOwnProperty,
-    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
-
-  angular.module('Friends').factory('_FriendsRequest', [
-    '_Request', function(_Request) {
-      var FriendsRequest;
-      FriendsRequest = (function(_super) {
-
-        __extends(FriendsRequest, _super);
-
-        function FriendsRequest($http, $rootScope, Config, Publisher) {
-          FriendsRequest.__super__.constructor.call(this, $http, $rootScope, Config, Publisher);
-        }
-
-        FriendsRequest.prototype.saveName = function(route, name) {
-          var data;
-          data = {
-            somesetting: name
-          };
-          return this.post(route, {}, data);
-        };
-
-        FriendsRequest.prototype.acceptFriendshipRequest = function(route, friendUid) {
-          var data;
-          alert('in friendsrequest');
-          data = {
-            acceptedfriend: friendUid
-          };
-          alert("In FriendsRequest class");
-          return this.post(route, {}, data);
-        };
-
-        FriendsRequest.prototype.createFriendshipRequest = function(route, recipientUid) {
-          var data;
-          data = {
-            recipient: recipientUid
-          };
-          return this.post(route, {}, data);
-        };
-
-        return FriendsRequest;
-
-      })(_Request);
-      return FriendsRequest;
+  angular.module('Friends').controller('FriendshipController', [
+    '$scope', 'Config', 'FriendsRequest', '_FriendshipController', 'FriendshipModel', function($scope, Config, FriendsRequest, _FriendshipController, FriendshipModel) {
+      return new _FriendshipController($scope, Config, FriendsRequest, FriendshipModel);
     }
   ]);
 

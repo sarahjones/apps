@@ -33,6 +33,16 @@ angular.module('Friends').factory '_FriendsRequest',
 		#
 		# myReqest: (route, ...) ->
 
+		#get both sent and received friendship requests
+		getFriendshipRequests: (route, scope) ->
+			success = (data) ->
+				scope.receivedFriendshipRequests = data.data.receivedFriendshipRequests
+				scope.sentFriendshipRequests = data.data.sentFriendshipRequests
+				console.log data
+
+			#this must be the call to get the data, and success must be the callback
+			@post(route, {}, {}, success)			
+
 
 		#accept a friend request
 		acceptFriendshipRequest: (route, friendUid) ->
@@ -45,10 +55,21 @@ angular.module('Friends').factory '_FriendsRequest',
 
 		#create a friend request
 		createFriendshipRequest: (route, recipientUid) ->
+			console.log(route)
 			data =
 				recipient: recipientUid
 			
 			@post(route, {}, data)
+
+
+		#get Friendships
+		getFriendships: (route, scope) ->
+			success = (data) ->
+				scope.friendships = data.data.friendships
+
+			@post(route, {}, {}, success)			
+			
+		
 
 
 	return FriendsRequest
