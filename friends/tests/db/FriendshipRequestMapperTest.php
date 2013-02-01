@@ -26,6 +26,7 @@ namespace OCA\Friends\Db;
 
 require_once(__DIR__ . "/../classloader.php");
 
+use \OCA\AppFramework\Db\DoesNotExistException as DoesNotExistException;
 
 class FriendshipRequestMapperTest extends \PHPUnit_Framework_TestCase {
 
@@ -43,6 +44,10 @@ class FriendshipRequestMapperTest extends \PHPUnit_Framework_TestCase {
 			//'requester_uid' => 'thisisuser1',
 			//'recipient_uid' => 'thisisuser2'
 			'recipient_uid' => 'thisisuser2'
+		);
+		$this->row3 = array(
+			'recipient_uid' => 'thisisuser1',
+			'requester_uid' => 'thisisuser2'
 		);
 	}
 
@@ -103,6 +108,59 @@ class FriendshipRequestMapperTest extends \PHPUnit_Framework_TestCase {
 
 		$this->assertEquals(array('thisisuser2'), $friendships);
  	}
+
+
+	public function testSave(){
+		$userId1 = 'thisisuser1';
+		$userId2 = 'thisisuser2';
+		$params = array($userId2, $userId1);
+		$expected = 'INSERT INTO `*PREFIX*friends_friendship_requests` (requester_uid, recipient_uid) VALUES(?, ?)';
+
+
+		$frmapper = $this->getMock('OCA\Friends\Db\FriendshipRequestMapper', array('find'), array($this->api));
+		$frmapper->expects($this->once())
+			->method('find')
+			->with($userId2, $userId1)
+			->will($this->throwException(new DoesNotExistException("msg")));
+		
+		$query = $this->getMock('query', array('execute'));
+		$query->expects($this->once())
+			->method('execute')
+			->with($this->equalTo($params))
+			->will($this->returnValue(true));
+
+		$this->api->expects($this->once())
+			->method('prepareQuery')
+			->with($this->equalTo($expected))
+			->will($this->returnValue($query));
+	
+		$friendshipRequest = new FriendshipRequest();
+		$friendshipRequest->setRecipient($userId1);
+		$friendshipRequest->setRequester($userId2);
+
+		$result = $frmapper->save($friendshipRequest);
+		$this->assertEquals(true, $result);
+		
+	}
+	public function testSaveValidation(){
+		$userId1 = 'thisisuser1';
+		$userId2 = 'thisisuser2';
+
+		$frmapper = $this->getMock(get_class($this->mapper), array('find'), array($this->api));
+		$frmapper->expects($this->once())
+			->method('find')
+			->with($userId2, $userId1)
+			->will($this->returnValue($this->row3));
+
+	
+		$friendshipRequest = new FriendshipRequest();
+		$friendshipRequest->setRecipient($userId1);
+		$friendshipRequest->setRequester($userId2);
+
+		$result = $frmapper->save($friendshipRequest);
+		$this->assertEquals(false, $result);
+		
+	}
 
 	public function testDelete(){
 		
