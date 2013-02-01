@@ -22,3 +22,10 @@ angular.module('Friends').controller 'FRController',
 ($scope, Config, FriendsRequest, _FRController, FRModel) ->
 	return new _FRController($scope, Config, FriendsRequest, FRModel)
 ]
+
+
+angular.module('Friends').controller 'FriendshipController',
+['$scope', 'Config', 'FriendsRequest', '_FriendshipController', 'FriendshipModel',
+($scope, Config, FriendsRequest, _FriendshipController, FriendshipModel) ->
+	return new _FriendshipController($scope, Config, FriendsRequest, FriendshipModel)
+]
