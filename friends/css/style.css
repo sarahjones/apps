@@ -45,3 +45,33 @@
         line-height: 1.5;
         padding-bottom: 1em;
 }
+
+
+
+.tabnav {
+	border-bottom: 2px solid;
+
+
+}
+
+.tabnav a {
+
+
+	padding: .5em 5em 0em 5em;
+	margin: .5em;
+	border-width:2px 2px 0px 2px;
+	border-style: solid;
+	border-color: #1d2d44;
+	width: 600px;
+	color: #999999;
+
+}
+
+a.selectedTab-true {
+	color: #333333;
+}
+
+
+.app-body {
+	margin: 3em 3em;
+}
