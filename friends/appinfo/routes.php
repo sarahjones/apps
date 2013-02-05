@@ -92,3 +92,9 @@ $this->create('friends_ajax_getFriendships', '/friendships')->post()->action(
 		App::main('FriendshipController', 'getFriendships', $params, new DIContainer());
 	}
 );
+
+$this->create('friends_ajax_removeFriendship', '/friendships/remove')->post()->action(
+	function($params){
+		App::main('FriendshipController', 'removeFriendship', $params, new DIContainer());
+	}
+);

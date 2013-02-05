@@ -45,9 +45,10 @@
         saveNameRoute: 'friends_ajax_setsystemvalue',
         createFriendshipRequestRoute: 'friends_ajax_createFriendshipRequest',
         acceptFriendshipRequestRoute: 'friends_ajax_acceptFriendshipRequest',
+        removeFriendshipRequestRoute: 'friends_ajax_removeFriendshipRequest',
         getFriendshipRequestsRoute: 'friends_ajax_getFriendshipRequests',
         getFriendshipsRoute: 'friends_ajax_getFriendships',
-        removeFriendshipRequestRoute: 'friends_ajax_removeFriendshipRequest'
+        removeFriendshipRoute: 'friends_ajax_removeFriendship'
       };
       return $provide.value('Config', Config);
     }
@@ -168,8 +169,7 @@
           var success;
           success = function(data) {
             scope.receivedFriendshipRequests = data.data.receivedFriendshipRequests;
-            scope.sentFriendshipRequests = data.data.sentFriendshipRequests;
-            return console.log(data);
+            return scope.sentFriendshipRequests = data.data.sentFriendshipRequests;
           };
           return this.post(route, {}, {}, success);
         };
@@ -193,7 +193,6 @@
 
         FriendsRequest.prototype.removeFriendshipRequest = function(route, userUid, sentOrReceived) {
           var data;
-          console.log("in removeFriendshipRequest");
           data = {
             userUid: userUid,
             sentOrReceived: sentOrReceived
@@ -207,6 +206,14 @@
             return scope.friendships = data.data.friendships;
           };
           return this.post(route, {}, {}, success);
+        };
+
+        FriendsRequest.prototype.removeFriendship = function(route, friendship) {
+          var data;
+          data = {
+            friend: friendship
+          };
+          return this.post(route, {}, data);
         };
 
         return FriendsRequest;
@@ -717,10 +724,18 @@
         this.$scope.$on('routesLoaded', function() {
           return _this.getFriendships(_this.$scope);
         });
+        this.$scope.removeFriendship = function(friendship) {
+          return _this.removeFriendship(friendship);
+        };
       }
 
       FriendshipController.prototype.getFriendships = function(scope) {
         return this.request.getFriendships(this.config.routes.getFriendshipsRoute, scope);
+      };
+
+      FriendshipController.prototype.removeFriendship = function(friendship) {
+        alert("in controller");
+        return this.request.removeFriendship(this.config.routes.removeFriendshipRoute, friendship);
       };
 
       return FriendshipController;
