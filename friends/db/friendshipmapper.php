@@ -67,7 +67,23 @@ class FriendshipMapper extends Mapper {
 		return $result;
 	}
 
+	public function find($userId1, $userId2){
+		$sql = 'SELECT * FROM `' . $this->tableName . '` WHERE friend_uid1 = ? AND friend_uid2 = ?
+			UNION
+			SELECT * FROM `' . $this->tableName . '` WHERE friend_uid1 = ? AND friend_uid2 = ?';
+		$params = array($userId, $userId2, $userId2, $userId);
 
+		$result = array();
+		
+		$result = $this->execute($sql, $params)->fetchRow();
+		if ($result){
+			return new Friendship($result);
+		}
+		else {
+			throw new DoesNotExistException('Friendship with users ' . $userUid1 . ' and ' . $userUid2 . ' does not exist!');
+		}
+
+	}
 
 
 	/**
@@ -80,8 +96,8 @@ class FriendshipMapper extends Mapper {
 				' VALUES(?, ?)';
 
 		$params = array(
-			$friendship->getUser1(),
-			$friendship->getUser2()
+			$friendship->getUid1(),
+			$friendship->getUid2()
 		);
 
 		return $this->execute($sql, $params);
@@ -95,6 +111,7 @@ class FriendshipMapper extends Mapper {
 	 * @param userId2: the second user
 	 */
 	public function delete($userId1, $userId2){
+		
 		//must check both ways to delete friend
 		$sql = 'DELETE FROM `' . $this->tableName . '` WHERE (friend_uid1 = ? AND friend_uid2 = ?) OR (friend_uid1 = ? AND friend_uid2 = ?)';
 		$params = array($userId1, $userId2, $userId2, $userId1);

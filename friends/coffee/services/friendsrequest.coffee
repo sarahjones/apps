@@ -46,11 +46,9 @@ angular.module('Friends').factory '_FriendsRequest',
 
 		#accept a friend request
 		acceptFriendshipRequest: (route, friendUid) ->
-			alert('in friendsrequest')
 			data =
-				acceptedfriend: friendUid
+				acceptedFriend: friendUid
 
-			alert("In FriendsRequest class")
 			@post(route, {}, data)
 
 		#create a friend request
@@ -58,6 +56,16 @@ angular.module('Friends').factory '_FriendsRequest',
 			console.log(route)
 			data =
 				recipient: recipientUid
+			
+			@post(route, {}, data)
+
+
+		#remove a friend request
+		removeFriendshipRequest: (route, userUid, sentOrReceived) ->
+			console.log("in removeFriendshipRequest")
+			data =
+				userUid: userUid
+				sentOrReceived: sentOrReceived
 			
 			@post(route, {}, data)
 
