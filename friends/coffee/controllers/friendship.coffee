@@ -27,10 +27,18 @@ angular.module('Friends').factory '_FriendshipController', ->
 			@$scope.$on 'routesLoaded', =>
                                 @getFriendships(@$scope)
 
+			@$scope.removeFriendship = (friendship) =>
+				@removeFriendship(friendship)
+
 
 		#ajax queries
 
 
 		getFriendships: (scope) ->
 			@request.getFriendships(@config.routes.getFriendshipsRoute, scope)
+
+		removeFriendship: (friendship) ->
+			alert("in controller")
+			@request.removeFriendship(@config.routes.removeFriendshipRoute, friendship)
+
 	return FriendshipController

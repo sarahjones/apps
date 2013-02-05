@@ -61,7 +61,6 @@ angular.module('Friends').factory '_FriendsRequest',
 
 		#remove a friend request
 		removeFriendshipRequest: (route, userUid, sentOrReceived) ->
-			console.log("in removeFriendshipRequest")
 			data =
 				userUid: userUid
 				sentOrReceived: sentOrReceived
@@ -76,7 +75,11 @@ angular.module('Friends').factory '_FriendsRequest',
 
 			@post(route, {}, {}, success)			
 			
-		
+		removeFriendship: (route, friendship) ->
+			data =
+				friend: friendship
+
+			@post(route, {}, data)	
 
 
 	return FriendsRequest

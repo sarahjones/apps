@@ -271,4 +271,23 @@ class FriendshipController extends Controller {
 		);
 		return $this->renderJSON($params);
 	}
+
+	/** 
+	 * @Ajax
+	 * @IsSubAdminExemption
+	 * @IsAdminExemption
+	 *
+	 * @brief deletes a Friendship for the current user
+	 * @param 
+	 */
+	public function removeFriendship(){
+		$userUid = $this->params('friend');
+		$currentUser = $this->api->getUserId();
+		$this->friendshipMapper->delete($userUid, $currentUser);
+
+error_log("deleted");
+		//TODO: return useful info
+		return $this->renderJSON(array(true));
+
+	}
 }
