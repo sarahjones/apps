@@ -38,7 +38,6 @@ angular.module('Friends').factory '_FriendsRequest',
 			success = (data) ->
 				scope.receivedFriendshipRequests = data.data.receivedFriendshipRequests
 				scope.sentFriendshipRequests = data.data.sentFriendshipRequests
-				console.log data
 
 			#this must be the call to get the data, and success must be the callback
 			@post(route, {}, {}, success)			
