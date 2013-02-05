@@ -71,7 +71,7 @@ class FriendshipMapper extends Mapper {
 		$sql = 'SELECT * FROM `' . $this->tableName . '` WHERE friend_uid1 = ? AND friend_uid2 = ?
 			UNION
 			SELECT * FROM `' . $this->tableName . '` WHERE friend_uid1 = ? AND friend_uid2 = ?';
-		$params = array($userId, $userId2, $userId2, $userId);
+		$params = array($userId1, $userId2, $userId2, $userId1);
 
 		$result = array();
 		
@@ -80,7 +80,7 @@ class FriendshipMapper extends Mapper {
 			return new Friendship($result);
 		}
 		else {
-			throw new DoesNotExistException('Friendship with users ' . $userUid1 . ' and ' . $userUid2 . ' does not exist!');
+			throw new DoesNotExistException('Friendship with users ' . $userId1 . ' and ' . $userId2 . ' does not exist!');
 		}
 
 	}

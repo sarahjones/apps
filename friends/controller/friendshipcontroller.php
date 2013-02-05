@@ -81,30 +81,9 @@ class FriendshipController extends Controller {
 		// example database access
 		// check if an entry with the current user is in the database, if not
 		// create a new entry
-		try {
-
-			$friends = $this->friendshipMapper->findAllFriendsByUser($this->api->getUserId());
-		} catch (DoesNotExistException $e) {
-			$friends = array();
-		}
-
-
-		try {
-			$friendrequests = $this->friendshipRequestMapper->findAllRequesterFriendshipRequestsByUser($this->api->getUserId());
-		} catch (DoesNotExistException $e) {
-			$friendrequests = array();
-		}
-		try {
-			$receivedfriendrequests = $this->friendshipRequestMapper->findAllRecipientFriendshipRequestsByUser($this->api->getUserId());
-		} catch (DoesNotExistException $e) {
-			$receivedfriendrequests = array();
-		}
 		$templateName = 'main';
 		$params = array(
 			'somesetting' => $this->api->getSystemValue('somesetting'),
-			'friends' => $friends,
-			'friendrequests' => $friendrequests,
-			'receivedfriendrequests' => $receivedfriendrequests,
 			'test' => $this->params('test')
 		);
 		return $this->render($templateName, $params);
@@ -145,12 +124,13 @@ class FriendshipController extends Controller {
 		$friendshipRequest->setRequester($this->api->getUserId()); 
 		$friendshipRequest->setRecipient($recipientId);
 
-		#surround with try block?
-		#need to fix return
+		//TODO: error handling
 		if($this->friendshipRequestMapper->save($friendshipRequest)){
+			//TODO: return something useful
 			return $this->renderJSON(array(true));
 		}
 		else {
+			//TODO: return something useful
 			return $this->renderJSON(array(false));
 		}	
 	}
@@ -176,16 +156,17 @@ class FriendshipController extends Controller {
 			$requester = $userUid;
 		}
 		else {
-			//need to cover this
+			//TODO: error handling
 		}
 
 		if($this->friendshipRequestMapper->find($requester, $recipient)){
 			$this->friendshipRequestMapper->delete($requester, $recipient);
+			//TODO: return something useful
 			return $this->renderJSON(array(true));
 		}
 		else {
-			alert("friendship does not exist");
-			//need to cover this
+			//TODO: error handling
+			error_log("cannot find friendshiprequest for removeFriendshipRequest");
 		}
 		
 
@@ -201,40 +182,43 @@ class FriendshipController extends Controller {
 	 * @param 
 	 */
 	public function acceptFriendshipRequest(){
-		$success = false;
-		\OCP\DB::beginTransaction();
+		$friendshipExists = true;
+		$friendshipRequestExists = true;
+		$deleted = false;
+		$saved = false;
+
 		$requester = $this->params('acceptedFriend');	
 		$currentUser = $this->api->getUserId();
-error_log($currentUser . " " . $requester);
+		\OCP\DB::beginTransaction();
+
 		try {
 			$this->friendshipRequestMapper->find($requester, $currentUser);
-			$this->friendshipRequestMapper->delete($requester, $currentUser);
-			try {
-				$this->friendshipMapper->find($currentUser, $requester);
-				//expecting that it should not be found
-error_log("no error thrown");
-			}	
-			catch (DoesNotExistException $e){
-				$friendship = new Friendship();
-				$friendship->setUid1($currentUser); 
-				$friendship->setUid2($userUid);
-				if($this->friendshipMapper->save($friendship)){
-					$success = true;	
-				}	
-				else {
-				}
-			}
 		}
 		catch (DoesNotExistException $e) {
-			//handle does not exist
-			error_log("friendshiprequest not found");
+			$friendshipRequestExists = false;			
 		}
-		#verify not in friends
-		#add to friends
-		if ($success)
-			\OCP\DB::commit();
-		else 
-		#need to capture exception and change return value?
+		try {
+			$this->friendshipMapper->find($currentUser, $requester);
+		}	
+		catch (DoesNotExistException $e){
+			$friendshipExists = false;	
+		}
+		if ($friendshipRequestExists && !$friendshipExists){
+			if($this->friendshipRequestMapper->delete($requester, $currentUser))
+				$deleted = true;
+			$friendship = new Friendship();
+			$friendship->setUid1($currentUser); 
+			$friendship->setUid2($requester);
+			if($this->friendshipMapper->save($friendship)){
+				$saved = true;	
+			}	
+		}
+		if (!$deleted || !$saved){
+			//TODO: change this to an exception with more detail
+			error_log("Error in acceptFriendshipRequest");
+		} 
+		\OCP\DB::commit();
+		//TODO: change this to return something useful
 		return $this->renderJSON(array(true));
 	}
 
@@ -244,7 +228,7 @@ error_log("no error thrown");
 	 * @IsSubAdminExemption
 	 * @IsAdminExemption
 	 *
-	 * @brief creates a FriendshipRequest
+	 * @brief gets all FriendshipRequests for the current user
 	 * @param 
 	 */
 	public function getFriendshipRequests(){
@@ -272,7 +256,7 @@ error_log("no error thrown");
 	 * @IsSubAdminExemption
 	 * @IsAdminExemption
 	 *
-	 * @brief creates a FriendshipRequest
+	 * @brief gets Friendships for the current user
 	 * @param 
 	 */
 	public function getFriendships(){
@@ -286,6 +270,5 @@ error_log("no error thrown");
 			'friendships' => $friends
 		);
 		return $this->renderJSON($params);
-		
 	}
 }
