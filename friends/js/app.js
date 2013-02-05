@@ -46,7 +46,8 @@
         createFriendshipRequestRoute: 'friends_ajax_createFriendshipRequest',
         acceptFriendshipRequestRoute: 'friends_ajax_acceptFriendshipRequest',
         getFriendshipRequestsRoute: 'friends_ajax_getFriendshipRequests',
-        getFriendshipsRoute: 'friends_ajax_getFriendships'
+        getFriendshipsRoute: 'friends_ajax_getFriendships',
+        removeFriendshipRequestRoute: 'friends_ajax_removeFriendshipRequest'
       };
       return $provide.value('Config', Config);
     }
@@ -175,11 +176,9 @@
 
         FriendsRequest.prototype.acceptFriendshipRequest = function(route, friendUid) {
           var data;
-          alert('in friendsrequest');
           data = {
-            acceptedfriend: friendUid
+            acceptedFriend: friendUid
           };
-          alert("In FriendsRequest class");
           return this.post(route, {}, data);
         };
 
@@ -188,6 +187,16 @@
           console.log(route);
           data = {
             recipient: recipientUid
+          };
+          return this.post(route, {}, data);
+        };
+
+        FriendsRequest.prototype.removeFriendshipRequest = function(route, userUid, sentOrReceived) {
+          var data;
+          console.log("in removeFriendshipRequest");
+          data = {
+            userUid: userUid,
+            sentOrReceived: sentOrReceived
           };
           return this.post(route, {}, data);
         };
@@ -526,7 +535,6 @@
             'Content-Type': 'application/x-www-form-urlencoded'
           }
         };
-        alert('about to the the http.post');
         return this.$http.post(url, postData, headers).success(function(data, status, headers, config) {
           var name, value, _ref, _results;
           if (onSuccess) {
@@ -758,6 +766,12 @@
         this.$scope.createFriendshipRequest = function(recipient) {
           return _this.createFriendshipRequest(recipient);
         };
+        this.$scope.removeSentFriendshipRequest = function(recipientUid) {
+          return _this.removeSentFriendshipRequest(recipientUid);
+        };
+        this.$scope.removeReceivedFriendshipRequest = function(requesterUid) {
+          return _this.removeReceivedFriendshipRequest;
+        };
         this.$scope.$on('routesLoaded', function() {
           return _this.getFriendshipRequests(_this.$scope);
         });
@@ -777,6 +791,15 @@
 
       FRController.prototype.getFriendshipRequests = function(scope) {
         return this.request.getFriendshipRequests(this.config.routes.getFriendshipRequestsRoute, scope);
+      };
+
+      FRController.prototype.removeSentFriendshipRequest = function(recipientUid) {
+        console.log("in removeSentFR");
+        return this.request.removeFriendshipRequest(this.config.routes.removeFriendshipRequestRoute, recipientUid, 'sent');
+      };
+
+      FRController.prototype.removeReceivedFriendshipRequest = function(requesterUid) {
+        return this.request.removeFriendshipRequest(this.config.routes.removeFriendshipRequestRoute, requesterUid, 'received');
       };
 
       return FRController;

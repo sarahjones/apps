@@ -63,13 +63,25 @@ $this->create('friends_ajax_setsystemvalue', '/setsystemvalue')->post()->action(
 );
 
 
-$this->create('friends_ajax_createFriendshipRequest', '/friendRequest')->post()->action(
+$this->create('friends_ajax_createFriendshipRequest', '/friendshipRequest')->post()->action(
 	function($params){
-		App::main('FriendshipController', 'createFriendRequest', $params, new DIContainer());
+		App::main('FriendshipController', 'createFriendshipRequest', $params, new DIContainer());
 	}
 );
 
-$this->create('friends_ajax_getFriendshipRequests', '/friendRequests')->post()->action(
+$this->create('friends_ajax_removeFriendshipRequest', '/removeFriendshipRequest')->post()->action(
+	function($params){
+		App::main('FriendshipController', 'removeFriendshipRequest', $params, new DIContainer());
+	}
+);
+
+$this->create('friends_ajax_acceptFriendshipRequest', '/acceptFriendshipRequest')->post()->action(
+	function($params){
+		App::main('FriendshipController', 'acceptFriendshipRequest', $params, new DIContainer());
+	}
+);
+
+$this->create('friends_ajax_getFriendshipRequests', '/friendshipRequests')->post()->action(
 	function($params){
 		App::main('FriendshipController', 'getFriendshipRequests', $params, new DIContainer());
 	}

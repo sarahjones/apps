@@ -32,6 +32,12 @@ angular.module('Friends').factory '_FRController', ->
 			@$scope.createFriendshipRequest = (recipient) =>
 				@createFriendshipRequest(recipient)
 
+			@$scope.removeSentFriendshipRequest = (recipientUid) =>
+				@removeSentFriendshipRequest(recipientUid)
+
+			@$scope.removeReceivedFriendshipRequest = (requesterUid) =>
+				@removeReceivedFriendshipRequest
+
 			@$scope.$on 'routesLoaded', =>
                                 @getFriendshipRequests(@$scope)
 
@@ -49,4 +55,11 @@ angular.module('Friends').factory '_FRController', ->
 
 		getFriendshipRequests: (scope) ->
 			@request.getFriendshipRequests(@config.routes.getFriendshipRequestsRoute, scope)
+
+		removeSentFriendshipRequest: (recipientUid) ->
+			console.log("in removeSentFR")
+			@request.removeFriendshipRequest(@config.routes.removeFriendshipRequestRoute, recipientUid, 'sent')
+
+		removeReceivedFriendshipRequest: (requesterUid) ->
+			@request.removeFriendshipRequest(@config.routes.removeFriendshipRequestRoute, requesterUid, 'received')
 	return FRController

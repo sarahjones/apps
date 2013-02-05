@@ -15,9 +15,11 @@
 	<div class="app-body">	
 	<!-- friends -->
 	<div ng-show="tab==0" ng-controller="FriendshipController">
-			<span ng-repeat="friendship in friendships">
-				[[friendship]]
-			</span>
+			<div ng-repeat="friendship in friendships">
+				<span>[[friendship]]</span>
+				<span style="float: right;">Remove</span>
+				<br />
+			</div>
 			<p ng-hide="friendships">
 				You do not have any friends.
 			</p>
@@ -32,11 +34,14 @@
 				<input type="text" placeholder="Enter username" ng-model="recipient">
 				<button ng-click="createFriendshipRequest(recipient)">Request Friendship</button>
 			</form>
+			<br /><br />
 
 		<!--sent requests -->
-			<span ng-repeat="friendshipRequest in sentFriendshipRequests">
-				[[friendshipRequest]]
-			</span>
+			<div ng-repeat="friendshipRequest in sentFriendshipRequests">
+				<span>[[friendshipRequest]]</span>
+				<span ng-click="removeSentFriendshipRequest(friendshipRequest)" class="float-right">Remove</span>
+				<br />
+			</div>
 			<p ng-hide="sentFriendshipRequests">
 				You are not waiting on any friend requests.
 			</p>
@@ -46,6 +51,11 @@
 		<div ng-show="tab==2" class="">
 			<span ng-repeat="friendshipRequest in receivedFriendshipRequests">
 				[[friendshipRequest]]
+				<div class="float-right">
+					<span ng-click="acceptFriendshipRequest(friendshipRequest)" >Accept</span>
+					<span ng-click="removeSentFriendshipRequest(friendshipRequest)">Remove</span>
+				</div>
+				<br />
 			</span>
 			<p ng-hide="receivedFriendshipRequests">
 				You have responded to all your friend requests.

@@ -67,7 +67,6 @@ angular.module('OC').factory '_Request', ->
 					'requesttoken': oc_requesttoken
 					'Content-Type': 'application/x-www-form-urlencoded'
 
-			alert('about to the the http.post')
 			# do the actual request
 			@$http.post(url, postData, headers)
 				.success (data, status, headers, config) =>
