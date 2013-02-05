@@ -75,3 +75,7 @@ a.selectedTab-true {
 .app-body {
 	margin: 3em 3em;
 }
+
+.float-right {
+	float: right;
+}
