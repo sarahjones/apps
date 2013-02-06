@@ -29,6 +29,8 @@ use OCA\AppFramework\Http\RedirectResponse as RedirectResponse;
 
 use OCA\Friends\Db\Friendship as Friendship;
 use OCA\Friends\Db\FriendshipRequest as FriendshipRequest;
+use OCA\Friends\Db\UserFacebookId as UserFacebookId;
+use OCA\Friends\Db\FacebookFriend as FacebookFriend;
 
 
 class FriendshipController extends Controller {
@@ -39,10 +41,16 @@ class FriendshipController extends Controller {
 	 * @param API $api: an api wrapper instance
 	 * @param ItemMapper $friendshipMapper: an itemwrapper instance
 	 */
-	public function __construct($api, $request, $friendshipMapper, $friendshipRequestMapper){
+	public function __construct($api, $request, $friendshipMapper, $friendshipRequestMapper, $userFacebookIdMapper, $facebookFriendsMapper){
 		parent::__construct($api, $request);
 		$this->friendshipMapper = $friendshipMapper;
 		$this->friendshipRequestMapper = $friendshipRequestMapper;
+		$this->userFacebookIdMapper = $userFacebookIdMapper;
+		$this->facebookFriendsMapper = $facebookFriendsMapper;
+		
+		$this->app_id = $this->api->getSystemValue('friends_fb_app_id');
+		$this->app_secret = $this->api->getSystemValue('friends_fb_app_secret');
+		$this->my_url = $this->api->getSystemValue('friends_fb_app_url');
 	}
 
 
@@ -70,55 +78,48 @@ class FriendshipController extends Controller {
 	public function index(){
 
 
-		$app_id = $this->api->getSystemValue('friends_fb_app_id');
-		$app_secret = $this->api->getSystemValue('friends_fb_app_secret');
-		$my_url = $this->api->getSystemValue('friends_fb_app_url');
+		//Set by Facebook response
+		$code = $_REQUEST["code"];
 
+		// Redirect to Login Dialog
+		if(empty($code)) {
+			$_SESSION['state'] = md5(uniqid(rand(), TRUE)); // CSRF protection
 
+			$dialog_url = "https://www.facebook.com/dialog/oauth?client_id=" 
+			. $this->app_id . "&redirect_uri=" . urlencode($this->my_url) . "&state="
+			. $_SESSION['state'];
+		}
 
-   //session_start();
+		//Have permission
+		if($_SESSION['state'] && ($_SESSION['state'] === $_REQUEST['state'])) {
+			$token_url = "https://graph.facebook.com/oauth/access_token?"
+				. "client_id=" . $this->app_id . "&redirect_uri=" . urlencode($this->my_url)
+				. "&client_secret=" . $this->app_secret . "&code=" . $code;
 
+			$response = file_get_contents($token_url); //Get access token
+			$params = null;
+			parse_str($response, $params);
+			$_SESSION['access_token'] = $params['access_token'];
 
-   $code = $_REQUEST["code"];
-error_log("executed code");
+			$graph_url = "https://graph.facebook.com/me?access_token=" 
+					. $params['access_token'];
+			$user = json_decode(file_get_contents($graph_url)); //Get user info
+			$userFacebookId = new UserFacebookId();
+			$userFacebookId->setUid($this->api->getUserId());
+			$userFacebookId->setFacebookId($user->id);
+			$this->userFacebookIdMapper->save($userFacebookId);
+	
+			$graph_url = "https://graph.facebook.com/me/friends?access_token=" 
+					. $params['access_token'];
+			$friends = json_decode(file_get_contents($graph_url)); //Get user's friends
+			$facebookFriends = FacebookFriend::createFromList($friends->data, $this->api->getUserId());
+			$this->facebookFriendsMapper->saveAll($facebookFriends);
 
-   if(empty($code)) {
-     // Redirect to Login Dialog
-     $_SESSION['state'] = md5(uniqid(rand(), TRUE)); // CSRF protection
-     $dialog_url = "https://www.facebook.com/dialog/oauth?client_id=" 
-       . $app_id . "&redirect_uri=" . urlencode($my_url) . "&state="
-       . $_SESSION['state'];
-
-//     echo("<script> top.location.href='" . $dialog_url . "'</script>");
-error_log("in if");
-   }
-   if($_SESSION['state'] && ($_SESSION['state'] === $_REQUEST['state'])) {
-error_log("code" . $code);
-     $token_url = "https://graph.facebook.com/oauth/access_token?"
-       . "client_id=" . $app_id . "&redirect_uri=" . urlencode($my_url)
-       . "&client_secret=" . $app_secret . "&code=" . $code;
-
-     $response = file_get_contents($token_url);
-     $params = null;
-     parse_str($response, $params);
-      $_SESSION['access_token'] = $params['access_token'];
-error_log('token=' . $params['access_token']);
- $graph_url = "https://graph.facebook.com/me?access_token=" 
-       . $params['access_token'];
-error_log($graph_url);
-     $user = json_decode(file_get_contents($graph_url));
-error_log($user->name); 
-error_log('id' . $user->id);
- $graph_url = "https://graph.facebook.com/me/friends?access_token=" 
-       . $params['access_token'];
-$friends = json_decode(file_get_contents($graph_url));
-error_log("friends " . $friends->data[0]->name);
-error_log("friends count " . count($friends->data));
-
-   }
-   else {
-     echo("The state does not match. You may be a victim of CSRF.");
-   }
+		}
+		else {
+			error_log("State does not match for Facebook auth");
+			echo("The state does not match. You may be a victim of CSRF.");
+		}
 
 
 		// thirdparty stuff
