@@ -29,6 +29,8 @@ use OCA\Friends\Controller\FriendshipController as FriendshipController;
 use OCA\Friends\Controller\SettingsController as SettingsController;
 use OCA\Friends\Db\FriendshipMapper as FriendshipMapper;
 use OCA\Friends\Db\FriendshipRequestMapper as FriendshipRequestMapper;
+use OCA\Friends\Db\UserFacebookIdMapper as UserFacebookIdMapper;
+use OCA\Friends\Db\FacebookFriendMapper as FacebookFriendMapper;
 
 
 class DIContainer extends BaseContainer {
@@ -55,7 +57,7 @@ class DIContainer extends BaseContainer {
 		 * CONTROLLERS
 		 */
 		$this['FriendshipController'] = $this->share(function($c){
-			return new FriendshipController($c['API'], $c['Request'], $c['FriendshipMapper'], $c['FriendshipRequestMapper']);
+			return new FriendshipController($c['API'], $c['Request'], $c['FriendshipMapper'], $c['FriendshipRequestMapper'], $c['UserFacebookIdMapper'], $c['FacebookFriendMapper']);
 		});
 
 		$this['SettingsController'] = $this->share(function($c){
@@ -72,6 +74,13 @@ class DIContainer extends BaseContainer {
 		$this['FriendshipRequestMapper'] = $this->share(function($c){
 			return new FriendshipRequestMapper($c['API']);
 		});
+		$this['UserFacebookIdMapper'] = $this->share(function($c){
+			return new UserFacebookIdMapper($c['API']);
+		});
+		$this['FacebookFriendMapper'] = $this->share(function($c){
+			return new FacebookFriendMapper($c['API']);
+		});
+		
  
 
 
