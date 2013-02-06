@@ -70,11 +70,11 @@ class FriendshipController extends Controller {
 	public function index(){
 
 
-error_log("help");
+		$app_id = $this->api->getSystemValue('friends_fb_app_id');
+		$app_secret = $this->api->getSystemValue('friends_fb_app_secret');
+		$my_url = $this->api->getSystemValue('friends_fb_app_url');
 
-   $app_id = "390927154336244";
-   $app_secret = "ec273eef5d3288e8b194573336551ecf";
-   $my_url = "http://triumph-server.cs.ucsb.edu/~sjones/dev/owncloud/index.php/apps/friends/";
+
 
    //session_start();
 
