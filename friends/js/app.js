@@ -278,6 +278,7 @@
 
 
 (function() {
+  var FriendsFacebookApp;
 
   angular.module('Friends').factory('FriendsRequest', [
     '$http', '$rootScope', 'Config', '_FriendsRequest', 'Publisher', 'FRModel', function($http, $rootScope, Config, _FriendsRequest, Publisher, FRModel) {
@@ -308,6 +309,52 @@
       return new _FriendsRequest($http, $rootScope, Config, Publisher);
     }
   ]);
+
+  angular.module('Friends').factory('facebook', [
+    function() {
+      return FB;
+    }
+  ]);
+
+  FriendsFacebookApp = (function() {
+
+    function FriendsFacebookApp() {}
+
+    FriendsFacebookApp.prototype.checkLoginStatus = function() {
+      return console.log("checkedLoginStatus");
+    };
+
+    return FriendsFacebookApp;
+
+  })();
+
+  window.friendsFacebookApp = new FriendsFacebookApp();
+
+  window.fbAsyncInit = function() {
+    FB.init({
+      appId: '390927154336244',
+      channelUrl: '//triumph-server.cs.ucsb.edu/~sjones/dev/apps/friends/channel.html',
+      status: true,
+      cookie: true,
+      xfbml: true
+    });
+    return friendsFacebookApp.checkLoginStatus();
+  };
+
+  (function(d) {
+    var id, js, ref;
+    id = 'facebook-jssdk';
+    ref = d.getElementsByTagName('script')[0];
+    if (d.getElementById(id)) {
+      return;
+    }
+    js = d.createElement('script');
+    js.id = id;
+    js.async = true;
+    js.src = "//connect.facebook.net/en_US/all.js";
+    ref.parentNode.insertBefore(js, ref);
+    return document;
+  });
 
 }).call(this);
 
