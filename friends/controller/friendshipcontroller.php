@@ -69,6 +69,58 @@ class FriendshipController extends Controller {
 	 */
 	public function index(){
 
+
+error_log("help");
+
+   $app_id = "390927154336244";
+   $app_secret = "ec273eef5d3288e8b194573336551ecf";
+   $my_url = "http://triumph-server.cs.ucsb.edu/~sjones/dev/owncloud/index.php/apps/friends/";
+
+   //session_start();
+
+
+   $code = $_REQUEST["code"];
+error_log("executed code");
+
+   if(empty($code)) {
+     // Redirect to Login Dialog
+     $_SESSION['state'] = md5(uniqid(rand(), TRUE)); // CSRF protection
+     $dialog_url = "https://www.facebook.com/dialog/oauth?client_id=" 
+       . $app_id . "&redirect_uri=" . urlencode($my_url) . "&state="
+       . $_SESSION['state'];
+
+//     echo("<script> top.location.href='" . $dialog_url . "'</script>");
+error_log("in if");
+   }
+   if($_SESSION['state'] && ($_SESSION['state'] === $_REQUEST['state'])) {
+error_log("code" . $code);
+     $token_url = "https://graph.facebook.com/oauth/access_token?"
+       . "client_id=" . $app_id . "&redirect_uri=" . urlencode($my_url)
+       . "&client_secret=" . $app_secret . "&code=" . $code;
+
+     $response = file_get_contents($token_url);
+     $params = null;
+     parse_str($response, $params);
+      $_SESSION['access_token'] = $params['access_token'];
+error_log('token=' . $params['access_token']);
+ $graph_url = "https://graph.facebook.com/me?access_token=" 
+       . $params['access_token'];
+error_log($graph_url);
+     $user = json_decode(file_get_contents($graph_url));
+error_log($user->name); 
+error_log('id' . $user->id);
+ $graph_url = "https://graph.facebook.com/me/friends?access_token=" 
+       . $params['access_token'];
+$friends = json_decode(file_get_contents($graph_url));
+error_log("friends " . $friends->data[0]->name);
+error_log("friends count " . count($friends->data));
+
+   }
+   else {
+     echo("The state does not match. You may be a victim of CSRF.");
+   }
+
+
 		// thirdparty stuff
 		$this->api->add3rdPartyScript('angular/angular');
 
@@ -84,7 +136,9 @@ class FriendshipController extends Controller {
 		$templateName = 'main';
 		$params = array(
 			'somesetting' => $this->api->getSystemValue('somesetting'),
-			'test' => $this->params('test')
+			'test' => $this->params('test'),
+			'fb_dialog_url' => $dialog_url //,
+			//'fb_user' => $user->name
 		);
 		return $this->render($templateName, $params);
 	}

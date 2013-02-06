@@ -27,6 +27,8 @@
 	</div>
 
 
+	<a href="{{fb_dialog_url}}">Sync Friends</a>
+	<p>Hello {{fb_user}}</p>
 
 	<div  ng-controller="FRController">
 		<div ng-show="tab==1" class="">
@@ -65,6 +67,5 @@
 
 	</div>
 </div>
-
 
 
