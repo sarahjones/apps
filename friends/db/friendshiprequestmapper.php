@@ -93,25 +93,38 @@ class FriendshipRequestMapper extends Mapper {
 	 * @return true if successful
 	 */
 	public function save($friendship_request){
-		try {
-			$this->find($friendship_request->getRequester(), $friendship_request->getRecipient());
-			
+		if($this->exists($friendship_request->getRequester(), $friendship_request->getRecipient())){
+			throw new AlreadyExistsException('Cannot save FriendshipRequest with requester_uid = ' . $friendship_request->getRequester() . ' and recipient_uid = ' . $friendship_request->getRecipient());
 		}
-		catch (DoesNotExistException $e) {
-			//friendship does not already exist
-			$sql = 'INSERT INTO `'. $this->tableName . '` (requester_uid, recipient_uid)'.
-				' VALUES(?, ?)';
 
-			$params = array(
-				$friendship_request->getRequester(),
-				$friendship_request->getRecipient()
-			);
+		$sql = 'INSERT INTO `'. $this->tableName . '` (requester_uid, recipient_uid)'.
+			' VALUES(?, ?)';
 
-			return $this->execute($sql, $params);
+		$params = array(
+			$friendship_request->getRequester(),
+			$friendship_request->getRecipient()
+		);
+
+		return $this->execute($sql, $params);
+	}
+
+	/** 
+	 * Checks to see if a row already exists
+	 * @param $requester - the requester id
+	 * @param $recipient - the recipient id
+	 * @return boolean: whether or not it exists (note: will return true if more than one is found)
+	 */
+	public function exists($requester, $recipient){
+		try{
+			$this->find($requester, $recipient);
 		}
-		return false;
-
-
+		catch (DoesNotExistException $e){
+			return false;
+		}
+		catch (MultipleObjectsReturnedException $e){
+			return true;
+		}
+		return true;
 	}
 
 	/**
