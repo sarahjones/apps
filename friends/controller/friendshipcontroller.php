@@ -78,6 +78,38 @@ class FriendshipController extends Controller {
 	public function index(){
 
 
+		// thirdparty stuff
+		$this->api->add3rdPartyScript('angular/angular');
+
+		// your own stuff
+		$this->api->addStyle('style');
+		$this->api->addStyle('animation');
+
+		$this->api->addScript('app');
+
+		// example database access
+		// check if an entry with the current user is in the database, if not
+		// create a new entry
+		$templateName = 'main';
+		$params = array(
+			'somesetting' => $this->api->getSystemValue('somesetting'),
+			'test' => $this->params('test')
+		);
+		return $this->render($templateName, $params);
+	}
+
+
+	/**
+	 * @CSRFExemption
+	 * @IsAdminExemption
+	 * @IsSubAdminExemption
+	 *
+	 * @brief renders the facebook page
+	 * @return an instance of a Response implementation
+	 */
+	public function facebookSync(){
+
+		/*	Start Facebook Code 	*/
 		//Set by Facebook response
 		$code = $_REQUEST["code"];
 
@@ -120,8 +152,10 @@ class FriendshipController extends Controller {
 			error_log("State does not match for Facebook auth");
 			echo("The state does not match. You may be a victim of CSRF.");
 		}
+		/* 	End Facebook Code	*/
 
 
+error_log("In facebookSync");
 		// thirdparty stuff
 		$this->api->add3rdPartyScript('angular/angular');
 
@@ -131,17 +165,12 @@ class FriendshipController extends Controller {
 
 		$this->api->addScript('app');
 
-		// example database access
-		// check if an entry with the current user is in the database, if not
-		// create a new entry
-		$templateName = 'main';
+		$templateName = 'facebook';
 		$params = array(
-			'somesetting' => $this->api->getSystemValue('somesetting'),
-			'test' => $this->params('test'),
-			'fb_dialog_url' => $dialog_url //,
-			//'fb_user' => $user->name
+			'fb_dialog_url' => $dialog_url
 		);
 		return $this->render($templateName, $params);
+
 	}
 
 
