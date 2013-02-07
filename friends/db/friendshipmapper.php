@@ -26,6 +26,8 @@ namespace OCA\Friends\Db;
 use \OCA\AppFramework\Core\API as API;
 use \OCA\AppFramework\Db\Mapper as Mapper;
 use \OCA\AppFramework\Db\DoesNotExistException as DoesNotExistException;
+use \OCA\AppFramework\Db\MultipleObjectsReturnedException as MultipleObjectsReturnedException;
+use OCA\Friends\Db\AlreadyExistsException as AlreadyExistsException;
 
 
 class FriendshipMapper extends Mapper {
@@ -75,16 +77,37 @@ class FriendshipMapper extends Mapper {
 
 		$result = array();
 		
-		$result = $this->execute($sql, $params)->fetchRow();
-		if ($result){
-			return new Friendship($result);
-		}
-		else {
+		$result = $this->execute($sql, $params);
+		$row = $result->fetchRow();
+
+		if ($row === null) {
 			throw new DoesNotExistException('Friendship with users ' . $userId1 . ' and ' . $userId2 . ' does not exist!');
+		} elseif($result->fetchRow() !== null) {
+			throw new MultipleObjectsReturnedException('Friendship with users ' .$userId1 . ' and ' . $userId2 . ' returned more than one result.');
 		}
+		return new Friendship($row);
 
 	}
 
+
+	/** 
+	 * Checks to see if a row already exists
+	 * @param $userId1 - the first user id
+	 * @param $userId2 - the second user id
+	 * @return boolean: whether or not it exists (note: will return true if more than one is found)
+	 */
+	public function exists($userId1, $userId2){
+		try{
+			$this->find($userId1, $userId2);
+		}
+		catch (DoesNotExistException $e){
+			return false;
+		}
+		catch (MultipleObjectsReturnedException $e){
+			return true;
+		}
+		return true;
+	}
 
 	/**
 	 * Saves a friendship into the database
@@ -92,6 +115,9 @@ class FriendshipMapper extends Mapper {
 	 * @return true if successful
 	 */
 	public function save($friendship){
+		if ($this->exists($friendship->getUid1(), $friendship->getUid2())){
+			throw new AlreadyExistsException('Cannot save Friendship with friend_uid1 = ' . $friendship->getUid1() . ' and friend_uid2 = ' . $friendship->getUid2());
+		}
 		$sql = 'INSERT INTO `'. $this->tableName . '` (friend_uid1, friend_uid2)'.
 				' VALUES(?, ?)';
 
@@ -102,6 +128,8 @@ class FriendshipMapper extends Mapper {
 
 		return $this->execute($sql, $params);
 	}
+
+
 
 
 
