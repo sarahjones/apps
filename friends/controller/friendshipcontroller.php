@@ -155,7 +155,6 @@ class FriendshipController extends Controller {
 		/* 	End Facebook Code	*/
 
 
-error_log("In facebookSync");
 		// thirdparty stuff
 		$this->api->add3rdPartyScript('angular/angular');
 
@@ -243,7 +242,7 @@ error_log("In facebookSync");
 			//TODO: error handling
 		}
 
-		if($this->friendshipRequestMapper->find($requester, $recipient)){
+		if($this->friendshipRequestMapper->exists($requester, $recipient)){
 			$this->friendshipRequestMapper->delete($requester, $recipient);
 			//TODO: return something useful
 			return $this->renderJSON(array(true));
@@ -266,8 +265,8 @@ error_log("In facebookSync");
 	 * @param 
 	 */
 	public function acceptFriendshipRequest(){
-		$friendshipExists = true;
-		$friendshipRequestExists = true;
+		$friendshipExists = false;
+		$friendshipRequestExists = false;
 		$deleted = false;
 		$saved = false;
 
@@ -275,18 +274,13 @@ error_log("In facebookSync");
 		$currentUser = $this->api->getUserId();
 		\OCP\DB::beginTransaction();
 
-		try {
-			$this->friendshipRequestMapper->find($requester, $currentUser);
+		if ($this->friendshipRequestMapper->exists($requester, $currentUser)){
+			$friendshipRequestExists = true;			
 		}
-		catch (DoesNotExistException $e) {
-			$friendshipRequestExists = false;			
-		}
-		try {
-			$this->friendshipMapper->find($currentUser, $requester);
+		if ($this->friendshipMapper->exists($currentUser, $requester)){
+			$friendshipExists = true;	
 		}	
-		catch (DoesNotExistException $e){
-			$friendshipExists = false;	
-		}
+
 		if ($friendshipRequestExists && !$friendshipExists){
 			if($this->friendshipRequestMapper->delete($requester, $currentUser))
 				$deleted = true;
@@ -316,16 +310,9 @@ error_log("In facebookSync");
 	 * @param 
 	 */
 	public function getFriendshipRequests(){
-		try {
-			$receivedfriendrequests = $this->friendshipRequestMapper->findAllRecipientFriendshipRequestsByUser($this->api->getUserId());
-		} catch (DoesNotExistException $e) {
-			$receivedfriendrequests = array();
-		}
-		try {
-			$sentfriendrequests = $this->friendshipRequestMapper->findAllRequesterFriendshipRequestsByUser($this->api->getUserId());
-		} catch (DoesNotExistException $e) {
-			$sentfriendrequests = array();
-		}
+		$receivedfriendrequests = $this->friendshipRequestMapper->findAllRecipientFriendshipRequestsByUser($this->api->getUserId());
+		$sentfriendrequests = $this->friendshipRequestMapper->findAllRequesterFriendshipRequestsByUser($this->api->getUserId());
+
 		$params = array(
 			'receivedFriendshipRequests' => $receivedfriendrequests,
 			'sentFriendshipRequests' => $sentfriendrequests
@@ -344,12 +331,7 @@ error_log("In facebookSync");
 	 * @param 
 	 */
 	public function getFriendships(){
-		try {
-
-			$friends = $this->friendshipMapper->findAllFriendsByUser($this->api->getUserId());
-		} catch (DoesNotExistException $e) {
-			$friends = array();
-		}
+		$friends = $this->friendshipMapper->findAllFriendsByUser($this->api->getUserId());
 		$params = array(
 			'friendships' => $friends
 		);
