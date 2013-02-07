@@ -47,6 +47,12 @@ $this->create('friends_index_param', '/test/{test}')->action(
 	}
 );
 
+$this->create('friends_facebook', '/facebook')->action(
+	function($params){
+		App::main('FriendshipController', 'facebookSync', $params, new DIContainer());
+	}
+);
+
 $this->create('friends_index_redirect', '/redirect')->action(
 	function($params){
 		App::main('FriendshipController', 'redirectToIndex', $params, new DIContainer());
