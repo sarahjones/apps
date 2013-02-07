@@ -117,11 +117,11 @@ class FriendshipRequestMapperTest extends \PHPUnit_Framework_TestCase {
 		$expected = 'INSERT INTO `*PREFIX*friends_friendship_requests` (requester_uid, recipient_uid) VALUES(?, ?)';
 
 
-		$frmapper = $this->getMock('OCA\Friends\Db\FriendshipRequestMapper', array('find'), array($this->api));
+		$frmapper = $this->getMock('OCA\Friends\Db\FriendshipRequestMapper', array('exists'), array($this->api));
 		$frmapper->expects($this->once())
-			->method('find')
+			->method('exists')
 			->with($userId2, $userId1)
-			->will($this->throwException(new DoesNotExistException("msg")));
+			->will($this->returnValue(false));
 		
 		$query = $this->getMock('query', array('execute'));
 		$query->expects($this->once())
@@ -146,9 +146,9 @@ class FriendshipRequestMapperTest extends \PHPUnit_Framework_TestCase {
 		$userId1 = 'thisisuser1';
 		$userId2 = 'thisisuser2';
 
-		$frmapper = $this->getMock(get_class($this->mapper), array('find'), array($this->api));
+		$frmapper = $this->getMock(get_class($this->mapper), array('exists'), array($this->api));
 		$frmapper->expects($this->once())
-			->method('find')
+			->method('exists')
 			->with($userId2, $userId1)
 			->will($this->returnValue($this->row3));
 
@@ -157,8 +157,8 @@ class FriendshipRequestMapperTest extends \PHPUnit_Framework_TestCase {
 		$friendshipRequest->setRecipient($userId1);
 		$friendshipRequest->setRequester($userId2);
 
+		$this->setExpectedException('OCA\Friends\Db\AlreadyExistsException');
 		$result = $frmapper->save($friendshipRequest);
-		$this->assertEquals(false, $result);
 		
 	}
 
@@ -216,6 +216,22 @@ class FriendshipRequestMapperTest extends \PHPUnit_Framework_TestCase {
 		$this->setExpectedException('OCA\AppFramework\Db\DoesNotExistException');
 
 		$this->mapper->find($userId2, $userId1);
+	}
+
+	public function testExists(){
+		$userId1 = 'thisisuser1';
+		$userId2 = 'thisisuser2';
+		$params = array($userId2, $userId1);
+
+		$frmapper = $this->getMock('OCA\Friends\Db\FriendshipRequestMapper', array('find'), array($this->api));
+		$frmapper->expects($this->once())
+			->method('find')
+			->with($userId1, $userId2)
+			->will($this->returnValue(true));
+		
+
+		$result = $frmapper->exists($userId1, $userId2);
+		$this->assertEquals(true, $result);
 	}
 
 	public function testDelete(){

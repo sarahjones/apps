@@ -69,6 +69,14 @@ class FriendshipMapper extends Mapper {
 		return $result;
 	}
 
+	/**
+	 * Finds a friendship  
+	 * @param string $userId1: the id of one of the users
+	 * @param string $userId2: the id  of the other user
+	 * @throws DoesNotExistException: if the item does not exist
+	 * @throws MultipleObjectsReturnedException: if more than one friendship with those ids exists
+	 * @return a friendship object
+	 */
 	public function find($userId1, $userId2){
 		$sql = 'SELECT * FROM `' . $this->tableName . '` WHERE friend_uid1 = ? AND friend_uid2 = ?
 			UNION
@@ -86,7 +94,6 @@ class FriendshipMapper extends Mapper {
 			throw new MultipleObjectsReturnedException('Friendship with users ' .$userId1 . ' and ' . $userId2 . ' returned more than one result.');
 		}
 		return new Friendship($row);
-
 	}
 
 
@@ -130,9 +137,6 @@ class FriendshipMapper extends Mapper {
 	}
 
 
-
-
-
 	/**
 	 * Deletes a friendship
 	 * @param userId1: the first user
@@ -145,7 +149,6 @@ class FriendshipMapper extends Mapper {
 		$params = array($userId1, $userId2, $userId2, $userId1);
 		
 		return $this->execute($sql, $params);
-	
 	}
 
 
