@@ -88,9 +88,10 @@ class FriendshipMapper extends Mapper {
 		$result = $this->execute($sql, $params);
 		$row = $result->fetchRow();
 
-		if ($row === null) {
+
+		if ($row === false) {
 			throw new DoesNotExistException('Friendship with users ' . $userId1 . ' and ' . $userId2 . ' does not exist!');
-		} elseif($result->fetchRow() !== null) {
+		} elseif($result->fetchRow() !== false) {
 			throw new MultipleObjectsReturnedException('Friendship with users ' .$userId1 . ' and ' . $userId2 . ' returned more than one result.');
 		}
 		return new Friendship($row);
@@ -104,8 +105,9 @@ class FriendshipMapper extends Mapper {
 	 * @return boolean: whether or not it exists (note: will return true if more than one is found)
 	 */
 	public function exists($userId1, $userId2){
+		error_log("in exists");
 		try{
-			$this->find($userId1, $userId2);
+			$f = $this->find($userId1, $userId2);
 		}
 		catch (DoesNotExistException $e){
 			return false;
@@ -133,6 +135,7 @@ class FriendshipMapper extends Mapper {
 			$friendship->getUid2()
 		);
 
+		error_log("saving");
 		return $this->execute($sql, $params);
 	}
 

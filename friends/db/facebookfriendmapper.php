@@ -44,47 +44,55 @@ class FacebookFriendMapper extends Mapper {
 
 
 
-
 	/**
-	 * Finds all friends for a user 
-	 * @param string $userId: the id of the user that we want to find friends for
-	 * @throws DoesNotExistException: if the item does not exist
-	 * @return an array of friends
+	 * Finds all Facebook friends' owncloud uid in owncloud (should be used for the current user)
+	 * @param Facebook id string $currentUserFacebookId: the Facebook identifier of the user to find friends for
 	 */
-	public function findAllFriendsByUser($userId){
-		$sql = 'SELECT friend_uid2 as friend FROM `' . $this->tableName . '` WHERE friend_uid1 = ?
-			UNION
-			SELECT friend_uid1 as friend FROM `' . $this->tableName . '` WHERE friend_uid2 = ?';
-		$params = array($userId, $userId);
+	public function findAllFacebookFriendsUids($currentUserFacebookId){
+		$sql = 'SELECT uid FROM `'. $this->tableName . '` WHERE facebook_friend_id = ?';
+		
+		$params = array($currentUserFacebookId);
 
 		$result = array();
-		
 		$query_result = $this->execute($sql, $params);
-		while($row =  $query_result->fetchRow()){
-			$friend = $row['friend'];
-			array_push($result, $friend);
-		}
+		while ($row = $query_result->fetchRow()){
+			array_push($result, $row['uid']);
+		}	
 		return $result;
 	}
 
-	public function find($userId1, $userId2){
-		$sql = 'SELECT * FROM `' . $this->tableName . '` WHERE friend_uid1 = ? AND friend_uid2 = ?
-			UNION
-			SELECT * FROM `' . $this->tableName . '` WHERE friend_uid1 = ? AND friend_uid2 = ?';
-		$params = array($userId1, $userId2, $userId2, $userId1);
+	public function find($uid, $facebookFriendId){
+		$sql = 'SELECT * FROM `' . $this->tableName . '` WHERE uid = ? AND facebook_friend_id = ?';
+		$params = array($uid, $facebookFriendId);
 
 		$result = array();
 		
 		$result = $this->execute($sql, $params)->fetchRow();
 		if ($result){
-			return new Friendship($result);
+			return new FacebookFriend($result);
 		}
 		else {
-			throw new DoesNotExistException('Friendship with users ' . $userId1 . ' and ' . $userId2 . ' does not exist!');
+			throw new DoesNotExistException('UserFacebookId with uid ' . $uid . ' and facebookFriendId ' . $facebookFriendId . ' does not exist!');
 		}
 
 	}
 
+	/** 
+	 * Checks to see if a row already exists
+	 * @return boolean: whether or not it exists (note: will return true if more than one is found)
+	 */
+	public function exists($uid, $facebookFriendId){
+		try{
+			$this->find($uid, $facebookFriendId);
+		}
+		catch (DoesNotExistException $e){
+			return false;
+		}
+		catch (MultipleObjectsReturnedException $e){
+			return true;
+		}
+		return true;
+	}
 
 	/**
 	 * Saves a friendship into the database
@@ -92,6 +100,9 @@ class FacebookFriendMapper extends Mapper {
 	 * @return true if successful
 	 */
 	public function save($facebookFriend){
+		if ($this->exists($facebookFriend->getUid(), $facebookFriend->getFacebookFriendId())){
+			throw new AlreadyExistsException('Cannot save FacebookFriend with uid = ' . $facebookFriend->getUid() . ' and facebook_friend_id = ' . $facebookFriend->getFacebookFriendId() . ' because it already exists');
+		}
 		$sql = 'INSERT INTO `'. $this->tableName . '` (uid, facebook_friend_id)'.
 				' VALUES(?, ?)';
 
@@ -105,7 +116,12 @@ class FacebookFriendMapper extends Mapper {
 
 	public function saveAll($facebookFriendsArray){
 		foreach ($facebookFriendsArray as $facebookFriend){
-			$this->save($facebookFriend);
+			try{
+				$this->save($facebookFriend);
+			}
+			catch (AlreadyExistsException $e){
+				//Do nothing, just means they have sync'd before
+			}
 		}
 	}
 
@@ -125,5 +141,11 @@ class FacebookFriendMapper extends Mapper {
 	
 	}
 
+	public function deleteBoth($uid1, $facebookFriendId1, $uid2,  $facebookFriendId2){
+		$sql = 'DELETE FROM `' . $this->tableName . '` WHERE (uid = ? AND facebook_friend_id = ?) OR (uid = ? AND facebook_friend_id = ?)';
+		$params = array($uid1, $facebookFriendId2, $uid2, $facebookFriendId1);
+
+		return $this->execute($sql, $params);
+	}
 
 }

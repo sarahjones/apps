@@ -139,12 +139,15 @@ class FriendshipRequestMapper extends Mapper {
 			$recipient
 		);
 
-		$result = $this->execute($sql, $params)->fetchRow();
-		if($result){
-			return new FriendshipRequest($result);
-		} else {
+		$result = $this->execute($sql, $params);
+		$row = $result->fetchRow();
+
+		if ($row === false) {
 			throw new DoesNotExistException('FriendshipRequest with requester ' . $requester . ' and recipient ' . $recipient . ' does not exist!');
+		} elseif($result->fetchRow() !== false) {
+			throw new MultipleObjectsReturnedException('FriendshipRequest with requester ' . $requester . ' and recipient ' . $recipient . ' returned more than one result!');
 		}
+		return new FriendshipRequest($result);
 		
 	}
 
