@@ -41,12 +41,12 @@ class FriendshipController extends Controller {
 	 * @param API $api: an api wrapper instance
 	 * @param ItemMapper $friendshipMapper: an itemwrapper instance
 	 */
-	public function __construct($api, $request, $friendshipMapper, $friendshipRequestMapper, $userFacebookIdMapper, $facebookFriendsMapper){
+	public function __construct($api, $request, $friendshipMapper, $friendshipRequestMapper, $userFacebookIdMapper, $facebookFriendMapper){
 		parent::__construct($api, $request);
 		$this->friendshipMapper = $friendshipMapper;
 		$this->friendshipRequestMapper = $friendshipRequestMapper;
 		$this->userFacebookIdMapper = $userFacebookIdMapper;
-		$this->facebookFriendsMapper = $facebookFriendsMapper;
+		$this->facebookFriendMapper = $facebookFriendMapper;
 		
 		$this->app_id = $this->api->getSystemValue('friends_fb_app_id');
 		$this->app_secret = $this->api->getSystemValue('friends_fb_app_secret');
@@ -108,6 +108,13 @@ class FriendshipController extends Controller {
 	 * @return an instance of a Response implementation
 	 */
 	public function facebookSync(){
+		//Check for rejected permissions
+		//YOUR_REDIRECT_URI?
+			//error_reason=user_denied
+			//&error=access_denied
+			//&error_description=The+user+denied+your+request.
+			//&state=YOUR_STATE_VALUE
+
 
 		/*	Start Facebook Code 	*/
 		//Set by Facebook response
@@ -131,21 +138,61 @@ class FriendshipController extends Controller {
 			$response = file_get_contents($token_url); //Get access token
 			$params = null;
 			parse_str($response, $params);
-			$_SESSION['access_token'] = $params['access_token'];
+			if ($params['access_token']===null){
+				//TODO message to user
+				error_log("Access token was empty");
+			}
+			else{
+				$_SESSION['access_token'] = $params['access_token'];
 
-			$graph_url = "https://graph.facebook.com/me?access_token=" 
-					. $params['access_token'];
-			$user = json_decode(file_get_contents($graph_url)); //Get user info
-			$userFacebookId = new UserFacebookId();
-			$userFacebookId->setUid($this->api->getUserId());
-			$userFacebookId->setFacebookId($user->id);
-			$this->userFacebookIdMapper->save($userFacebookId);
-	
-			$graph_url = "https://graph.facebook.com/me/friends?access_token=" 
-					. $params['access_token'];
-			$friends = json_decode(file_get_contents($graph_url)); //Get user's friends
-			$facebookFriends = FacebookFriend::createFromList($friends->data, $this->api->getUserId());
-			$this->facebookFriendsMapper->saveAll($facebookFriends);
+				$graph_url = "https://graph.facebook.com/me?access_token=" 
+						. $params['access_token'];
+				$user = json_decode(file_get_contents($graph_url)); //Get user info
+				$currentUser = $this->api->getUserId();
+				if (!$this->userFacebookIdMapper->exists($currentUser, $user->id)){
+					$userFacebookId = new UserFacebookId();
+					$userFacebookId->setUid($this->api->getUserId());
+					$userFacebookId->setFacebookId($user->id);
+					$this->userFacebookIdMapper->save($userFacebookId);
+				}
+		
+				$graph_url = "https://graph.facebook.com/me/friends?access_token=" 
+						. $params['access_token'];
+				$friends = json_decode(file_get_contents($graph_url)); //Get user's friends
+				$facebookFriends = FacebookFriend::createFromList($friends->data, $currentUser);
+				$this->facebookFriendMapper->saveAll($facebookFriends);
+
+				//Process Existing Friends (Facebook friends on owncloud that have already done the sync)
+				$existingFacebookFriends = $this->facebookFriendMapper->findAllFacebookFriendsUids($user->id);
+				
+				foreach ($existingFacebookFriends as $friend){
+					try {
+						$friendFacebookId = $this->userFacebookIdMapper->find($friend);
+					}
+					catch (DoesNotExistException $e){
+						continue;
+					}
+					//Transaction
+					\OCP\DB::beginTransaction();
+					
+					if (!\OC_User::userExists($friend)){
+						error_log("User does not exist but is in FacebookFriends table as uid");
+						\OCP\DB::commit();
+						continue;
+					}
+					if (!$this->friendshipMapper->exists($friend, $currentUser)){
+						$friendship = new Friendship();
+						$friendship->setUid1($friend);
+						$friendship->setUid2($currentUser);
+						$this->friendshipMapper->save($friendship);
+					}
+					
+					//delete facebookfriend entry both ways
+					$this->facebookFriendMapper->deleteBoth($friend, $friendFacebookId->getFacebookId(), $currentUser,  $user->id);
+					\OCP\DB::commit();
+				}
+			}
+				
 
 		}
 		else {
@@ -351,7 +398,6 @@ class FriendshipController extends Controller {
 		$currentUser = $this->api->getUserId();
 		$this->friendshipMapper->delete($userUid, $currentUser);
 
-error_log("deleted");
 		//TODO: return useful info
 		return $this->renderJSON(array(true));
 
