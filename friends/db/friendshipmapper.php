@@ -105,7 +105,6 @@ class FriendshipMapper extends Mapper {
 	 * @return boolean: whether or not it exists (note: will return true if more than one is found)
 	 */
 	public function exists($userId1, $userId2){
-		error_log("in exists");
 		try{
 			$f = $this->find($userId1, $userId2);
 		}
@@ -135,7 +134,6 @@ class FriendshipMapper extends Mapper {
 			$friendship->getUid2()
 		);
 
-		error_log("saving");
 		return $this->execute($sql, $params);
 	}
 

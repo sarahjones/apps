@@ -86,7 +86,7 @@ class UserFacebookIdMapper extends Mapper {
 		} elseif($result->fetchRow() !== false) {
 			throw new MultipleObjectsReturnedException('UserFacebookId with uid ' . $uid . ' and facebookId ' . $facebookId . ' returned more than one result.');
 		}
-		return new UserFacebookId($result);
+		return new UserFacebookId($row);
 
 	}
 

@@ -67,14 +67,19 @@ class FacebookFriendMapper extends Mapper {
 
 		$result = array();
 		
-		$result = $this->execute($sql, $params)->fetchRow();
+		$result = $this->execute($sql, $params);
+		$row = $result->fetchRow();
 		if ($result){
-			return new FacebookFriend($result);
 		}
 		else {
-			throw new DoesNotExistException('UserFacebookId with uid ' . $uid . ' and facebookFriendId ' . $facebookFriendId . ' does not exist!');
 		}
 
+		if ($row === false) {
+			throw new DoesNotExistException('FacebookFriend with uid ' . $uid . ' and facebookFriendId ' . $facebookFriendId . ' does not exist!');
+		} elseif($result->fetchRow() !== false) {
+			throw new MultipleObjectsReturnedException('FacebookFriend with uid ' . $uid . ' and facebookId ' . $facebookFriendId . ' returned more than one result.');
+		}
+		return new FacebookFriend($row);
 	}
 
 	/** 
