@@ -68,7 +68,7 @@ class FriendshipMapperTest extends \PHPUnit_Framework_TestCase {
 			->will($this->returnValue($this->row2));
 		$cursor->expects($this->at(2))
 			->method('fetchRow')
-			->will($this->returnValue(null));
+			->will($this->returnValue(false));
 
 		$query = $this->getMock('query', array('execute'));
 		$query->expects($this->once())
@@ -102,7 +102,7 @@ class FriendshipMapperTest extends \PHPUnit_Framework_TestCase {
 			->will($this->returnValue($this->row3));
 		$cursor->expects($this->at(1))
 			->method('fetchRow')
-			->will($this->returnValue(null));
+			->will($this->returnValue(false));
 
 		$query = $this->getMock('query', array('execute'));
 		$query->expects($this->once())

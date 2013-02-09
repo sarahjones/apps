@@ -147,7 +147,7 @@ class FriendshipRequestMapper extends Mapper {
 		} elseif($result->fetchRow() !== false) {
 			throw new MultipleObjectsReturnedException('FriendshipRequest with requester ' . $requester . ' and recipient ' . $recipient . ' returned more than one result!');
 		}
-		return new FriendshipRequest($result);
+		return new FriendshipRequest($row);
 		
 	}
 

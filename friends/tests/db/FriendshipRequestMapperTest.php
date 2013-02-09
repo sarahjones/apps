@@ -169,9 +169,12 @@ class FriendshipRequestMapperTest extends \PHPUnit_Framework_TestCase {
 		$expected = 'SELECT * FROM `*PREFIX*friends_friendship_requests` WHERE requester_uid = ? AND recipient_uid = ?';
 
 		$cursor = $this->getMock('cursor', array('fetchRow'));
-		$cursor->expects($this->once())
+		$cursor->expects($this->at(0))
 			->method('fetchRow')
 			->will($this->returnValue($this->row3));
+		$cursor->expects($this->at(1))
+			->method('fetchRow')
+			->will($this->returnValue(false));
 
 		$query = $this->getMock('query', array('execute'));
 		$query->expects($this->once())
@@ -200,7 +203,7 @@ class FriendshipRequestMapperTest extends \PHPUnit_Framework_TestCase {
 		$cursor = $this->getMock('cursor', array('fetchRow'));
 		$cursor->expects($this->once())
 			->method('fetchRow')
-			->will($this->returnValue(NULL));
+			->will($this->returnValue(false));
 
 		$query = $this->getMock('query', array('execute'));
 		$query->expects($this->once())
