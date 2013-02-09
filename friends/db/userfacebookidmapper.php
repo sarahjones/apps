@@ -67,24 +67,47 @@ class UserFacebookIdMapper extends Mapper {
 		return $result;
 	}
 
-	public function find($userId1, $userId2){
-		$sql = 'SELECT * FROM `' . $this->tableName . '` WHERE friend_uid1 = ? AND friend_uid2 = ?
-			UNION
-			SELECT * FROM `' . $this->tableName . '` WHERE friend_uid1 = ? AND friend_uid2 = ?';
-		$params = array($userId1, $userId2, $userId2, $userId1);
-
-		$result = array();
-		
-		$result = $this->execute($sql, $params)->fetchRow();
-		if ($result){
-			return new Friendship($result);
+	public function find($uid, $facebookId=null){
+		if ($facebookId){
+			$sql = 'SELECT * FROM `' . $this->tableName . '` WHERE uid = ? AND facebook_id = ?';
+			$params = array($uid, $facebookId);
 		}
 		else {
-			throw new DoesNotExistException('Friendship with users ' . $userId1 . ' and ' . $userId2 . ' does not exist!');
+			$sql = 'SELECT * FROM `' . $this->tableName . '` WHERE uid = ?';
+			$params = array($uid);
 		}
+		$result = array();
+		
+		$result = $this->execute($sql, $params);
+		$row = $result->fetchRow();
+
+		if ($row === false) {
+			throw new DoesNotExistException('UserFacebookId with uid ' . $uid . ' and facebookId ' . $facebookId . ' does not exist!');
+		} elseif($result->fetchRow() !== false) {
+			throw new MultipleObjectsReturnedException('UserFacebookId with uid ' . $uid . ' and facebookId ' . $facebookId . ' returned more than one result.');
+		}
+		return new UserFacebookId($result);
 
 	}
 
+	/** 
+	 * Checks to see if a row already exists
+	 * @param $uid - the owncloud uid of a user
+	 * @param $facebookId - the Facebook identifier of the same user
+	 * @return boolean: whether or not it exists (note: will return true if more than one is found)
+	 */
+	public function exists($uid, $facebookId){
+		try{
+			$this->find($uid, $facebookId);
+		}
+		catch (DoesNotExistException $e){
+			return false;
+		}
+		catch (MultipleObjectsReturnedException $e){
+			return true;
+		}
+		return true;
+	}
 
 	/**
 	 * Saves a friendship into the database
@@ -92,6 +115,9 @@ class UserFacebookIdMapper extends Mapper {
 	 * @return true if successful
 	 */
 	public function save($userFacebookId){
+		if ($this->exists($userFacebookId->getUid(), $userFacebookId->getFacebookId())){
+			throw new AlreadyExistsException('Cannot save UserFacebookId with uid = ' . $userFacebookId->getUid() . ' and facebook_id = ' . $userFacebookId->getFacebookId() . ' because it already exists');
+		}
 		$sql = 'INSERT INTO `'. $this->tableName . '` (uid, facebook_id)'.
 				' VALUES(?, ?)';
 
