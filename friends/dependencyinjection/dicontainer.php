@@ -32,6 +32,8 @@ use OCA\Friends\Db\FriendshipRequestMapper as FriendshipRequestMapper;
 use OCA\Friends\Db\UserFacebookIdMapper as UserFacebookIdMapper;
 use OCA\Friends\Db\FacebookFriendMapper as FacebookFriendMapper;
 
+use OCA\Friends\Core\FileGetContentsWrapper as FileGetContentsWrapper;
+use OCA\Friends\Core\FriendsAPI as FriendsAPI;
 
 class DIContainer extends BaseContainer {
 
@@ -43,6 +45,10 @@ class DIContainer extends BaseContainer {
 		// tell parent container about the app name
 		parent::__construct('friends');
 
+		//Overwriting API 
+		$this['API'] = $this->share(function($c){
+			return new FriendsAPI($c['AppName']);
+		});
 
 		/**
 		 * Delete the following twig config to use ownClouds default templates
@@ -57,7 +63,7 @@ class DIContainer extends BaseContainer {
 		 * CONTROLLERS
 		 */
 		$this['FriendshipController'] = $this->share(function($c){
-			return new FriendshipController($c['API'], $c['Request'], $c['FriendshipMapper'], $c['FriendshipRequestMapper'], $c['UserFacebookIdMapper'], $c['FacebookFriendMapper']);
+			return new FriendshipController($c['API'], $c['Request'], $c['FriendshipMapper'], $c['FriendshipRequestMapper'], $c['UserFacebookIdMapper'], $c['FacebookFriendMapper'], $c['FileGetsContentWrapper']);
 		});
 
 		$this['SettingsController'] = $this->share(function($c){
@@ -82,8 +88,12 @@ class DIContainer extends BaseContainer {
 		});
 		
  
-
-
+		/**
+		 * HELPERS
+		 */
+		$this['FileGetContentWrapper'] = $this->share(function($c){
+			return new FileGetContentsWrapper();
+		};
 	}
 }
 
