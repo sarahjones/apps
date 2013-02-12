@@ -32,6 +32,7 @@ use OCA\Friends\Db\FriendshipRequest as FriendshipRequest;
 use OCA\Friends\Db\UserFacebookId as UserFacebookId;
 use OCA\Friends\Db\FacebookFriend as FacebookFriend;
 
+use OCA\Friends\Core\FileGetContentsWrapper as FileGetContentsWrapper;
 
 class FriendshipController extends Controller {
 	
@@ -41,12 +42,13 @@ class FriendshipController extends Controller {
 	 * @param API $api: an api wrapper instance
 	 * @param ItemMapper $friendshipMapper: an itemwrapper instance
 	 */
-	public function __construct($api, $request, $friendshipMapper, $friendshipRequestMapper, $userFacebookIdMapper, $facebookFriendMapper){
+	public function __construct($api, $request, $friendshipMapper, $friendshipRequestMapper, $userFacebookIdMapper, $facebookFriendMapper, $fileGetContentsWrapper){
 		parent::__construct($api, $request);
 		$this->friendshipMapper = $friendshipMapper;
 		$this->friendshipRequestMapper = $friendshipRequestMapper;
 		$this->userFacebookIdMapper = $userFacebookIdMapper;
 		$this->facebookFriendMapper = $facebookFriendMapper;
+		$this->fileGetContentsWrapper = $fileGetContentsWrapper;
 		
 		$this->app_id = $this->api->getSystemValue('friends_fb_app_id');
 		$this->app_secret = $this->api->getSystemValue('friends_fb_app_secret');
@@ -91,10 +93,11 @@ class FriendshipController extends Controller {
 		// check if an entry with the current user is in the database, if not
 		// create a new entry
 		$templateName = 'main';
-		$params = array(
+		/*$params = array(
 			'somesetting' => $this->api->getSystemValue('somesetting'),
 			'test' => $this->params('test')
-		);
+		);*/
+		$params = array();
 		return $this->render($templateName, $params);
 	}
 
@@ -118,7 +121,9 @@ class FriendshipController extends Controller {
 
 		/*	Start Facebook Code 	*/
 		//Set by Facebook response
-		$code = $_REQUEST["code"];
+		if (array_key_exists('code', $_REQUEST)){
+			$code = $_REQUEST["code"];
+		}
 
 		// Redirect to Login Dialog
 		if(empty($code)) {
@@ -130,74 +135,80 @@ class FriendshipController extends Controller {
 		}
 
 		//Have permission
-		if($_SESSION['state'] && ($_SESSION['state'] === $_REQUEST['state'])) {
-			$token_url = "https://graph.facebook.com/oauth/access_token?"
-				. "client_id=" . $this->app_id . "&redirect_uri=" . urlencode($this->my_url)
-				. "&client_secret=" . $this->app_secret . "&code=" . $code;
+		if(array_key_exists('state', $_SESSION) && array_key_exists('state', $_REQUEST)) {
+			
+			if ($_SESSION['state'] && ($_SESSION['state'] === $_REQUEST['state'])) {
+					//Dialog url needs to be reset after getting response, otherwise it is undefined
+				$dialog_url = "https://www.facebook.com/dialog/oauth?client_id=" 
+				. $this->app_id . "&redirect_uri=" . urlencode($this->my_url) . "&state="
+				. $_SESSION['state'];
 
-			$response = file_get_contents($token_url); //Get access token
-			$params = null;
-			parse_str($response, $params);
-			if ($params['access_token']===null){
-				//TODO message to user
-				error_log("Access token was empty");
-			}
-			else{
-				$_SESSION['access_token'] = $params['access_token'];
+				$token_url = "https://graph.facebook.com/oauth/access_token?"
+					. "client_id=" . $this->app_id . "&redirect_uri=" . urlencode($this->my_url)
+					. "&client_secret=" . $this->app_secret . "&code=" . $code;
 
-				$graph_url = "https://graph.facebook.com/me?access_token=" 
-						. $params['access_token'];
-				$user = json_decode(file_get_contents($graph_url)); //Get user info
-				$currentUser = $this->api->getUserId();
-				if (!$this->userFacebookIdMapper->exists($currentUser, $user->id)){
-					$userFacebookId = new UserFacebookId();
-					$userFacebookId->setUid($this->api->getUserId());
-					$userFacebookId->setFacebookId($user->id);
-					$this->userFacebookIdMapper->save($userFacebookId);
+				$fileGetContentsWrapper = new FileGetContentsWrapper(); 
+				$response = $this->fileGetContentsWrapper->fetch($token_url); //Get access token
+				$params = null;
+				parse_str($response, $params);
+				if ($params['access_token']===null){
+					//TODO message to user
+					error_log("Access token was empty");
 				}
-		
-				$graph_url = "https://graph.facebook.com/me/friends?access_token=" 
-						. $params['access_token'];
-				$friends = json_decode(file_get_contents($graph_url)); //Get user's friends
-				$facebookFriends = FacebookFriend::createFromList($friends->data, $currentUser);
-				$this->facebookFriendMapper->saveAll($facebookFriends);
+				else{
+					$_SESSION['access_token'] = $params['access_token'];
 
-				//Process Existing Friends (Facebook friends on owncloud that have already done the sync)
-				$existingFacebookFriends = $this->facebookFriendMapper->findAllFacebookFriendsUids($user->id);
-				
-				foreach ($existingFacebookFriends as $friend){
-					try {
-						$friendFacebookId = $this->userFacebookIdMapper->find($friend);
+					$graph_url = "https://graph.facebook.com/me?access_token=" 
+							. $params['access_token'];
+					$user = json_decode($this->fileGetContentsWrapper->fetch($graph_url)); //Get user info
+					$currentUser = $this->api->getUserId();
+					if (!$this->userFacebookIdMapper->exists($currentUser, $user->id)){
+						$userFacebookId = new UserFacebookId();
+						$userFacebookId->setUid($currentUser);
+						$userFacebookId->setFacebookId($user->id);
+						$this->userFacebookIdMapper->save($userFacebookId);
 					}
-					catch (DoesNotExistException $e){
-						continue;
-					}
-					//Transaction
-					\OCP\DB::beginTransaction();
+			
+					$graph_url = "https://graph.facebook.com/me/friends?access_token=" 
+							. $params['access_token'];
+					$friends = json_decode($this->fileGetContentsWrapper->fetch($graph_url)); //Get user's friends
+					$facebookFriends = FacebookFriend::createFromList($friends->data, $currentUser);
+					$this->facebookFriendMapper->saveAll($facebookFriends);
+
+					//Process Existing Friends (Facebook friends on owncloud that have already done the sync)
+					$existingFacebookFriends = $this->facebookFriendMapper->findAllFacebookFriendsUids($user->id);
 					
-					if (!\OC_User::userExists($friend)){
-						error_log("User does not exist but is in FacebookFriends table as uid");
-						\OCP\DB::commit();
-						continue;
+					foreach ($existingFacebookFriends as $friend){
+						try {
+							$friendFacebookId = $this->userFacebookIdMapper->find($friend);
+						}
+						catch (DoesNotExistException $e){
+							continue;
+						}
+						//Transaction
+						$this->api->beginTransaction();
+						
+						if (!$this->api->userExists($friend)){
+							error_log("User " . $friend . " does not exist but is in FacebookFriends table as uid");
+							$this->api->commit();
+							continue;
+						}
+						if (!$this->friendshipMapper->exists($friend, $currentUser)){
+							$friendship = new Friendship();
+							$friendship->setUid1($friend);
+							$friendship->setUid2($currentUser);
+							$this->friendshipMapper->save($friendship);
+						}
+						
+						//delete facebookfriend entry both ways
+						$this->facebookFriendMapper->deleteBoth($friend, $friendFacebookId->getFacebookId(), $currentUser,  $user->id);
+						$this->api->commit();
 					}
-					if (!$this->friendshipMapper->exists($friend, $currentUser)){
-						$friendship = new Friendship();
-						$friendship->setUid1($friend);
-						$friendship->setUid2($currentUser);
-						$this->friendshipMapper->save($friendship);
-					}
-					
-					//delete facebookfriend entry both ways
-					$this->facebookFriendMapper->deleteBoth($friend, $friendFacebookId->getFacebookId(), $currentUser,  $user->id);
-					\OCP\DB::commit();
 				}
 			}
-				
-
-		}
-		else {
-			error_log("State does not match for Facebook auth");
-			echo("The state does not match. You may be a victim of CSRF.");
+			else { //State is defined but does not match
+				error_log("State does not match for Facebook auth");
+			}
 		}
 		/* 	End Facebook Code	*/
 
@@ -319,7 +330,7 @@ class FriendshipController extends Controller {
 
 		$requester = $this->params('acceptedFriend');	
 		$currentUser = $this->api->getUserId();
-		\OCP\DB::beginTransaction();
+		$this->api->beginTransaction();
 
 		if ($this->friendshipRequestMapper->exists($requester, $currentUser)){
 			$friendshipRequestExists = true;			
@@ -342,7 +353,7 @@ class FriendshipController extends Controller {
 			//TODO: change this to an exception with more detail
 			error_log("Error in acceptFriendshipRequest");
 		} 
-		\OCP\DB::commit();
+		$this->api->commit();
 		//TODO: change this to return something useful
 		return $this->renderJSON(array(true));
 	}

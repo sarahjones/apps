@@ -3,8 +3,8 @@
 /**
 * ownCloud - App Template plugin
 *
-* @author Sarah Jones
-* @copyright 2013 Sarah Jones sarah.e.p.jones@gmail.com
+* @author Bernhard Posselt
+* @copyright 2012 Bernhard Posselt nukeawhale@gmail.com
 *
 * This library is free software; you can redistribute it and/or
 * modify it under the terms of the GNU AFFERO GENERAL PUBLIC LICENSE
@@ -21,13 +21,13 @@
 *
 */
 
-namespace OCA\Friends\Controller;
+namespace OCA\AppTemplateAdvanced\Controller;
 
-use OCA\AppFramework\Http\Request as Request;
-use OCA\AppFramework\Db\DoesNotExistException as DoesNotExistException;
-use OCA\AppFramework\Utility\ControllerTestUtility as ControllerTestUtility;
+use OCA\AppFramework\Http\Request;
+use OCA\AppFramework\Db\DoesNotExistException;
+use OCA\AppFramework\Utility\ControllerTestUtility;
 
-use OCA\Friends\Db\Item as Item;
+use OCA\AppTemplateAdvanced\Db\Item;
 
 
 require_once(__DIR__ . "/../classloader.php");
@@ -144,11 +144,11 @@ class ItemControllerTest extends ControllerTestUtility {
 					->with(	$this->equalTo('somesetting'),
 							$this->equalTo('this is a test'));
 
-		// we want to return the appname friends when this method
+		// we want to return the appname apptemplate_advanced when this method
 		// is being called
 		$api->expects($this->any())
 					->method('getAppName')
-					->will($this->returnValue('friends'));
+					->will($this->returnValue('apptemplate_advanced'));
 
 		$controller = new ItemController($api, $request, null);
 		$response = $controller->setSystemValue(null);
