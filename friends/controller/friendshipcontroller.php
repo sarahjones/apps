@@ -32,7 +32,6 @@ use OCA\Friends\Db\FriendshipRequest as FriendshipRequest;
 use OCA\Friends\Db\UserFacebookId as UserFacebookId;
 use OCA\Friends\Db\FacebookFriend as FacebookFriend;
 
-use OCA\Friends\Core\FileGetContentsWrapper as FileGetContentsWrapper;
 
 class FriendshipController extends Controller {
 	
@@ -42,13 +41,12 @@ class FriendshipController extends Controller {
 	 * @param API $api: an api wrapper instance
 	 * @param ItemMapper $friendshipMapper: an itemwrapper instance
 	 */
-	public function __construct($api, $request, $friendshipMapper, $friendshipRequestMapper, $userFacebookIdMapper, $facebookFriendMapper, $fileGetContentsWrapper){
+	public function __construct($api, $request, $friendshipMapper, $friendshipRequestMapper, $userFacebookIdMapper, $facebookFriendMapper){
 		parent::__construct($api, $request);
 		$this->friendshipMapper = $friendshipMapper;
 		$this->friendshipRequestMapper = $friendshipRequestMapper;
 		$this->userFacebookIdMapper = $userFacebookIdMapper;
 		$this->facebookFriendMapper = $facebookFriendMapper;
-		$this->fileGetContentsWrapper = $fileGetContentsWrapper;
 		
 		$this->app_id = $this->api->getSystemValue('friends_fb_app_id');
 		$this->app_secret = $this->api->getSystemValue('friends_fb_app_secret');
@@ -147,11 +145,10 @@ class FriendshipController extends Controller {
 					. "client_id=" . $this->app_id . "&redirect_uri=" . urlencode($this->my_url)
 					. "&client_secret=" . $this->app_secret . "&code=" . $code;
 
-				$fileGetContentsWrapper = new FileGetContentsWrapper(); 
-				$response = $this->fileGetContentsWrapper->fetch($token_url); //Get access token
+				$response = $this->api->fileGetContents($token_url); //Get access token
 				$params = null;
 				parse_str($response, $params);
-				if ($params['access_token']===null){
+				if (!array_key_exists('access_token', $params) || $params['access_token']===null){
 					//TODO message to user
 					error_log("Access token was empty");
 				}
@@ -160,7 +157,7 @@ class FriendshipController extends Controller {
 
 					$graph_url = "https://graph.facebook.com/me?access_token=" 
 							. $params['access_token'];
-					$user = json_decode($this->fileGetContentsWrapper->fetch($graph_url)); //Get user info
+					$user = json_decode($this->api->fileGetContents($graph_url)); //Get user info
 					$currentUser = $this->api->getUserId();
 					if (!$this->userFacebookIdMapper->exists($currentUser, $user->id)){
 						$userFacebookId = new UserFacebookId();
@@ -171,7 +168,7 @@ class FriendshipController extends Controller {
 			
 					$graph_url = "https://graph.facebook.com/me/friends?access_token=" 
 							. $params['access_token'];
-					$friends = json_decode($this->fileGetContentsWrapper->fetch($graph_url)); //Get user's friends
+					$friends = json_decode($this->api->fileGetContents($graph_url)); //Get user's friends
 					$facebookFriends = FacebookFriend::createFromList($friends->data, $currentUser);
 					$this->facebookFriendMapper->saveAll($facebookFriends);
 
