@@ -37,7 +37,7 @@ class FriendsAPI extends API {
 	}
 
 	public function userExists($uid) {
-		\OC_User::userExists($uid);
+		return \OC_User::userExists($uid);
 	}
 
 	public function fileGetContents($url) {
