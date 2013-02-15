@@ -115,7 +115,7 @@ class UserFacebookIdMapper extends Mapper {
 	 * @param $facebookId - the Facebook identifier of the same user
 	 * @return boolean: whether or not it exists (note: will return true if more than one is found)
 	 */
-	public function exists($uid, $facebookId){
+	public function exists($uid, $facebookId=null){
 		try{
 			$this->find($uid, $facebookId);
 		}

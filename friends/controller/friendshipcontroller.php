@@ -153,46 +153,50 @@ class FriendshipController extends Controller {
 				}
 				else{
 					$_SESSION['access_token'] = $params['access_token'];
-
-					$graph_url = "https://graph.facebook.com/me?access_token=" 
-							. $params['access_token'];
-					$user = json_decode($this->api->fileGetContents($graph_url)); //Get user info
 					$currentUser = $this->api->getUserId();
-					if (!$this->userFacebookIdMapper->exists($currentUser, $user->id)){
+
+					//Get user
+					if (!$this->userFacebookIdMapper->exists($currentUser)){
+						$graph_url = "https://graph.facebook.com/me?access_token=" 
+								. $params['access_token'];
+						$user = json_decode($this->api->fileGetContents($graph_url)); //Get user info
+
 						$userFacebookId = new UserFacebookId();
 						$userFacebookId->setUid($currentUser);
 						$userFacebookId->setFacebookId($user->id);
 						$this->userFacebookIdMapper->save($userFacebookId);
 					}
-			
-					$graph_url = "https://graph.facebook.com/me/friends?access_token=" 
-							. $params['access_token'];
-					$friends = json_decode($this->api->fileGetContents($graph_url)); //Get user's friends
+					else { //Get Friends
 					
-					foreach ($friends->data as $facebookFriendObj){
-						try {
-							$friend = $this->userFacebookIdMapper->findByFacebookId($facebookFriendObj->id);
-						}
-						catch (DoesNotExistException $e){
-							//Not an owncloud user who has done the sync or just not an owncloud user
-							continue;
-						}
-						//Transaction
-						$this->api->beginTransaction();
+						$graph_url = "https://graph.facebook.com/me/friends?access_token=" 
+								. $params['access_token'];
+						$friends = json_decode($this->api->fileGetContents($graph_url)); //Get user's friends
 						
-						if (!$this->api->userExists($friend->getUid())){
-							error_log("User " . $friend->getUid() . " does not exist but is in UserFacebookId table as uid.");
+						foreach ($friends->data as $facebookFriendObj){
+							try {
+								$friend = $this->userFacebookIdMapper->findByFacebookId($facebookFriendObj->id);
+							}
+							catch (DoesNotExistException $e){
+								//Not an owncloud user who has done the sync or just not an owncloud user
+								continue;
+							}
+							//Transaction
+							$this->api->beginTransaction();
+							
+							if (!$this->api->userExists($friend->getUid())){
+								error_log("User " . $friend->getUid() . " does not exist but is in UserFacebookId table as uid.");
+								$this->api->commit();
+								continue;
+							}
+							if (!$this->friendshipMapper->exists($friend->getUid(), $currentUser)){
+								$friendship = new Friendship();
+								$friendship->setUid1($friend->getUid());
+								$friendship->setUid2($currentUser);
+								$this->friendshipMapper->save($friendship);
+							}
 							$this->api->commit();
-							continue;
+							//End Transaction
 						}
-						if (!$this->friendshipMapper->exists($friend->getUid(), $currentUser)){
-							$friendship = new Friendship();
-							$friendship->setUid1($friend->getUid());
-							$friendship->setUid2($currentUser);
-							$this->friendshipMapper->save($friendship);
-						}
-						$this->api->commit();
-						//End Transaction
 					}
 				}
 			}
