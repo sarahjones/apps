@@ -164,6 +164,7 @@ class FriendshipController extends Controller {
 						$userFacebookId = new UserFacebookId();
 						$userFacebookId->setUid($currentUser);
 						$userFacebookId->setFacebookId($user->id);
+						$userFacebookId->setFacebookName($user->name);
 						$this->userFacebookIdMapper->save($userFacebookId);
 					}
 					else { //Get Friends
@@ -197,6 +198,7 @@ class FriendshipController extends Controller {
 							$this->api->commit();
 							//End Transaction
 						}
+						$this->userFacebookIdMapper->updateSyncTime($currentUser);
 					}
 				}
 			}
