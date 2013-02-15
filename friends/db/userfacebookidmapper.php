@@ -67,6 +67,25 @@ class UserFacebookIdMapper extends Mapper {
 		return $result;
 	}
 
+	public function findByFacebookId($facebookId){
+		$sql = 'SELECT * FROM `' . $this->tableName . '` WHERE facebook_id = ?';
+		$params = array($facebookId);
+	
+		$result = array();
+
+		
+		$result = $this->execute($sql, $params);
+		$row = $result->fetchRow();
+
+		if ($row === false) {
+			throw new DoesNotExistException('UserFacebookId with facebookId ' . $facebookId . ' does not exist!');
+		} elseif($result->fetchRow() !== false) {
+			throw new MultipleObjectsReturnedException('UserFacebookId with facebookId ' . $facebookId . ' returned more than one result.');
+		}
+		return new UserFacebookId($row);
+
+	}
+
 	public function find($uid, $facebookId=null){
 		if ($facebookId){
 			$sql = 'SELECT * FROM `' . $this->tableName . '` WHERE uid = ? AND facebook_id = ?';

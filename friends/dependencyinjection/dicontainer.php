@@ -63,7 +63,7 @@ class DIContainer extends BaseContainer {
 		 * CONTROLLERS
 		 */
 		$this['FriendshipController'] = $this->share(function($c){
-			return new FriendshipController($c['API'], $c['Request'], $c['FriendshipMapper'], $c['FriendshipRequestMapper'], $c['UserFacebookIdMapper'], $c['FacebookFriendMapper']);
+			return new FriendshipController($c['API'], $c['Request'], $c['FriendshipMapper'], $c['FriendshipRequestMapper'], $c['UserFacebookIdMapper']);
 		});
 
 		$this['SettingsController'] = $this->share(function($c){
@@ -82,9 +82,6 @@ class DIContainer extends BaseContainer {
 		});
 		$this['UserFacebookIdMapper'] = $this->share(function($c){
 			return new UserFacebookIdMapper($c['API']);
-		});
-		$this['FacebookFriendMapper'] = $this->share(function($c){
-			return new FacebookFriendMapper($c['API']);
 		});
 		
  
