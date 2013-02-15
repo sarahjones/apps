@@ -81,10 +81,9 @@ class FriendshipControllerTest extends ControllerTestUtility {
 		$api = $this->getAPIMock('OCA\Friends\Core\FriendsAPI');
 		$friendshipMapperMock = $this->getMock('FriendshipMapper', array('exists'));
 		$friendshipRequestMapperMock = $this->getMock('FriendshipRequestMapper');
-		$userFacebookIdMapperMock = $this->getMock('UserFacebookIdMapper', array('exists', 'find'));
-		$facebookFriendMapperMock = $this->getMock('FacebookFriendMapper', array('saveAll', 'findAllFacebookFriendsUids', 'deleteBoth'));
+		$userFacebookIdMapperMock = $this->getMock('UserFacebookIdMapper', array('exists', 'find', 'findByFacebookId'));
 
-		$controller = new FriendshipController($api, new Request(), $friendshipMapperMock, $friendshipRequestMapperMock, $userFacebookIdMapperMock, $facebookFriendMapperMock);
+		$controller = new FriendshipController($api, new Request(), $friendshipMapperMock, $friendshipRequestMapperMock, $userFacebookIdMapperMock);
 		$controller->my_url = "http://myfakeurl.com/index.php";
 		$controller->app_id = "myid";
 		$controller->app_secret = "mysecret";
@@ -111,7 +110,7 @@ class FriendshipControllerTest extends ControllerTestUtility {
 						->will($this->returnValue($fetchedMeData));
 
 		$graphUrl = "https://graph.facebook.com/me/friends?access_token=AAAFji9Iq0fQBSyTFp8MXJhTWC4axsdp8S5RIdZBRvDndgZDZD";
-		$fetchedFriendData = '{"data":[{"name":"Ryan","id":"12345"},{"name":"Melissa","id":"12346"},{"name":"John","id":"12347"},{"name":"Mallory","id":"12348"},{"name":"Lalana","id":"12349"}]}';
+		$fetchedFriendData = '{"data":[{"name":"Ryan","id":"12345"},{"name":"Melissa","id":"12346"},{"name":"John","id":"12347"},{"name":"Mallory","id":"12348"}]}';
 		$api->expects($this->at(3))
 						->method('fileGetContents')
 						->with($this->equalTo($graphUrl))
@@ -121,24 +120,17 @@ class FriendshipControllerTest extends ControllerTestUtility {
 						->method('exists')
 						->with($this->equalTo("Sarah", "1234"))
 						->will($this->returnValue(true)); //assuming already saved, not really worth testing, just constructor and save
-		$facebookFriendMapperMock->expects($this->once())
-						->method('saveAll');  //saveAll catches all AlreadyExists exceptions, so nothing to test here
-
-		$facebookFriendMapperMock->expects($this->once())
-						->method('findAllFacebookFriendsUids')
-						->with("1234")
-						->will($this->returnValue(array("Ryan", "Melissa", "John", "Mallory")));	
-
 
 		$userFacebookIdMapperMock->expects($this->at(1))
-						->method('find')
-						->with($this->equalTo("Ryan"))
+						->method('findByFacebookId')
+						->with($this->equalTo("12345"))
 						->will($this->throwException(new DoesNotExistException('')));  //Test failure
 		$userFacebookIdMelissa = new UserFacebookId();
 		$userFacebookIdMelissa->setFacebookId("12346");
+		$userFacebookIdMelissa->setUid("Melissa");
 		$userFacebookIdMapperMock->expects($this->at(2))
-						->method('find')
-						->with($this->equalTo("Melissa"))
+						->method('findByFacebookId')
+						->with($this->equalTo("12346"))
 						->will($this->returnValue($userFacebookIdMelissa));
 		$api->expects($this->at(4))
 					->method('beginTransaction');
@@ -152,9 +144,10 @@ class FriendshipControllerTest extends ControllerTestUtility {
 
 		$userFacebookIdJohn = new UserFacebookId();
 		$userFacebookIdJohn->setFacebookId("12347");
+		$userFacebookIdJohn->setUid("John");
 		$userFacebookIdMapperMock->expects($this->at(3))
-						->method('find')
-						->with($this->equalTo("John"))
+						->method('findByFacebookId')
+						->with($this->equalTo("12347"))
 						->will($this->returnValue($userFacebookIdJohn));
 		$api->expects($this->at(7))
 					->method('beginTransaction');
@@ -165,15 +158,14 @@ class FriendshipControllerTest extends ControllerTestUtility {
 		$friendshipMapperMock->expects($this->any()) //all of the remaining users will exist
 					->method('exists')
 					->will($this->returnValue(true)); //assuming saved, not really worth testing
-		$facebookFriendMapperMock->expects($this->any())
-					->method('deleteBoth');
 		$api->expects($this->at(9))
 					->method('commit');
 		$userFacebookIdMallory = new UserFacebookId();
 		$userFacebookIdMallory->setFacebookId("12348");
+		$userFacebookIdMallory->setUid("Mallory");
 		$userFacebookIdMapperMock->expects($this->at(4))
-						->method('find')
-						->with($this->equalTo("Mallory"))
+						->method('findByFacebookId')
+						->with($this->equalTo("12348"))
 						->will($this->returnValue($userFacebookIdMallory));
 		$api->expects($this->at(10))
 					->method('beginTransaction');

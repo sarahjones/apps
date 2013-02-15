@@ -41,12 +41,11 @@ class FriendshipController extends Controller {
 	 * @param API $api: an api wrapper instance
 	 * @param ItemMapper $friendshipMapper: an itemwrapper instance
 	 */
-	public function __construct($api, $request, $friendshipMapper, $friendshipRequestMapper, $userFacebookIdMapper, $facebookFriendMapper){
+	public function __construct($api, $request, $friendshipMapper, $friendshipRequestMapper, $userFacebookIdMapper){
 		parent::__construct($api, $request);
 		$this->friendshipMapper = $friendshipMapper;
 		$this->friendshipRequestMapper = $friendshipRequestMapper;
 		$this->userFacebookIdMapper = $userFacebookIdMapper;
-		$this->facebookFriendMapper = $facebookFriendMapper;
 		
 		$this->app_id = $this->api->getSystemValue('friends_fb_app_id');
 		$this->app_secret = $this->api->getSystemValue('friends_fb_app_secret');
@@ -169,37 +168,31 @@ class FriendshipController extends Controller {
 					$graph_url = "https://graph.facebook.com/me/friends?access_token=" 
 							. $params['access_token'];
 					$friends = json_decode($this->api->fileGetContents($graph_url)); //Get user's friends
-					$facebookFriends = FacebookFriend::createFromList($friends->data, $currentUser);
-					$this->facebookFriendMapper->saveAll($facebookFriends);
-
-					//Process Existing Friends (Facebook friends on owncloud that have already done the sync)
-					$existingFacebookFriends = $this->facebookFriendMapper->findAllFacebookFriendsUids($user->id);
 					
-					foreach ($existingFacebookFriends as $friend){
+					foreach ($friends->data as $facebookFriendObj){
 						try {
-							$friendFacebookId = $this->userFacebookIdMapper->find($friend);
+							$friend = $this->userFacebookIdMapper->findByFacebookId($facebookFriendObj->id);
 						}
 						catch (DoesNotExistException $e){
+							//Not an owncloud user who has done the sync or just not an owncloud user
 							continue;
 						}
 						//Transaction
 						$this->api->beginTransaction();
 						
-						if (!$this->api->userExists($friend)){
-							error_log("User " . $friend . " does not exist but is in FacebookFriends table as uid");
+						if (!$this->api->userExists($friend->getUid())){
+							error_log("User " . $friend->getUid() . " does not exist but is in UserFacebookId table as uid.");
 							$this->api->commit();
 							continue;
 						}
-						if (!$this->friendshipMapper->exists($friend, $currentUser)){
+						if (!$this->friendshipMapper->exists($friend->getUid(), $currentUser)){
 							$friendship = new Friendship();
-							$friendship->setUid1($friend);
+							$friendship->setUid1($friend->getUid());
 							$friendship->setUid2($currentUser);
 							$this->friendshipMapper->save($friendship);
 						}
-						
-						//delete facebookfriend entry both ways
-						$this->facebookFriendMapper->deleteBoth($friend, $friendFacebookId->getFacebookId(), $currentUser,  $user->id);
 						$this->api->commit();
+						//End Transaction
 					}
 				}
 			}
@@ -229,24 +222,6 @@ class FriendshipController extends Controller {
 
 
 
-	/**
-	 * @Ajax
-	 *
-	 * @brief sets a global system value
-	 * @param array $urlParams: an array with the values, which were matched in 
-	 *                          the routes file
-	 */
-	public function setSystemValue(){
-		$value = $this->params('somesetting');
-		$this->api->setSystemValue('somesetting', $value);
-
-		$params = array(
-			'somesetting' => $value
-		);
-
-		return $this->renderJSON($params);
-	}
-
 	/** 
 	 * @Ajax
 	 * @IsSubAdminExemption
@@ -257,6 +232,10 @@ class FriendshipController extends Controller {
 	 */
 	public function createFriendshipRequest(){
 		$recipientId = $this->params('recipient');
+		if (!$this->api->userExists($recipientId)){
+			//Return some sort of error message
+			return $this->renderJSON(array(false));
+		}
 
 		$friendshipRequest = new FriendshipRequest();
 		$friendshipRequest->setRequester($this->api->getUserId()); 
