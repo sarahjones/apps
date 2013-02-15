@@ -266,6 +266,32 @@
 
 
 /*
+
+angular.module('Friends').factory '_FacebookModel',
+['_Model',
+(_Model) ->
+
+	class FacebookModel extends _Model
+
+		constructor: ->
+			super()
+			#@hasForeignKey('user')
+
+
+	return FacebookModel
+]
+*/
+
+
+(function() {
+
+
+
+}).call(this);
+
+
+
+/*
 # ownCloud
 #
 # @author Sarah Jones
@@ -280,32 +306,53 @@
 (function() {
 
   angular.module('Friends').factory('FriendsRequest', [
-    '$http', '$rootScope', 'Config', '_FriendsRequest', 'Publisher', 'FRModel', function($http, $rootScope, Config, _FriendsRequest, Publisher, FRModel) {
-      Publisher.subscribeModelTo(FRModel, 'friendrequests');
+    '$http', '$rootScope', 'Config', '_FriendsRequest', 'Publisher', function($http, $rootScope, Config, _FriendsRequest, Publisher) {
       return new _FriendsRequest($http, $rootScope, Config, Publisher);
     }
   ]);
 
   angular.module('Friends').factory('FRModel', [
-    '_FRModel', 'Publisher', function(_FRModel, Publisher) {
-      var model;
-      model = new _FRModel();
-      return model;
+    '_FRModel', function(_FRModel) {
+      return new _FRModel();
+    }
+  ]);
+
+  angular.module('Friends').factory('Publisher', [
+    '_Publisher', 'FRModel', function(_Publisher, FRModel) {
+      var publisher;
+      publisher = new _Publisher();
+      publisher.subscribeModelTo(FRModel, 'friendshiprequests');
+      return publisher;
     }
   ]);
 
   angular.module('Friends').factory('FriendshipModel', [
-    '_FriendshipModel', 'Publisher', function(_FriendshipModel, Publisher) {
-      var model;
-      model = new _FriendshipModel();
-      return model;
+    '_FriendshipModel', function(_FriendshipModel) {
+      return new _FriendshipModel();
     }
   ]);
 
-  angular.module('Friends').factory('FriendsRequest', [
-    '$http', '$rootScope', 'Config', '_FriendsRequest', 'Publisher', 'FriendshipModel', function($http, $rootScope, Config, _FriendsRequest, Publisher, FriendshipModel) {
-      Publisher.subscribeModelTo(FriendshipModel, 'friendships');
-      return new _FriendsRequest($http, $rootScope, Config, Publisher);
+  angular.module('Friends').factory('Publisher', [
+    '_Publisher', 'FriendshipModel', function(_Publisher, FriendshipModel) {
+      var publisher;
+      publisher = new _Publisher();
+      publisher.subscribeModelTo(FriendshipModel, 'friendships');
+      return publisher;
+    }
+  ]);
+
+  angular.module('Friends').factory('FacebookModel', [
+    '_FacebookModel', 'Publisher', function(_FacebookModel, Publisher) {
+      return new _FacebookModel();
+    }
+  ]);
+
+  angular.module('Friends').factory('Publisher', [
+    '_Publisher', 'FacebookModel', function(_Publisher, FacebookModel) {
+      var publisher;
+      publisher = new _Publisher();
+      publisher.subscribeModelTo(FacebookModel, 'facebook');
+      return publisher;
     }
   ]);
 
@@ -584,35 +631,6 @@
 
 
 /*
-# This file creates instances of classes
-*/
-
-
-(function() {
-
-  angular.module('OC').factory('Publisher', [
-    '_Publisher', function(_Publisher) {
-      return new _Publisher();
-    }
-  ]);
-
-}).call(this);
-
-
-
-/*
-# ownCloud
-#
-# @author Bernhard Posselt
-# Copyright (c) 2012 - Bernhard Posselt <nukeawhale@gmail.com>
-#
-# This file is licensed under the Affero General Public License version 3 or later.
-# See the COPYING-README file
-#
-*/
-
-
-/*
 # Used for properly distributing received model data from the server
 */
 
@@ -648,6 +666,61 @@
 
     })();
     return Publisher;
+  });
+
+}).call(this);
+
+
+
+/*
+# ownCloud
+#
+# @author Sarah Jones
+# Copyright (c) 2012 - Bernhard Posselt <nukeawhale@gmail.com>
+#
+# This file is licensed under the Affero General Public License version 3 or later.
+# See the COPYING-README file
+#
+*/
+
+
+(function() {
+  var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
+
+  angular.module('Friends').factory('_FacebookController', function() {
+    var FacebookController;
+    FacebookController = (function() {
+
+      function FacebookController($scope, config, request, facebookModel) {
+        var _this = this;
+        this.$scope = $scope;
+        this.config = config;
+        this.request = request;
+        this.facebookModel = facebookModel;
+        this.confirmSetup = __bind(this.confirmSetup, this);
+
+        this.$scope.saveName = function(name) {
+          return _this.saveName(name);
+        };
+        this.$scope.confirmSetup = function(facebookUrl) {
+          return _this.confirmSetup(facebookUrl);
+        };
+      }
+
+      FacebookController.prototype.saveName = function(name) {
+        return this.request.saveName(this.config.routes.saveNameRoute, name);
+      };
+
+      FacebookController.prototype.confirmSetup = function(facebookUrl) {
+        if (confirm("The sync will occur with the user currently logged in to Facebook.  If there is no logged in user, you will be prompted to log in.  Please confirm that someone else is not logged into Facebook on this computer.  Then press OK to continue.")) {
+          return console.log("confirmed");
+        }
+      };
+
+      return FacebookController;
+
+    })();
+    return FacebookController;
   });
 
 }).call(this);
@@ -715,12 +788,12 @@
     var FriendshipController;
     FriendshipController = (function() {
 
-      function FriendshipController($scope, config, request, frienshipModel) {
+      function FriendshipController($scope, config, request, friendshipModel) {
         var _this = this;
         this.$scope = $scope;
         this.config = config;
         this.request = request;
-        this.frienshipModel = frienshipModel;
+        this.friendshipModel = friendshipModel;
         this.$scope.$on('routesLoaded', function() {
           return _this.getFriendships(_this.$scope);
         });
@@ -734,7 +807,6 @@
       };
 
       FriendshipController.prototype.removeFriendship = function(friendship) {
-        alert("in controller");
         return this.request.removeFriendship(this.config.routes.removeFriendshipRoute, friendship);
       };
 
@@ -844,6 +916,12 @@
   angular.module('Friends').controller('FRController', [
     '$scope', 'Config', 'FriendsRequest', '_FRController', 'FRModel', function($scope, Config, FriendsRequest, _FRController, FRModel) {
       return new _FRController($scope, Config, FriendsRequest, FRModel);
+    }
+  ]);
+
+  angular.module('Friends').controller('FacebookController', [
+    '$scope', 'Config', 'FriendsRequest', '_FacebookController', 'FacebookModel', function($scope, Config, FriendsRequest, _FacebookController, FacebookModel) {
+      return new _FacebookController($scope, Config, FriendsRequest, FacebookModel);
     }
   ]);
 

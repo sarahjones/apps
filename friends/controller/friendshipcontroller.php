@@ -131,6 +131,8 @@ class FriendshipController extends Controller {
 			. $_SESSION['state'];
 		}
 
+		$currentUser = $this->api->getUserId();
+
 		//Have permission
 		if(array_key_exists('state', $_SESSION) && array_key_exists('state', $_REQUEST)) {
 			
@@ -153,7 +155,6 @@ class FriendshipController extends Controller {
 				}
 				else{
 					$_SESSION['access_token'] = $params['access_token'];
-					$currentUser = $this->api->getUserId();
 
 					//Get user
 					if (!$this->userFacebookIdMapper->exists($currentUser)){
@@ -207,6 +208,15 @@ class FriendshipController extends Controller {
 			}
 		}
 		/* 	End Facebook Code	*/
+		try{
+			$facebookUser = $this->userFacebookIdMapper->find($currentUser);
+			$facebookName = $facebookUser->getFacebookName();
+			$facebookUpdatedAt = $facebookUser->getFriendsSyncedAt();
+		}
+		catch (DoesNotExistException $e){
+			$facebookName = null;
+			$facebookUpdatedAt = null;
+		}
 
 
 		// thirdparty stuff
@@ -220,7 +230,9 @@ class FriendshipController extends Controller {
 
 		$templateName = 'facebook';
 		$params = array(
-			'fb_dialog_url' => $dialog_url
+			'fb_dialog_url' => $dialog_url,
+			'facebook_name' => $facebookName,
+			'friends_updated_at' => $facebookUpdatedAt
 		);
 		return $this->render($templateName, $params);
 

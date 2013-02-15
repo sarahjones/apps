@@ -28,6 +28,7 @@ class UserFacebookId {
 	private $uid;
 	private $facebookId;
 	private $facebookName;
+	private $friendsSyncedAt;
 
 	public function __construct($fromRow=null){
 		if($fromRow){
@@ -39,6 +40,7 @@ class UserFacebookId {
 		$this->uid = $row['uid'];
 		$this->facebookId = $row['facebook_id'];
 		$this->facebookName = $row['facebook_name'];
+		$this->friendsSyncedAt = $row['friends_synced_at'];
 	}
 
 
@@ -52,6 +54,10 @@ class UserFacebookId {
 
 	public function getFacebookName(){
 		return $this->facebookName;
+	}
+		
+	public function getFriendsSyncedAt(){
+		return $this->friendsSyncedAt;
 	}
 
 	public function setUid($uid){
