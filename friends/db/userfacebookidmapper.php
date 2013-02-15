@@ -134,20 +134,35 @@ class UserFacebookIdMapper extends Mapper {
 	 * @return true if successful
 	 */
 	public function save($userFacebookId){
-		if ($this->exists($userFacebookId->getUid(), $userFacebookId->getFacebookId())){
-			throw new AlreadyExistsException('Cannot save UserFacebookId with uid = ' . $userFacebookId->getUid() . ' and facebook_id = ' . $userFacebookId->getFacebookId() . ' because it already exists');
+		if ($this->exists($userFacebookId->getUid())){
+			throw new AlreadyExistsException('Cannot save UserFacebookId with uid = ' . $userFacebookId->getUid() . ' because it already exists');
 		}
-		$sql = 'INSERT INTO `'. $this->tableName . '` (uid, facebook_id)'.
-				' VALUES(?, ?)';
+		$sql = 'INSERT INTO `'. $this->tableName . '` (uid, facebook_id, facebook_name)'.
+				' VALUES(?, ?, ?)';
 
 		$params = array(
 			$userFacebookId->getUid(),
-			$userFacebookId->getFacebookId()
+			$userFacebookId->getFacebookId(),
+			$userFacebookId->getFacebookName()
 		);
 
 		return $this->execute($sql, $params);
 	}
 
+
+	public function updateSyncTime($uid){
+
+		$date = new \DateTime("now");
+		$date = date('Y-m-d H:i', $date->format('U') - $date->getOffset());
+
+		$sql = 'UPDATE `' . $this->tableName . '` SET friends_synced_at = ? WHERE uid = ?';
+		$params = array(
+			$date,
+			$uid
+		);
+
+		return $this->execute($sql, $params);
+	}
 
 
 	/**

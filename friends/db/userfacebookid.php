@@ -27,6 +27,7 @@ class UserFacebookId {
 
 	private $uid;
 	private $facebookId;
+	private $facebookName;
 
 	public function __construct($fromRow=null){
 		if($fromRow){
@@ -37,6 +38,7 @@ class UserFacebookId {
 	public function fromRow($row){
 		$this->uid = $row['uid'];
 		$this->facebookId = $row['facebook_id'];
+		$this->facebookName = $row['facebook_name'];
 	}
 
 
@@ -48,12 +50,20 @@ class UserFacebookId {
 		return $this->facebookId;
 	}
 
+	public function getFacebookName(){
+		return $this->facebookName;
+	}
+
 	public function setUid($uid){
 		$this->uid = $uid;
 	}
 
 	public function setFacebookId($facebookId){
 		$this->facebookId = $facebookId;
+	}
+
+	public function setFacebookName($facebookName){
+		$this->facebookName = $facebookName;
 	}
 
 }

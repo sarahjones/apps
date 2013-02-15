@@ -89,6 +89,19 @@
 				<notnull>true</notnull>
 				<length>32</length>
 			</field>
+			<field>
+				<name>facebook_name</name>
+				<type>text</type>
+				<default></default>
+				<notnull>true</notnull>
+				<length>100</length>
+			</field>
+			<field>
+				<name>friends_synced_at</name>
+				<type>timestamp</type>
+				<default></default>
+				<notnull>false</notnull>
+			</field>
 			<index>
 				<name>uid_index</name>
 				<field>
@@ -103,25 +116,6 @@
 					<sorting>ascending</sorting>
 				</field>
 			</index>
-		</declaration>
-	</table>
-	<table>
-		<name>*dbprefix*friends_facebook_friends</name>
-		<declaration>
-			<field>
-				<name>uid</name>
-				<type>text</type>
-				<default></default>
-				<notnull>true</notnull>
-				<length>64</length>
-			</field>
-			<field>
-				<name>facebook_friend_id</name>
-				<type>text</type>
-				<default></default>
-				<notnull>true</notnull>
-				<length>32</length>
-			</field>
 		</declaration>
 	</table>
 </database>
