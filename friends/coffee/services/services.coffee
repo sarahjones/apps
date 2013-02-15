@@ -9,46 +9,64 @@
 #
 ###
 
-#FriendshipRequest
+
 
 angular.module('Friends').factory 'FriendsRequest',
 ['$http', '$rootScope', 'Config', '_FriendsRequest', 'Publisher',
-'FRModel',
-($http, $rootScope, Config, _FriendsRequest, Publisher,
-FRModel) ->
-
-	Publisher.subscribeModelTo(FRModel, 'friendrequests')
+($http, $rootScope, Config, _FriendsRequest, Publisher) ->
 	return new _FriendsRequest($http, $rootScope, Config, Publisher)
 ]
 
-angular.module('Friends').factory 'FRModel',
-['_FRModel', 'Publisher',
-(_FRModel, Publisher) ->
+#FriendshipRequest
 
-	model = new _FRModel()
-	return model
+
+angular.module('Friends').factory 'FRModel',
+['_FRModel',
+(_FRModel) ->
+	return new _FRModel()
 ]
 
 
+angular.module('Friends').factory 'Publisher',
+['_Publisher', 'FRModel',
+(_Publisher, FRModel) ->
+	publisher = new _Publisher()
+	publisher.subscribeModelTo(FRModel, 'friendshiprequests')
+	return publisher
+]
 
 
 #Friendship
 
 angular.module('Friends').factory 'FriendshipModel',
-['_FriendshipModel', 'Publisher',
-(_FriendshipModel, Publisher) ->
+['_FriendshipModel',
+(_FriendshipModel) ->
 
-	model = new _FriendshipModel()
-	return model
+	return new _FriendshipModel()
 ]
 
-angular.module('Friends').factory 'FriendsRequest',
-['$http', '$rootScope', 'Config', '_FriendsRequest', 'Publisher',
-'FriendshipModel',
-($http, $rootScope, Config, _FriendsRequest, Publisher,
-FriendshipModel) ->
-
-	Publisher.subscribeModelTo(FriendshipModel, 'friendships')
-	return new _FriendsRequest($http, $rootScope, Config, Publisher)
+angular.module('Friends').factory 'Publisher',
+['_Publisher', 'FriendshipModel',
+(_Publisher, FriendshipModel) ->
+	publisher = new _Publisher()
+	publisher.subscribeModelTo(FriendshipModel, 'friendships')
+	return publisher
 ]
 
+#Facebook
+
+angular.module('Friends').factory 'FacebookModel',
+['_FacebookModel', 'Publisher',
+(_FacebookModel, Publisher) ->
+
+	return new _FacebookModel()
+]
+
+
+angular.module('Friends').factory 'Publisher',
+['_Publisher', 'FacebookModel',
+(_Publisher, FacebookModel) ->
+	publisher = new _Publisher()
+	publisher.subscribeModelTo(FacebookModel, 'facebook')
+	return publisher
+]

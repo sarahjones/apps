@@ -19,7 +19,7 @@ angular.module('Friends').factory '_FriendshipController', ->
 
 	class FriendshipController
 
-		constructor: (@$scope, @config, @request, @frienshipModel) ->
+		constructor: (@$scope, @config, @request, @friendshipModel) ->
 
 			# bind methods on the scope so that you can access them in the
 			# controllers child HTML
@@ -38,7 +38,6 @@ angular.module('Friends').factory '_FriendshipController', ->
 			@request.getFriendships(@config.routes.getFriendshipsRoute, scope)
 
 		removeFriendship: (friendship) ->
-			alert("in controller")
 			@request.removeFriendship(@config.routes.removeFriendshipRoute, friendship)
 
 	return FriendshipController

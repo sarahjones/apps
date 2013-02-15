@@ -1,6 +1,6 @@
-<div id="app">
+<div id="app" ng-app="Friends" >
 <h1 class="heading">Facebook Sync</h1>
-<div class="app-body">
+<div class="app-body" ng-controller="FacebookController" >
 	<div>
 		<p class="spacing">Facebook Sync allows you to import your Facebook friends from Facebook.  When one of your Facebook friends on VillageShare also uses the Facebook Sync, you will automatically become VillageShare friends with that user.  We hope that this will make it easier to share files.</p>
 
@@ -12,7 +12,18 @@
 		</p>
 	</div>
 	<div>	
-		<a href="{{fb_dialog_url}}" class="button">Sync Friends</a>
+		{% if facebook_name %}
+			<p class="spacing" style="font-weight:bold">Your Facebook user is {{facebook_name}}.
+			{% if friends_updated_at %}
+				Last sync at {{friends_updated_at}}.
+			{% else %}
+				Sync has not been performed.
+			{% endif %}
+			</p>
+			<a href="{{fb_dialog_url}}" class="button">Sync Friends</a>
+		{% else %}
+			<a href="#" ng-click="confirmSetup(fb_dialog_url)" class="button">Setup Sync</a>
+		{% endif %}
 	</div>
 </div>
 </div>
