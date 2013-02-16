@@ -250,10 +250,6 @@ class FriendshipController extends Controller {
 	 */
 	public function createFriendshipRequest(){
 		$recipientId = $this->params('recipient');
-		if (!$this->api->userExists($recipientId)){
-			//Return some sort of error message
-			return $this->renderJSON(array(false));
-		}
 
 		$friendshipRequest = new FriendshipRequest();
 		$friendshipRequest->setRequester($this->api->getUserId()); 
