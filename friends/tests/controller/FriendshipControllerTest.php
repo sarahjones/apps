@@ -38,7 +38,7 @@ class FriendshipControllerTest extends ControllerTestUtility {
 
 	public function testRedirectToIndexAnnotations(){
 		$api = $this->getAPIMock();
-		$controller = new FriendshipController($api, new Request(), null, null, null, null);
+		$controller = new FriendshipController($api, new Request(), null, null, null);
 		$methodName = 'redirectToIndex';
 		$annotations = array('CSRFExemption', 'IsAdminExemption', 'IsSubAdminExemption');
 
@@ -48,7 +48,7 @@ class FriendshipControllerTest extends ControllerTestUtility {
 
 	public function testIndexAnnotations(){
 		$api = $this->getAPIMock();
-		$controller = new FriendshipController($api, new Request(), null, null, null, null);
+		$controller = new FriendshipController($api, new Request(), null, null, null);
 		$methodName = 'index';
 		$annotations = array('CSRFExemption', 'IsAdminExemption', 'IsSubAdminExemption');
 
@@ -59,7 +59,7 @@ class FriendshipControllerTest extends ControllerTestUtility {
 	public function testIndex(){
 		$api = $this->getAPIMock();
 
-		$controller = new FriendshipController($api, new Request(), null, null, null, null);
+		$controller = new FriendshipController($api, new Request(), null, null, null);
 
 		$response = $controller->index();
 		$this->assertEquals('main', $response->getTemplateName());
@@ -69,7 +69,17 @@ class FriendshipControllerTest extends ControllerTestUtility {
 
 	public function testFacebookSyncFirstLoad(){
 		$api = $this->getAPIMock();
-		$controller = new FriendshipController($api, new Request(), null, null, null, null, null);
+		$userFacebookIdMapperMock = $this->getMock('UserFacebookIdMapper', array('exists', 'save', 'find'));
+		$controller = new FriendshipController($api, new Request(), null, null, $userFacebookIdMapperMock);
+
+		$api->expects($this->at(0))
+					->method('getUserId')
+					->will($this->returnValue('Sarah')); //current user
+
+		$userFacebookIdMapperMock->expects($this->once())
+					->method('find')
+					->with($this->equalTo('Sarah'))
+					->will($this->throwException(new DoesNotExistException("")));
 
 		$response = $controller->facebookSync();
 		$params = $response->getParams();
@@ -77,41 +87,99 @@ class FriendshipControllerTest extends ControllerTestUtility {
 	}
 
 	//Redirected back from Facebook after permissions request
-	public function testFacebookSyncResponseRedirect(){
+	public function testFacebookSyncResponseRedirectUserSync(){
 		$api = $this->getAPIMock('OCA\Friends\Core\FriendsAPI');
 		$friendshipMapperMock = $this->getMock('FriendshipMapper', array('exists'));
 		$friendshipRequestMapperMock = $this->getMock('FriendshipRequestMapper');
-		$userFacebookIdMapperMock = $this->getMock('UserFacebookIdMapper', array('exists', 'find', 'findByFacebookId'));
+		$userFacebookIdMapperMock = $this->getMock('UserFacebookIdMapper', array('exists', 'save', 'find'));
 
 		$controller = new FriendshipController($api, new Request(), $friendshipMapperMock, $friendshipRequestMapperMock, $userFacebookIdMapperMock);
 		$controller->my_url = "http://myfakeurl.com/index.php";
 		$controller->app_id = "myid";
 		$controller->app_secret = "mysecret";
 		
-		$api->expects($this->at(2))
+		$api->expects($this->at(0))
 					->method('getUserId')
 					->will($this->returnValue('Sarah')); //current user
 		
+		$userFacebookIdMapperMock->expects($this->once())
+					->method('exists')
+					->with('Sarah')
+					->will($this->returnValue(false));
 
 		$tokenUrl = "https://graph.facebook.com/oauth/access_token?"
                                         . "client_id=myid&redirect_uri=" . urlencode($controller->my_url)
                                         . "&client_secret=mysecret&code=mycode";
 		$fetchedAccessToken = 'access_token=AAAFji9Iq0fQBSyTFp8MXJhTWC4axsdp8S5RIdZBRvDndgZDZD&expires=5178096';
-		$api->expects($this->at(0))
+		$api->expects($this->at(1))
 						->method('fileGetContents')
 						->with($this->equalTo($tokenUrl))
 						->will($this->returnValue($fetchedAccessToken));
 
 		$graphUrl = "https://graph.facebook.com/me?access_token=AAAFji9Iq0fQBSyTFp8MXJhTWC4axsdp8S5RIdZBRvDndgZDZD";
 		$fetchedMeData = '{"id":"1234","name":"Sarah Jones","first_name":"Sarah","last_name":"Jones","link":"http:\\/\\/www.facebook.com\\/profile.php?id=1234","gender":"female","timezone":0,"locale":"","verified":true,"updated_time":"2020-12-05T23:13:36+0000"}';
-		$api->expects($this->at(1))
+		$api->expects($this->at(2))
 						->method('fileGetContents')
 						->with($this->equalTo($graphUrl))
 						->will($this->returnValue($fetchedMeData));
 
+		$userFacebookIdMapperMock->expects($this->once())
+					->method('save')
+					->will($this->returnValue(true));
+
+		$userFacebookIdObj = new UserFacebookId();
+		$userFacebookIdObj->setFacebookName('Sarah J');
+		$userFacebookIdObj->setFacebookId('1234');
+		$userFacebookIdMapperMock->expects($this->once())
+					->method('find')
+					->with($this->equalTo('Sarah'))
+					->will($this->returnValue($userFacebookIdObj));
+
+		$_REQUEST = array(
+			'code' => 'mycode',
+			'state' => 'myfakestate'
+		);
+		$_SESSION = array(
+			'state' => 'myfakestate'
+		);
+
+
+		$response = $controller->facebookSync();
+	}
+
+
+	public function testFacebookSyncResponseRedirectFriendsSync(){
+		$api = $this->getAPIMock('OCA\Friends\Core\FriendsAPI');
+		$friendshipMapperMock = $this->getMock('FriendshipMapper', array('exists'));
+		$friendshipRequestMapperMock = $this->getMock('FriendshipRequestMapper');
+		$userFacebookIdMapperMock = $this->getMock('UserFacebookIdMapper', array('exists', 'save', 'find', 'findByFacebookId', 'updateSyncTime'));
+
+		$controller = new FriendshipController($api, new Request(), $friendshipMapperMock, $friendshipRequestMapperMock, $userFacebookIdMapperMock);
+		$controller->my_url = "http://myfakeurl.com/index.php";
+		$controller->app_id = "myid";
+		$controller->app_secret = "mysecret";
+		
+		$api->expects($this->at(0))
+					->method('getUserId')
+					->will($this->returnValue('Sarah')); //current user
+
+		$userFacebookIdMapperMock->expects($this->once())
+					->method('exists')
+					->with('Sarah')
+					->will($this->returnValue(true));
+
+		$tokenUrl = "https://graph.facebook.com/oauth/access_token?"
+                                        . "client_id=myid&redirect_uri=" . urlencode($controller->my_url)
+                                        . "&client_secret=mysecret&code=mycode";
+		$fetchedAccessToken = 'access_token=AAAFji9Iq0fQBSyTFp8MXJhTWC4axsdp8S5RIdZBRvDndgZDZD&expires=5178096';
+		$api->expects($this->at(1))
+						->method('fileGetContents')
+						->with($this->equalTo($tokenUrl))
+						->will($this->returnValue($fetchedAccessToken));
+
 		$graphUrl = "https://graph.facebook.com/me/friends?access_token=AAAFji9Iq0fQBSyTFp8MXJhTWC4axsdp8S5RIdZBRvDndgZDZD";
 		$fetchedFriendData = '{"data":[{"name":"Ryan","id":"12345"},{"name":"Melissa","id":"12346"},{"name":"John","id":"12347"},{"name":"Mallory","id":"12348"}]}';
-		$api->expects($this->at(3))
+		$api->expects($this->at(2))
 						->method('fileGetContents')
 						->with($this->equalTo($graphUrl))
 						->will($this->returnValue($fetchedFriendData));
@@ -132,13 +200,13 @@ class FriendshipControllerTest extends ControllerTestUtility {
 						->method('findByFacebookId')
 						->with($this->equalTo("12346"))
 						->will($this->returnValue($userFacebookIdMelissa));
-		$api->expects($this->at(4))
+		$api->expects($this->at(3))
 					->method('beginTransaction');
-		$api->expects($this->at(5))
+		$api->expects($this->at(4))
 					->method('userExists')
 					->with($this->equalTo("Melissa"))
 					->will($this->returnValue(false));
-		$api->expects($this->at(6))
+		$api->expects($this->at(5))
 					->method('commit');
 		//There should be no more calls for this user
 
@@ -149,16 +217,16 @@ class FriendshipControllerTest extends ControllerTestUtility {
 						->method('findByFacebookId')
 						->with($this->equalTo("12347"))
 						->will($this->returnValue($userFacebookIdJohn));
-		$api->expects($this->at(7))
+		$api->expects($this->at(6))
 					->method('beginTransaction');
-		$api->expects($this->at(8))
+		$api->expects($this->at(7))
 					->method('userExists')
 					->with($this->equalTo("John"))
 					->will($this->returnValue(true));
 		$friendshipMapperMock->expects($this->any()) //all of the remaining users will exist
 					->method('exists')
 					->will($this->returnValue(true)); //assuming saved, not really worth testing
-		$api->expects($this->at(9))
+		$api->expects($this->at(8))
 					->method('commit');
 		$userFacebookIdMallory = new UserFacebookId();
 		$userFacebookIdMallory->setFacebookId("12348");
@@ -167,14 +235,26 @@ class FriendshipControllerTest extends ControllerTestUtility {
 						->method('findByFacebookId')
 						->with($this->equalTo("12348"))
 						->will($this->returnValue($userFacebookIdMallory));
-		$api->expects($this->at(10))
+		$api->expects($this->at(9))
 					->method('beginTransaction');
-		$api->expects($this->at(11))
+		$api->expects($this->at(10))
 					->method('userExists')
 					->with($this->equalTo("Mallory"))
 					->will($this->returnValue(true));
-		$api->expects($this->at(12))
+		$api->expects($this->at(11))
 					->method('commit');
+
+		$userFacebookIdMapperMock->expects($this->once())
+					->method('updateSyncTime')
+					->will($this->returnValue(true));
+
+		$userFacebookIdObj = new UserFacebookId();
+		$userFacebookIdObj->setFacebookName('Sarah J');
+		$userFacebookIdObj->setFacebookId('1234');
+		$userFacebookIdMapperMock->expects($this->once())
+					->method('find')
+					->with($this->equalTo('Sarah'))
+					->will($this->returnValue($userFacebookIdObj));
 
 		$_REQUEST = array(
 			'code' => 'mycode',
