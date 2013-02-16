@@ -22,7 +22,7 @@
 			</p>
 			<a href="{{fb_dialog_url}}" class="button">Sync Friends</a>
 		{% else %}
-			<a href="#" ng-click="confirmSetup(fb_dialog_url)" class="button">Setup Sync</a>
+			<a href="#" ng-click="confirmSetup('{{fb_dialog_url}}')" class="button">Setup Sync</a>
 		{% endif %}
 	</div>
 </div>

@@ -725,6 +725,7 @@
 
       FacebookController.prototype.confirmSetup = function(facebookUrl) {
         if (confirm("The sync will occur with the user currently logged in to Facebook.  If there is no logged in user, you will be prompted to log in.  Please confirm that someone else is not logged into Facebook on this computer.  Then press OK to continue.")) {
+          window.location = facebookUrl;
           return console.log("confirmed");
         }
       };

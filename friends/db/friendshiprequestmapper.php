@@ -33,6 +33,7 @@ class FriendshipRequestMapper extends Mapper {
 
 
 	private $tableName;
+	private $api;
 
 	/**
 	 * @param API $api: Instance of the API abstraction layer
@@ -40,6 +41,7 @@ class FriendshipRequestMapper extends Mapper {
 	public function __construct($api){
 		parent::__construct($api);
 		$this->tableName = '*PREFIX*friends_friendship_requests';
+		$this->api = $api;
 	}
 
 
@@ -93,8 +95,12 @@ class FriendshipRequestMapper extends Mapper {
 	 * @return true if successful
 	 */
 	public function save($friendship_request){
+		if (!$this->api->userExists($friendship_request->getRecipient())){
+			//TODO Return some sort of error message?
+			return false;
+		}
 		if($this->exists($friendship_request->getRequester(), $friendship_request->getRecipient())){
-			throw new AlreadyExistsException('Cannot save FriendshipRequest with requester_uid = ' . $friendship_request->getRequester() . ' and recipient_uid = ' . $friendship_request->getRecipient());
+			throw new AlreadyExistsException('Cannot save FriendshipRequest with requester_uid = ' . $friendship_request->getRequester() . ' and recipient_uid = ' . $friendship_request->getRecipient() . ' already exists.');
 		}
 
 		$sql = 'INSERT INTO `'. $this->tableName . '` (requester_uid, recipient_uid)'.
