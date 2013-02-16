@@ -266,26 +266,38 @@
 
 
 /*
-
-angular.module('Friends').factory '_FacebookModel',
-['_Model',
-(_Model) ->
-
-	class FacebookModel extends _Model
-
-		constructor: ->
-			super()
-			#@hasForeignKey('user')
-
-
-	return FacebookModel
-]
+# ownCloud
+#
+# @author Sarah Jones
+# Copyright (c) 2012 - Bernhard Posselt <nukeawhale@gmail.com>
+#
+# This file is licensed under the Affero General Public License version 3 or later.
+# See the COPYING-README file
+#
 */
 
 
 (function() {
+  var __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
+  angular.module('Friends').factory('_FacebookModel', [
+    '_Model', function(_Model) {
+      var FacebookModel;
+      FacebookModel = (function(_super) {
 
+        __extends(FacebookModel, _super);
+
+        function FacebookModel() {
+          FacebookModel.__super__.constructor.call(this);
+        }
+
+        return FacebookModel;
+
+      })(_Model);
+      return FacebookModel;
+    }
+  ]);
 
 }).call(this);
 
@@ -342,7 +354,7 @@ angular.module('Friends').factory '_FacebookModel',
   ]);
 
   angular.module('Friends').factory('FacebookModel', [
-    '_FacebookModel', 'Publisher', function(_FacebookModel, Publisher) {
+    '_FacebookModel', function(_FacebookModel) {
       return new _FacebookModel();
     }
   ]);

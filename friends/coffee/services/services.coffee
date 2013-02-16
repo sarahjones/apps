@@ -56,8 +56,8 @@ angular.module('Friends').factory 'Publisher',
 #Facebook
 
 angular.module('Friends').factory 'FacebookModel',
-['_FacebookModel', 'Publisher',
-(_FacebookModel, Publisher) ->
+['_FacebookModel',
+(_FacebookModel) ->
 
 	return new _FacebookModel()
 ]
