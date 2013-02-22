@@ -21,13 +21,13 @@
 *
 */
 
-namespace OCA\AppTemplateAdvanced\DependencyInjection;
+namespace OCA\MultiInstance\DependencyInjection;
 
 use OCA\AppFramework\DependencyInjection\DIContainer as BaseContainer;
 
-use OCA\AppTemplateAdvanced\Controller\ItemController;
-use OCA\AppTemplateAdvanced\Controller\SettingsController;
-use OCA\AppTemplateAdvanced\Db\ItemMapper;
+use OCA\MultiInstance\Controller\ItemController;
+use OCA\MultiInstance\Controller\SettingsController;
+use OCA\MultiInstance\Db\ItemMapper;
 
 
 class DIContainer extends BaseContainer {
@@ -38,7 +38,7 @@ class DIContainer extends BaseContainer {
 	 */
 	public function __construct(){
 		// tell parent container about the app name
-		parent::__construct('apptemplateadvanced');
+		parent::__construct('multi_instance');
 
 
 		/**

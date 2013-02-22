@@ -21,11 +21,11 @@
 *
 */
 
-namespace OCA\AppTemplateAdvanced\Admin;
+namespace OCA\MultiInstance\Admin;
 
 use OCA\AppFramework\App;
 
-use OCA\AppTemplateAdvanced\DependencyInjection\DIContainer;
+use OCA\MultiInstance\DependencyInjection\DIContainer;
 
 
 // we need to fetch the output and return it for the admin page. Dont ask why

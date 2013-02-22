@@ -21,13 +21,13 @@
 *
 */
 
-namespace OCA\AppTemplateAdvanced\Controller;
+namespace OCA\MultiInstance\Controller;
 
 use OCA\AppFramework\Http\Request;
 use OCA\AppFramework\Db\DoesNotExistException;
 use OCA\AppFramework\Utility\ControllerTestUtility;
 
-use OCA\AppTemplateAdvanced\Db\Item;
+use OCA\MultiInstance\Db\Item;
 
 
 require_once(__DIR__ . "/../classloader.php");
@@ -144,11 +144,11 @@ class ItemControllerTest extends ControllerTestUtility {
 					->with(	$this->equalTo('somesetting'),
 							$this->equalTo('this is a test'));
 
-		// we want to return the appname apptemplate_advanced when this method
+		// we want to return the appname multi_instance when this method
 		// is being called
 		$api->expects($this->any())
 					->method('getAppName')
-					->will($this->returnValue('apptemplate_advanced'));
+					->will($this->returnValue('multi_instance'));
 
 		$controller = new ItemController($api, $request, null);
 		$response = $controller->setSystemValue(null);

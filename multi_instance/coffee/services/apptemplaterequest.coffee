@@ -11,11 +11,11 @@
 
 # Define your local request functions in an object that inherits from the
 # Request object
-angular.module('AppTemplateAdvanced').factory '_AppTemplateAdvancedRequest',
+angular.module('MultiInstance').factory '_MultiInstanceRequest',
 ['_Request',
 (_Request) ->
 
-	class AppTemplateAdvancedRequest extends _Request
+	class MultiInstanceRequest extends _Request
 
 
 		constructor: ($http, Config, Publisher) ->
@@ -40,5 +40,5 @@ angular.module('AppTemplateAdvanced').factory '_AppTemplateAdvancedRequest',
 		# myReqest: (route, ...) ->
 
 
-	return AppTemplateAdvancedRequest
+	return MultiInstanceRequest
 ]

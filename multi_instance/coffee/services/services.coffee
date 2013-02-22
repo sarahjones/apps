@@ -9,19 +9,19 @@
 #
 ###
 
-angular.module('AppTemplateAdvanced').factory 'AppTemplateAdvancedRequest',
-['$http', 'Config', '_AppTemplateAdvancedRequest', 'Publisher',
-($http, Config, _AppTemplateAdvancedRequest, Publisher) ->
-	return new _AppTemplateAdvancedRequest($http, Config, Publisher)
+angular.module('MultiInstance').factory 'MultiInstanceRequest',
+['$http', 'Config', '_MultiInstanceRequest', 'Publisher',
+($http, Config, _MultiInstanceRequest, Publisher) ->
+	return new _MultiInstanceRequest($http, Config, Publisher)
 ]
 
-angular.module('AppTemplateAdvanced').factory 'ItemModel',
+angular.module('MultiInstance').factory 'ItemModel',
 ['_ItemModel',
 (_ItemModel) ->
 	return new _ItemModel()
 ]
 
-angular.module('AppTemplateAdvanced').factory 'Publisher',
+angular.module('MultiInstance').factory 'Publisher',
 ['_Publisher', 'ItemModel',
 (_Publisher, ItemModel) ->
 	publisher = new _Publisher()

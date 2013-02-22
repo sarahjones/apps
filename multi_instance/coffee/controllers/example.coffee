@@ -13,7 +13,7 @@
 # This is an example of a controller. We pass in the Config via Dependency
 # Injection. A factory creates a shared instance. You can also share objects
 # across controllers this way
-angular.module('AppTemplateAdvanced').factory '_ExampleController', ->
+angular.module('MultiInstance').factory '_ExampleController', ->
 
 	class ExampleController
 

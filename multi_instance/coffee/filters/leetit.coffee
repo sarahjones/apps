@@ -11,7 +11,7 @@
 
 # Use filters to perform tasks that need to be done when rendering
 # This simply turns some letters into numbers
-angular.module('AppTemplateAdvanced').filter 'leetIt', ->
+angular.module('MultiInstance').filter 'leetIt', ->
 
 	return (leetThis) ->
 		if leetThis != undefined

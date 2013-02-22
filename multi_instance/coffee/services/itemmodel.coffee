@@ -9,7 +9,7 @@
 #
 ###
 
-angular.module('AppTemplateAdvanced').factory '_ItemModel', ->
+angular.module('MultiInstance').factory '_ItemModel', ->
 
 	class ItemModel
 

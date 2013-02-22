@@ -20,7 +20,7 @@
 *
 */
 
-namespace OCA\AppTemplateAdvanced\Db;
+namespace OCA\MultiInstance\Db;
 
 
 class Item {

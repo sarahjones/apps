@@ -9,8 +9,8 @@
 #
 ###
 
-angular.module('AppTemplateAdvanced').controller 'ExampleController',
-['$scope', 'Config', 'AppTemplateAdvancedRequest', '_ExampleController', 'ItemModel',
-($scope, Config, AppTemplateAdvancedRequest, _ExampleController, ItemModel) ->
-	return new _ExampleController($scope, Config, AppTemplateAdvancedRequest, ItemModel)
+angular.module('MultiInstance').controller 'ExampleController',
+['$scope', 'Config', 'MultiInstanceRequest', '_ExampleController', 'ItemModel',
+($scope, Config, MultiInstanceRequest, _ExampleController, ItemModel) ->
+	return new _ExampleController($scope, Config, MultiInstanceRequest, ItemModel)
 ]

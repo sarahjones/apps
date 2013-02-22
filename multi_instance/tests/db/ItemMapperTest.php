@@ -21,7 +21,7 @@
 *
 */
 
-namespace OCA\AppTemplateAdvanced\Db;
+namespace OCA\MultiInstance\Db;
 
 require_once(__DIR__ . "/../classloader.php");
 
@@ -33,7 +33,7 @@ class ItemMapperTest extends \PHPUnit_Framework_TestCase {
     private $row;
 
     protected function setUp(){
-        $this->api = $this->getMock('OCA\AppFramework\Core\Api', array('prepareQuery'), array('apptemplateadvanced'));
+        $this->api = $this->getMock('OCA\AppFramework\Core\Api', array('prepareQuery'), array('multi_instance'));
         $this->mapper = new ItemMapper($this->api);
         $this->row = array(
             'id' => 1,
@@ -47,7 +47,7 @@ class ItemMapperTest extends \PHPUnit_Framework_TestCase {
 
     public function testFindByUserId(){
         $userId = 1;
-        $expected = 'SELECT * FROM `*PREFIX*apptemplateadvanced_items` WHERE `user` = ?';
+        $expected = 'SELECT * FROM `*PREFIX*multi_instance_items` WHERE `user` = ?';
 
         $cursor = $this->getMock('cursor', array('fetchRow'));
         $cursor->expects($this->once())

@@ -21,13 +21,13 @@
 *
 */
 
-namespace OCA\AppTemplateAdvanced\Controller;
+namespace OCA\MultiInstance\Controller;
 
 use OCA\AppFramework\Controller\Controller;
 use OCA\AppFramework\Db\DoesNotExistException;
 use OCA\AppFramework\Http\RedirectResponse;
 
-use OCA\AppTemplateAdvanced\Db\Item;
+use OCA\MultiInstance\Db\Item;
 
 
 class ItemController extends Controller {
@@ -52,7 +52,7 @@ class ItemController extends Controller {
 	 * Redirects to the index page
 	 */
 	public function redirectToIndex(){
-		$url = $this->api->linkToRoute('apptemplate_advanced_index');
+		$url = $this->api->linkToRoute('multi_instance_index');
 		return new RedirectResponse($url);
 	}
 

@@ -21,7 +21,7 @@
 *
 */
 
-namespace OCA\AppTemplateAdvanced\Controller;
+namespace OCA\MultiInstance\Controller;
 
 use OCA\AppFramework\Controller\Controller;
 

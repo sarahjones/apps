@@ -9,7 +9,7 @@
 #
 ###
 
-angular.module('AppTemplateAdvanced', ['OC']).config ['$provide', '$interpolateProvider', 
+angular.module('MultiInstance', ['OC']).config ['$provide', '$interpolateProvider', 
 ($provide, $interpolateProvider) ->
 
 	# uses doulbe square brackets instead of double curly braces because twig
@@ -27,8 +27,8 @@ angular.module('AppTemplateAdvanced', ['OC']).config ['$provide', '$interpolateP
 	# forward and backward and change the state of your app
 	# http:#docs.angularjs.org/api/ng.$route
 	Config.routes =
-		saveNameRoute: 'apptemplate_advanced_ajax_setsystemvalue'
-		getNameRoute: 'apptemplate_advanced_ajax_getsystemvalue'
+		saveNameRoute: 'multi_instance_ajax_setsystemvalue'
+		getNameRoute: 'multi_instance_ajax_getsystemvalue'
 
 	return $provide.value('Config', Config)
 ]

@@ -33,7 +33,7 @@
 
 (function() {
 
-  angular.module('AppTemplateAdvanced', ['OC']).config([
+  angular.module('MultiInstance', ['OC']).config([
     '$provide', '$interpolateProvider', function($provide, $interpolateProvider) {
       var Config;
       $interpolateProvider.startSymbol('[[');
@@ -42,8 +42,8 @@
         myParam: 'test'
       };
       Config.routes = {
-        saveNameRoute: 'apptemplate_advanced_ajax_setsystemvalue',
-        getNameRoute: 'apptemplate_advanced_ajax_getsystemvalue'
+        saveNameRoute: 'multi_instance_ajax_setsystemvalue',
+        getNameRoute: 'multi_instance_ajax_getsystemvalue'
       };
       return $provide.value('Config', Config);
     }
@@ -214,7 +214,7 @@
 
 (function() {
 
-  angular.module('AppTemplateAdvanced').filter('leetIt', function() {
+  angular.module('MultiInstance').filter('leetIt', function() {
     return function(leetThis) {
       if (leetThis !== void 0) {
         return leetThis.replace('e', '3').replace('i', '1');
@@ -242,19 +242,19 @@
 
 (function() {
 
-  angular.module('AppTemplateAdvanced').factory('AppTemplateAdvancedRequest', [
-    '$http', 'Config', '_AppTemplateAdvancedRequest', 'Publisher', function($http, Config, _AppTemplateAdvancedRequest, Publisher) {
-      return new _AppTemplateAdvancedRequest($http, Config, Publisher);
+  angular.module('MultiInstance').factory('MultiInstanceRequest', [
+    '$http', 'Config', '_MultiInstanceRequest', 'Publisher', function($http, Config, _MultiInstanceRequest, Publisher) {
+      return new _MultiInstanceRequest($http, Config, Publisher);
     }
   ]);
 
-  angular.module('AppTemplateAdvanced').factory('ItemModel', [
+  angular.module('MultiInstance').factory('ItemModel', [
     '_ItemModel', function(_ItemModel) {
       return new _ItemModel();
     }
   ]);
 
-  angular.module('AppTemplateAdvanced').factory('Publisher', [
+  angular.module('MultiInstance').factory('Publisher', [
     '_Publisher', 'ItemModel', function(_Publisher, ItemModel) {
       var publisher;
       publisher = new _Publisher();
@@ -283,18 +283,18 @@
   var __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  angular.module('AppTemplateAdvanced').factory('_AppTemplateAdvancedRequest', [
+  angular.module('MultiInstance').factory('_MultiInstanceRequest', [
     '_Request', function(_Request) {
-      var AppTemplateAdvancedRequest;
-      AppTemplateAdvancedRequest = (function(_super) {
+      var MultiInstanceRequest;
+      MultiInstanceRequest = (function(_super) {
 
-        __extends(AppTemplateAdvancedRequest, _super);
+        __extends(MultiInstanceRequest, _super);
 
-        function AppTemplateAdvancedRequest($http, Config, Publisher) {
-          AppTemplateAdvancedRequest.__super__.constructor.call(this, $http, Config, Publisher);
+        function MultiInstanceRequest($http, Config, Publisher) {
+          MultiInstanceRequest.__super__.constructor.call(this, $http, Config, Publisher);
         }
 
-        AppTemplateAdvancedRequest.prototype.saveName = function(route, name) {
+        MultiInstanceRequest.prototype.saveName = function(route, name) {
           var data;
           data = {
             somesetting: name
@@ -302,7 +302,7 @@
           return this.post(route, {}, data);
         };
 
-        AppTemplateAdvancedRequest.prototype.getName = function(route, scope) {
+        MultiInstanceRequest.prototype.getName = function(route, scope) {
           var success;
           success = function(data) {
             return scope.name = data.data.somesetting;
@@ -310,10 +310,10 @@
           return this.post(route, {}, {}, success);
         };
 
-        return AppTemplateAdvancedRequest;
+        return MultiInstanceRequest;
 
       })(_Request);
-      return AppTemplateAdvancedRequest;
+      return MultiInstanceRequest;
     }
   ]);
 
@@ -335,7 +335,7 @@
 
 (function() {
 
-  angular.module('AppTemplateAdvanced').factory('_ItemModel', function() {
+  angular.module('MultiInstance').factory('_ItemModel', function() {
     var ItemModel;
     ItemModel = (function() {
 
@@ -367,7 +367,7 @@
 
 (function() {
 
-  angular.module('AppTemplateAdvanced').factory('_ExampleController', function() {
+  angular.module('MultiInstance').factory('_ExampleController', function() {
     var ExampleController;
     ExampleController = (function() {
 
@@ -415,9 +415,9 @@
 
 (function() {
 
-  angular.module('AppTemplateAdvanced').controller('ExampleController', [
-    '$scope', 'Config', 'AppTemplateAdvancedRequest', '_ExampleController', 'ItemModel', function($scope, Config, AppTemplateAdvancedRequest, _ExampleController, ItemModel) {
-      return new _ExampleController($scope, Config, AppTemplateAdvancedRequest, ItemModel);
+  angular.module('MultiInstance').controller('ExampleController', [
+    '$scope', 'Config', 'MultiInstanceRequest', '_ExampleController', 'ItemModel', function($scope, Config, MultiInstanceRequest, _ExampleController, ItemModel) {
+      return new _ExampleController($scope, Config, MultiInstanceRequest, ItemModel);
     }
   ]);
 

@@ -1,5 +1,5 @@
 <div id="app"
-	ng-app="AppTemplateAdvanced"
+	ng-app="MultiInstance"
 	ng-controller="ExampleController">
 
 	<h1 class="heading">This is an advanced app template</h1>
@@ -16,10 +16,10 @@
 	<p>Your username is {{item.getUser}}</p>
 	<p>Your username entry was saved with the path {{item.getPath}}</p>
 
-	<p>You can also <a href="{{ url('apptemplate_advanced_index_param', {test: 'ho'}) }}">link</a> to
+	<p>You can also <a href="{{ url('multi_instance_index_param', {test: 'ho'}) }}">link</a> to
 		a specific route </p>
 
-	<p>If you need an absolute url use <a href="{{ abs_url('apptemplate_advanced_index_param', {test: 'ho'}) }}">link</a> to
+	<p>If you need an absolute url use <a href="{{ abs_url('multi_instance_index_param', {test: 'ho'}) }}">link</a> to
 		a specific route </p>
 </div>
 

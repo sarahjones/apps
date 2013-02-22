@@ -20,7 +20,7 @@
 *
 */
 
-namespace OCA\AppTemplateAdvanced\Db;
+namespace OCA\MultiInstance\Db;
 
 use \OCA\AppFramework\Core\API;
 use \OCA\AppFramework\Db\Mapper;
@@ -37,7 +37,7 @@ class ItemMapper extends Mapper {
 	 */
 	public function __construct($api){
 		parent::__construct($api);
-		$this->tableName = '*PREFIX*apptemplateadvanced_items';
+		$this->tableName = '*PREFIX*multi_instance_items';
 	}
 
 
