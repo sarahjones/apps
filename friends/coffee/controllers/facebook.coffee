@@ -32,7 +32,7 @@ angular.module('Friends').factory '_FacebookController', ->
 
 
 		confirmSetup: (facebookUrl) =>
-			if confirm "The sync will occur with the user currently logged in to Facebook.  If there is no logged in user, you will be prompted to log in.  Please confirm that someone else is not logged into Facebook on this computer.  Then press OK to continue."
+			if confirm "The sync will occur with the user currently logged in to Facebook.  If there is no logged in user, you will be prompted to log in.  Please confirm you are the Facebook user logged into Facebook on this computer.  Then press OK to continue."
 				#@$scope.$apply( $location.path( facebookUrl ) )
 				window.location = facebookUrl
 
