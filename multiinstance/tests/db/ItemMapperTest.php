@@ -33,7 +33,7 @@ class ItemMapperTest extends \PHPUnit_Framework_TestCase {
     private $row;
 
     protected function setUp(){
-        $this->api = $this->getMock('OCA\AppFramework\Core\Api', array('prepareQuery'), array('multi_instance'));
+        $this->api = $this->getMock('OCA\AppFramework\Core\Api', array('prepareQuery'), array('multiinstance'));
         $this->mapper = new ItemMapper($this->api);
         $this->row = array(
             'id' => 1,
@@ -47,7 +47,7 @@ class ItemMapperTest extends \PHPUnit_Framework_TestCase {
 
     public function testFindByUserId(){
         $userId = 1;
-        $expected = 'SELECT * FROM `*PREFIX*multi_instance_items` WHERE `user` = ?';
+        $expected = 'SELECT * FROM `*PREFIX*multiinstance_items` WHERE `user` = ?';
 
         $cursor = $this->getMock('cursor', array('fetchRow'));
         $cursor->expects($this->once())

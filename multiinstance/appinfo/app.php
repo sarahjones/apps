@@ -24,26 +24,30 @@
 namespace OCA\MultiInstance;
 
 
-\OCP\App::registerAdmin('multi_instance', 'admin/settings');
+\OCP\App::registerAdmin('multiinstance', 'admin/settings');
 
 \OCP\App::addNavigationEntry( array(
 	
 	// the string under which your app will be referenced
 	// in owncloud, for instance: \OC_App::getAppPath('APP_ID')
-	'id' => 'multi_instance',
+	'id' => 'multiinstance',
 
 	// sorting weight for the navigation. The higher the number, the higher
 	// will it be listed in the navigation
 	'order' => 74,
 	
 	// the route that will be shown on startup
-	'href' => \OC_Helper::linkToRoute('multi_instance_index'),
+	'href' => \OC_Helper::linkToRoute('multiinstance_index'),
 	
 	// the icon that will be shown in the navigation
-	'icon' => \OCP\Util::imagePath('multi_instance', 'example.png' ),
+	'icon' => \OCP\Util::imagePath('multiinstance', 'example.png' ),
 	
 	// the title of your application. This will be used in the
 	// navigation or on the settings page of your app
-	'name' => \OC_L10N::get('multi_instance')->t('Multi Instance App') 
+	'name' => \OC_L10N::get('multiinstance')->t('Multi Instance App') 
 	
 ));
+
+#OC::$CLASSPATH['OCA\MultiInstance\Hooks'] = 'multiinstance/lib/hooks.php';
+
+\OCP\Util::connectHook('OC_User', 'post_createUser', 'OCA\MultiInstance\Hooks', 'createUser');

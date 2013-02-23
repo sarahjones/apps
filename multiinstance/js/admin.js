@@ -5,7 +5,7 @@ $(document).ready(function(){
 			
 			event.preventDefault();
 			var post = $( "#somesetting" ).serialize();
-			var url = OC.Router.generate('multi_instance_ajax_setsystemvalue');
+			var url = OC.Router.generate('multiinstance_ajax_setsystemvalue');
 
 			$.post(url , post, function(data){
 				$('#apptemplate .msg').text('Finished saving: ' + data);

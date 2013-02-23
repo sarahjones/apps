@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<database>
+	 <name>*dbname*</name>
+	 <create>true</create>
+	 <overwrite>false</overwrite>
+	 <charset>utf8</charset>
+	 <table>
+		<name>*dbprefix*multiinstance_locations</name>
+		<declaration>
+			<field>				
+				<name>id</name>
+				<type>integer</type>
+				<default>0</default>
+				<notnull>true</notnull>
+					<autoincrement>1</autoincrement>
+				<length>4</length>
+			</field>
+			<field>
+				<name>location</name>
+				<type>text</type>
+				<notnull>true</notnull>
+				<length>64</length>
+			</field>
+			<field>
+				<name>ip</name>
+				<type>text</type>
+				<notnull>true</notnull>
+				<length>15</length>
+			</field>
+		</declaration>
+	</table>
+	<table>
+
+		<name>*dbprefix*queued_users</name>
+
+		<declaration>
+
+			<field>
+				<name>uid</name>
+				<type>text</type>
+				<default></default>
+				<notnull>true</notnull>
+				<length>64</length>
+			</field>
+
+			<field>
+				<name>displayname</name>
+				<type>text</type>
+				<default></default>
+				<notnull>true</notnull>
+				<length>64</length>
+			</field>
+
+			<field>
+				<name>password</name>
+				<type>text</type>
+				<default></default>
+				<notnull>true</notnull>
+				<length>255</length>
+			</field>
+			<field>
+				<name>added_at</name>
+				<type>timestamp</type>
+				<default></default>
+				<notnull>false</notnull>
+			</field>
+		</declaration>
+
+	</table>
+</database>

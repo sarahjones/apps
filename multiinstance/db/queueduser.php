@@ -23,14 +23,13 @@
 namespace OCA\MultiInstance\Db;
 
 
-class Item {
+class QueuedUser {
 
-	private $id;
-	private $name;
-	private $path;
-	private $user;
+	private $uid;
+	private $displayName;
+	private $password;
 
-	public function __construct($fromRow=null){
+	public function __construct($uid, $displayName, $password){
 		if($fromRow){
 			$this->fromRow($fromRow);
 		}

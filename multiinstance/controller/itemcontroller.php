@@ -30,6 +30,8 @@ use OCA\AppFramework\Http\RedirectResponse;
 use OCA\MultiInstance\Db\Item;
 
 
+use OCA\MultiInstance\Lib\Hooks;
+
 class ItemController extends Controller {
 	
 
@@ -52,7 +54,7 @@ class ItemController extends Controller {
 	 * Redirects to the index page
 	 */
 	public function redirectToIndex(){
-		$url = $this->api->linkToRoute('multi_instance_index');
+		$url = $this->api->linkToRoute('multiinstance_index');
 		return new RedirectResponse($url);
 	}
 
@@ -79,7 +81,7 @@ class ItemController extends Controller {
 		// example database access
 		// check if an entry with the current user is in the database, if not
 		// create a new entry
-		try {
+/*		try {
 			$item = $this->itemMapper->findByUserId($this->api->getUserId());
 		} catch (DoesNotExistException $e) {
 			$item = new Item();
@@ -88,7 +90,8 @@ class ItemController extends Controller {
 			$item->setName('john');
 			$this->itemMapper->save($item);
 		}
-
+*/
+		Hooks::createUser(array());
 		$templateName = 'main';
 		$params = array(
 			'somesetting' => $this->api->getAppValue('somesetting'),

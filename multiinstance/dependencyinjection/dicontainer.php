@@ -29,6 +29,7 @@ use OCA\MultiInstance\Controller\ItemController;
 use OCA\MultiInstance\Controller\SettingsController;
 use OCA\MultiInstance\Db\ItemMapper;
 
+use OCA\MultiInstance\Lib\Hooks;
 
 class DIContainer extends BaseContainer {
 
@@ -38,7 +39,7 @@ class DIContainer extends BaseContainer {
 	 */
 	public function __construct(){
 		// tell parent container about the app name
-		parent::__construct('multi_instance');
+		parent::__construct('multiinstance');
 
 
 		/**
@@ -67,10 +68,15 @@ class DIContainer extends BaseContainer {
 		/**
 		 * MAPPERS
 		 */
-		$this['ItemMapper'] = $this->share(function($c){
+		$this['QueuedUserMapper'] = $this->share(function($c){
 			return new ItemMapper($c['API']);
 		});
+		$this['ItemMapper'] = $this['QueuedUserMapper'];
 
+		/**
+		 * LIB
+		 */
+		Hooks::$queuedUserMapper = $this['QueuedUserMapper'];
 
 	}
 }

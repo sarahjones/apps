@@ -144,11 +144,11 @@ class ItemControllerTest extends ControllerTestUtility {
 					->with(	$this->equalTo('somesetting'),
 							$this->equalTo('this is a test'));
 
-		// we want to return the appname multi_instance when this method
+		// we want to return the appname multiinstance when this method
 		// is being called
 		$api->expects($this->any())
 					->method('getAppName')
-					->will($this->returnValue('multi_instance'));
+					->will($this->returnValue('multiinstance'));
 
 		$controller = new ItemController($api, $request, null);
 		$response = $controller->setSystemValue(null);

@@ -27,8 +27,8 @@ angular.module('MultiInstance', ['OC']).config ['$provide', '$interpolateProvide
 	# forward and backward and change the state of your app
 	# http:#docs.angularjs.org/api/ng.$route
 	Config.routes =
-		saveNameRoute: 'multi_instance_ajax_setsystemvalue'
-		getNameRoute: 'multi_instance_ajax_getsystemvalue'
+		saveNameRoute: 'multiinstance_ajax_setsystemvalue'
+		getNameRoute: 'multiinstance_ajax_getsystemvalue'
 
 	return $provide.value('Config', Config)
 ]

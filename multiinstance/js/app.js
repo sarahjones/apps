@@ -42,8 +42,8 @@
         myParam: 'test'
       };
       Config.routes = {
-        saveNameRoute: 'multi_instance_ajax_setsystemvalue',
-        getNameRoute: 'multi_instance_ajax_getsystemvalue'
+        saveNameRoute: 'multiinstance_ajax_setsystemvalue',
+        getNameRoute: 'multiinstance_ajax_getsystemvalue'
       };
       return $provide.value('Config', Config);
     }

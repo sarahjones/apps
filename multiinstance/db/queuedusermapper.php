@@ -37,7 +37,7 @@ class ItemMapper extends Mapper {
 	 */
 	public function __construct($api){
 		parent::__construct($api);
-		$this->tableName = '*PREFIX*multi_instance_items';
+		$this->tableName = '*PREFIX*multiinstance_items';
 	}
 
 

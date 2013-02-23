@@ -35,19 +35,19 @@ use \OCA\MultiInstance\DependencyInjection\DIContainer;
 /**
  * Normal Routes
  */
-$this->create('multi_instance_index', '/')->action(
+$this->create('multiinstance_index', '/')->action(
 	function($params){
 		App::main('ItemController', 'index', $params, new DIContainer());
 	}
 );
 
-$this->create('multi_instance_index_param', '/test/{test}')->action(
+$this->create('multiinstance_index_param', '/test/{test}')->action(
 	function($params){
 		App::main('ItemController', 'index', $params, new DIContainer());
 	}
 );
 
-$this->create('multi_instance_index_redirect', '/redirect')->action(
+$this->create('multiinstance_index_redirect', '/redirect')->action(
 	function($params){
 		App::main('ItemController', 'redirectToIndex', $params, new DIContainer());
 	}
@@ -56,13 +56,13 @@ $this->create('multi_instance_index_redirect', '/redirect')->action(
 /**
  * Ajax Routes
  */
-$this->create('multi_instance_ajax_setsystemvalue', '/setsystemvalue')->post()->action(
+$this->create('multiinstance_ajax_setsystemvalue', '/setsystemvalue')->post()->action(
 	function($params){
 		App::main('ItemController', 'setSystemValue', $params, new DIContainer());
 	}
 );
 
-$this->create('multi_instance_ajax_getsystemvalue', '/getsystemvalue')->post()->action(
+$this->create('multiinstance_ajax_getsystemvalue', '/getsystemvalue')->post()->action(
 	function($params){
 		App::main('ItemController', 'getSystemValue', $params, new DIContainer());
 	}
