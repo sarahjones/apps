@@ -1,10 +1,9 @@
 <?php
-
 /**
-* ownCloud - App Template plugin
+* ownCloud - App Template Example
 *
 * @author Bernhard Posselt
-* @copyright 2012 Bernhard Posselt nukeawhale@gmail.com 
+* @copyright 2012 Bernhard Posselt nukeawhale@gmail.com
 *
 * This library is free software; you can redistribute it and/or
 * modify it under the terms of the GNU AFFERO GENERAL PUBLIC LICENSE
@@ -21,17 +20,37 @@
 *
 */
 
-namespace OCA\MultiInstance;
+namespace OCA\MultiInstance\Db;
 
 
-\OCP\App::registerAdmin('multiinstance', 'admin/settings');
+class Location {
 
-//No Nav Entry because this app does not have an UI
+	private $id;
+	private $location;
+	private $ip;
 
-//App location settings
-\OCP\Config::setAppValue('multiinstance', 'location', 'UCSB');
-\OCP\Config::setAppValue('multiinstance', 'ip', '192.168.56.101');
+	public function __construct($fromRow=null){
+		if($fromRow){
+			$this->fromRow($fromRow);
+		}
+	}
+
+	public function fromRow($row){
+		$this->id = $row['id'];
+		$this->location = $row['location'];
+		$this->ip = $row['ip'];
+	}
 
 
-\OCP\Util::connectHook('OC_User', 'post_createUser', 'OCA\MultiInstance\Lib\Hooks', 'queueUser');
-\OCP\Util::connectHook('OC_User', 'post_setPassword', 'OCA\MultiInstance\Lib\Hooks', 'queueUser');
+	public function getId(){
+		return $this->id;
+	}
+
+	public function getLocation(){
+		return $this->location;
+	}
+
+	public function getIP(){
+		return $this->ip;
+	}
+}

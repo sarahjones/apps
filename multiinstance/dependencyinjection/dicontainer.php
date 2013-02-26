@@ -27,9 +27,11 @@ use OCA\AppFramework\DependencyInjection\DIContainer as BaseContainer;
 
 use OCA\MultiInstance\Controller\ItemController;
 use OCA\MultiInstance\Controller\SettingsController;
-use OCA\MultiInstance\Db\ItemMapper;
+use OCA\MultiInstance\Db\QueuedUserMapper;
+use OCA\MultiInstance\Db\LocationMapper;
 
 use OCA\MultiInstance\Lib\Hooks;
+use OCA\MultiInstance\Lib\Location;
 
 class DIContainer extends BaseContainer {
 
@@ -57,7 +59,7 @@ class DIContainer extends BaseContainer {
 		 * CONTROLLERS
 		 */
 		$this['ItemController'] = $this->share(function($c){
-			return new ItemController($c['API'], $c['Request'], $c['ItemMapper']);
+			return new ItemController($c['API'], $c['Request'], $c['QueuedUserMapper']);
 		});
 
 		$this['SettingsController'] = $this->share(function($c){
@@ -69,14 +71,20 @@ class DIContainer extends BaseContainer {
 		 * MAPPERS
 		 */
 		$this['QueuedUserMapper'] = $this->share(function($c){
-			return new ItemMapper($c['API']);
+			return new QueuedUserMapper($c['API']);
 		});
-		$this['ItemMapper'] = $this['QueuedUserMapper'];
+
+		$this['LocationMapper'] = $this->share(function($c){
+			return new LocationMapper($c['API']);
+			
+		});
 
 		/**
 		 * LIB
 		 */
 		Hooks::$queuedUserMapper = $this['QueuedUserMapper'];
+
+
 
 	}
 }
