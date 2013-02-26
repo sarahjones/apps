@@ -33,7 +33,6 @@ class FriendshipRequestMapper extends Mapper {
 
 
 	private $tableName;
-	private $api;
 
 	/**
 	 * @param API $api: Instance of the API abstraction layer
@@ -41,7 +40,6 @@ class FriendshipRequestMapper extends Mapper {
 	public function __construct($api){
 		parent::__construct($api);
 		$this->tableName = '*PREFIX*friends_friendship_requests';
-		$this->api = $api;
 	}
 
 
