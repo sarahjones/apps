@@ -33,7 +33,7 @@ class FriendshipRequestMapperTest extends \PHPUnit_Framework_TestCase {
 	private $api;
 
 	protected function setUp(){
-		$this->api = $this->getMock('OCA\AppFramework\Core\Api', array('prepareQuery'), array('friends'));
+		$this->api = $this->getMock('OCA\Friends\Core\FriendsApi', array('prepareQuery', 'userExists'), array('friends'));
 		$this->mapper = new FriendshipRequestMapper($this->api);
 		$this->row1 = array(
 			//'requester_uid' => 'thisisuser3',
@@ -133,6 +133,11 @@ class FriendshipRequestMapperTest extends \PHPUnit_Framework_TestCase {
 			->method('prepareQuery')
 			->with($this->equalTo($expected))
 			->will($this->returnValue($query));
+
+		$this->api->expects($this->once())
+			->method('userExists')
+			->with()
+			->will($this->returnValue(true));
 	
 		$friendshipRequest = new FriendshipRequest();
 		$friendshipRequest->setRecipient($userId1);
@@ -146,11 +151,16 @@ class FriendshipRequestMapperTest extends \PHPUnit_Framework_TestCase {
 		$userId1 = 'thisisuser1';
 		$userId2 = 'thisisuser2';
 
-		$frmapper = $this->getMock(get_class($this->mapper), array('exists'), array($this->api));
+		$this->api->expects($this->once())
+			->method('userExists')
+			->with()
+			->will($this->returnValue(true));
+
+		$frmapper = $this->getMock('OCA\Friends\Db\FriendshipRequestMapper', array('exists'), array($this->api));
 		$frmapper->expects($this->once())
 			->method('exists')
 			->with($userId2, $userId1)
-			->will($this->returnValue($this->row3));
+			->will($this->returnValue(true));
 
 	
 		$friendshipRequest = new FriendshipRequest();
