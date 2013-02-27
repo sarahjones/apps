@@ -44,34 +44,13 @@ class CronSendTest extends \PHPUnit_Framework_TestCase {
 
     }
 
-/*
+
     public function testFindByUserId(){
         $userId = 1;
         $expected = 'SELECT * FROM `*PREFIX*multiinstance_items` WHERE `user` = ?';
-
-        $cursor = $this->getMock('cursor', array('fetchRow'));
-        $cursor->expects($this->once())
-                ->method('fetchRow')
-                ->will($this->returnValue($this->row));
-
-        $query = $this->getMock('query', array('execute'));
-        $query->expects($this->once())
-                ->method('execute')
-                ->with($this->equalTo(array($userId)))
-                ->will($this->returnValue($cursor));
-
-        $this->api->expects($this->once())
-                ->method('prepareQuery')
-                ->with($this->equalTo($expected))
-                ->will($this->returnValue($query));
-
-        $item = $this->mapper->findByUserId($userId);
-
-        $this->assertEquals($this->row['id'], $item->getId());
-        $this->assertEquals($this->row['path'], $item->getPath());
-        $this->assertEquals($this->row['name'], $item->getName());
-        $this->assertEquals($this->row['user'], $item->getUser());
+	
+	CronSend::dump_queued_users();
     }
 
-*/
+
 }

@@ -47,7 +47,7 @@ class DIContainer extends BaseContainer {
 
 		$this['API'] = $this->share(function($c){
 			return new MultiInstanceAPI($c["AppName"]);
-		}
+		});
 
 		/**
 		 * Delete the following twig config to use ownClouds default templates

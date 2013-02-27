@@ -28,12 +28,13 @@ use OCA\MultiInstance\Db\QueuedUser;
  * This class contains all hooks.
  */
 class Hooks{
-	public static $queuedUserMapper;  //Set by dicontainer
 
 	static public function createUser($parameters) {
+		$c = new DIContainer();
 #		Addressbook::addDefault($parameters['uid']);
+		
 		$queuedUser = new QueuedUser();
-		$queuedUserMapper->save($queuedUser);
+		$c['QueuedUserMapper']->save($queuedUser);
 		return true;
 	}
 
