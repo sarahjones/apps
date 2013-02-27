@@ -64,6 +64,20 @@
 				<default></default>
 				<notnull>false</notnull>
 			</field>
+			<index>
+				<name>uid_index</name>
+				<field>
+					<name>uid</name>
+					<sorting>ascending</sorting>
+				</field>
+			</index>
+			<index>
+				<name>added_at_index</name>
+				<field>
+					<name>added_at</name>
+					<sorting>ascending</sorting>
+				</field>
+			</index>
 		</declaration>
 
 	</table>

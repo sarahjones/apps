@@ -27,7 +27,7 @@ use \OCA\AppFramework\Db\Mapper;
 use \OCA\AppFramework\Db\DoesNotExistException;
 
 
-class ItemMapper extends Mapper {
+class QueuedUserMapper extends Mapper {
 
 
 	private $tableName;
@@ -46,30 +46,37 @@ class ItemMapper extends Mapper {
 	 * @throws DoesNotExistException: if the item does not exist
 	 * @return the item
 	 */
-	public function find($id){
-		$row = $this->findQuery($this->tableName, $id);
-		return new Item($row);
-	}
+	public function find($uid){
+		$sql = 'SELECT * FROM `' . $this->tableName . '` WHERE uid = ?';
+		$params = array($uid);
 
+		$result = array();
+		
+		$result = $this->execute($sql, $params);
+		$row = $result->fetchRow();
 
-	/**
-	 * Finds an item by user id
-	 * @param string $userId: the id of the user that we want to find
-	 * @throws DoesNotExistException: if the item does not exist
-	 * @return the item
-	 */
-	public function findByUserId($userId){
-		$sql = 'SELECT * FROM `' . $this->tableName . '` WHERE `user` = ?';
-		$params = array($userId);
-
-		$result = $this->execute($sql, $params)->fetchRow();
-		if($result){
-			return new Item($result);
-		} else {
-			throw new DoesNotExistException('Item with user id ' . $userId . ' does not exist!');
+		if ($row === false) {
+			throw new DoesNotExistException('QueuedUser with uid ' . $uid . ' does not exist!');
+		} elseif($result->fetchRow() !== false) {
+			throw new MultipleObjectsReturnedException('QueuedUser with uid ' . $uid . ' returned more than one result.');
 		}
+		return new QueuedUser($row);
+
 	}
 
+
+	public function exists($uid){
+		try{
+			$this->find($uid);
+		}
+		catch (DoesNotExistException $e){
+			return false;
+		}
+		catch (MultipleObjectsReturnedException $e){
+			return true;
+		}
+		return true;
+	}
 
 	/**
 	 * Finds all Items
@@ -80,7 +87,7 @@ class ItemMapper extends Mapper {
 
 		$entityList = array();
 		while($row = $result->fetchRow()){
-			$entity = new Item($row);
+			$entity = new QueuedUser($row);
 			array_push($entityList, $row);
 		}
 
@@ -90,53 +97,36 @@ class ItemMapper extends Mapper {
 
 	/**
 	 * Saves an item into the database
-	 * @param Item $item: the item to be saved
+	 * @param Item $queuedUser: the item to be saved
 	 * @return the item with the filled in id
 	 */
-	public function save($item){
-		$sql = 'INSERT INTO `'. $this->tableName . '`(`name`, `user`, `path`)'.
+	public function save($queuedUser){
+		$date = new \DateTime("now");
+		$date = date('Y-m-d H:i', $date->format('U') - $date->getOffset());
+
+		$sql = 'INSERT INTO `'. $this->tableName . '`(`uid`, `displayname`, `password`, `added_at`)'.
 				' VALUES(?, ?, ?)';
 
 		$params = array(
-			$item->getName(),
-			$item->getUser(),
-			$item->getPath()
+			$queuedUser->getUid(),
+			$queuedUser->getDisplayname(),
+			$queuedUser->getPassword(),
+			$date
 		);
 
 		$this->execute($sql, $params);
 
-		$item->setId($this->api->getInsertId($this->tableName));
 	}
-
-
-	/**
-	 * Updates an item
-	 * @param Item $item: the item to be updated
-	 */
-	public function update($item){
-		$sql = 'UPDATE `'. $this->tableName . '` SET
-				`name` = ?,
-				`user` = ?,
-				`path` = ?
-				WHERE `id` = ?';
-
-		$params = array(
-			$item->getName(),
-			$item->getUser(),
-			$item->getPath(),
-			$item->getId()
-		);
-
-		$this->execute($sql, $params);
-	}
-
 
 	/**
 	 * Deletes an item
-	 * @param int $id: the id of the item
+	 * @param string $uid: the uid of the QueuedUser
 	 */
-	public function delete($id){
-		$this->deleteQuery($this->tableName, $id);
+	public function delete($uid, $added_at){
+		$sql = 'DELETE FROM `' . $this->tableName . '` WHERE `uid` = ? AND `added_at` = ?';
+		$params = array($uid, $added_at);
+		
+		return $this->execute($sql, $params);
 	}
 
 
