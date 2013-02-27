@@ -37,7 +37,7 @@ class QueuedUserMapper extends Mapper {
 	 */
 	public function __construct($api){
 		parent::__construct($api);
-		$this->tableName = '*PREFIX*multiinstance_items';
+		$this->tableName = '*PREFIX*multiinstance_queued_users';
 	}
 
 
@@ -101,11 +101,10 @@ class QueuedUserMapper extends Mapper {
 	 * @return the item with the filled in id
 	 */
 	public function save($queuedUser){
-		$date = new \DateTime("now");
-		$date = date('Y-m-d H:i', $date->format('U') - $date->getOffset());
+		$date = $this->api->getTime();
 
-		$sql = 'INSERT INTO `'. $this->tableName . '`(`uid`, `displayname`, `password`, `added_at`)'.
-				' VALUES(?, ?, ?)';
+		$sql = 'INSERT INTO `'. $this->tableName . '` (`uid`, `displayname`, `password`, `added_at`)'.
+				' VALUES(?, ?, ?, ?)';
 
 		$params = array(
 			$queuedUser->getUid(),
@@ -114,7 +113,7 @@ class QueuedUserMapper extends Mapper {
 			$date
 		);
 
-		$this->execute($sql, $params);
+		return $this->execute($sql, $params);
 
 	}
 

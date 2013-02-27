@@ -1,9 +1,9 @@
 <?php
 /**
-* ownCloud - App Template Example
+* ownCloud - Friends app
 *
-* @author Bernhard Posselt
-* @copyright 2012 Bernhard Posselt nukeawhale@gmail.com
+* @author Sarah Jones
+* @copyright 2013 Sarah Jones sarah.e.p.jones@gmail.com 
 *
 * This library is free software; you can redistribute it and/or
 * modify it under the terms of the GNU AFFERO GENERAL PUBLIC LICENSE
@@ -20,31 +20,15 @@
 *
 */
 
-namespace OCA\MultiInstance\Db;
 
+namespace OCA\MultiInstance\Core;
 
-class QueuedUser {
+use  OCA\AppFramework\Core\API as API;
 
-	private $uid;
-	private $displayname;
-	private $password;
-
-	public function __construct($uid, $displayname, $password){
-		$this->uid = $uid;
-		$this->displayname = $displayname;
-		$this->password = $password;
-
+class MultiInstanceAPI extends API {
+	public function getTime() {
+		$date = new \DateTime("now");
+                $date = date('Y-m-d H:i', $date->format('U') - $date->getOffset());
+		return string($date);
 	}
-
-	public function getUid(){
-		return $this->uid;
-	}
-
-	public function getDisplayname(){
-		return $this->displayname;
-	}
-
-	public function getPassword(){
-		return $this->password;
-	}
-}
+}	

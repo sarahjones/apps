@@ -44,7 +44,7 @@ class CronSendTest extends \PHPUnit_Framework_TestCase {
 
     }
 
-
+/*
     public function testFindByUserId(){
         $userId = 1;
         $expected = 'SELECT * FROM `*PREFIX*multiinstance_items` WHERE `user` = ?';
@@ -73,5 +73,5 @@ class CronSendTest extends \PHPUnit_Framework_TestCase {
         $this->assertEquals($this->row['user'], $item->getUser());
     }
 
-
+*/
 }

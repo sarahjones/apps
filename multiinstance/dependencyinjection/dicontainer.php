@@ -30,6 +30,8 @@ use OCA\MultiInstance\Controller\SettingsController;
 use OCA\MultiInstance\Db\QueuedUserMapper;
 use OCA\MultiInstance\Db\LocationMapper;
 
+use OCA\MultiInstance\Core\MultiInstanceAPI;
+
 use OCA\MultiInstance\Lib\Hooks;
 use OCA\MultiInstance\Lib\Location;
 
@@ -43,6 +45,9 @@ class DIContainer extends BaseContainer {
 		// tell parent container about the app name
 		parent::__construct('multiinstance');
 
+		$this['API'] = $this->share(function($c){
+			return new MultiInstanceAPI($c["AppName"]);
+		}
 
 		/**
 		 * Delete the following twig config to use ownClouds default templates
