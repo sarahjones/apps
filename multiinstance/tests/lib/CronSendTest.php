@@ -21,12 +21,12 @@
 *
 */
 
-namespace OCA\MultiInstance\Db;
+namespace OCA\MultiInstance\Lib;
 
 require_once(__DIR__ . "/../classloader.php");
 
 
-class ItemMapperTest extends \PHPUnit_Framework_TestCase {
+class CronSendTest extends \PHPUnit_Framework_TestCase {
 
     private $api;
     private $mapper;
@@ -34,7 +34,7 @@ class ItemMapperTest extends \PHPUnit_Framework_TestCase {
 
     protected function setUp(){
         $this->api = $this->getMock('OCA\AppFramework\Core\Api', array('prepareQuery'), array('multiinstance'));
-        $this->mapper = new ItemMapper($this->api);
+        $this->mapper = new CronSend($this->api);
         $this->row = array(
             'id' => 1,
             'user' => 'john',

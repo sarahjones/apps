@@ -27,14 +27,25 @@ use OCA\MultiInstance\Db\QueuedUser;
 /**
  * This class contains all hooks.
  */
-class Hooks{
-	public static $queuedUserMapper;  //Set by dicontainer
+class CronSend{
 
-	static public function createUser($parameters) {
-#		Addressbook::addDefault($parameters['uid']);
-		$queuedUser = new QueuedUser();
-		$queuedUserMapper->save($queuedUser);
-		return true;
+
+	/**
+	 * @param API $api: Instance of the API abstraction layer
+	 */
+	public function __construct($api){
+		$this->api = $api;
+		$this->username = $this->api->getSystemValue('dbuser');
+		$this->password = $this->api->getSystemValue('dbpassword');
+		$this->db = $this->api->getSystemValue('dbname');
+		$this->table = $this->api->getSystemValue('dbtableprefix') . 'multiinstance_queued_users';
 	}
 
+	public function dump_queued_users() {
+
+		echo $table;
+
+		$cmd = "mysqldump -u" . $username .  " -p" . $password . " " . $db . " " . $table . " > queued_users.sql";
+		exec($cmd);
+	}
 }

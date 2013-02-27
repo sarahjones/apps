@@ -79,11 +79,6 @@ class DIContainer extends BaseContainer {
 			
 		});
 
-		/**
-		 * LIB
-		 */
-		Hooks::$queuedUserMapper = $this['QueuedUserMapper'];
-
 
 
 	}

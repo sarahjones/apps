@@ -31,7 +31,7 @@
 	</table>
 	<table>
 
-		<name>*dbprefix*queued_users</name>
+		<name>*dbprefix*multiinstance_queued_users</name>
 
 		<declaration>
 
