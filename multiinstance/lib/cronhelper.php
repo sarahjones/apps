@@ -26,24 +26,16 @@ use OCA\MultiInstance\Db\QueuedUser;
 use OCA\MultiInstance\DependencyInjection\DIContainer;
 /**
  */
-class CronSend{
+class CronHelper{
 
 
 	/**
 	 * @param API $api: Instance of the API abstraction layer
 	 */
 
-	public static function dump_queued_users() {
+	public static function getCronPw() {
 		$c = new DIContainer();
-	
 		$api = $c['API'];
-		$username = $api->getSystemValue('dbuser');
-		$password = $api->getSystemValue('dbpassword');
-		$db = $api->getSystemValue('dbname');
-		$table = $api->getSystemValue('dbtableprefix') . 'multiinstance_queued_users';
-		echo $table;
-
-		$cmd = "mysqldump -u" . $username .  " -p" . $password . " " . $db . " " . $table . " > queued_users.sql";
-		exec($cmd);
+		return $api->getSystemValue('multiinstance_cronpw');
 	}
 }

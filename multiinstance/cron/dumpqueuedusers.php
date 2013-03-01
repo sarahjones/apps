@@ -22,10 +22,16 @@
 
 namespace OCA\MultiInstance\Cron;
 
-use OCA\MultiInstance\Lib\CronSend;
 
-require './lib/cronsend.php';
-require './dependencyinjection/dicontainer.php';
-#require './../appframework/core/api.php';
+require_once(__DIR__ . "/../tests/classloader.php");
+require_once(__DIR__ . "/../../../owncloud/lib/public/config.php");
+require_once(__DIR__ . "/../../../owncloud/lib/config.php");
+require_once(__DIR__ . "/../../../owncloud/lib/base.php");
 
-CronSend::dump_queued_users();
+use OCA\MultiInstance\Lib\CronHelper;
+use OCA\MultiInstance\DependencyInjection\DIContainer;
+
+
+$c = new DIContainer();
+$c['CronTask']->dumpQueuedUsers();
+

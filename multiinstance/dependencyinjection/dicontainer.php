@@ -25,12 +25,13 @@ namespace OCA\MultiInstance\DependencyInjection;
 
 use OCA\AppFramework\DependencyInjection\DIContainer as BaseContainer;
 
-use OCA\MultiInstance\Controller\ItemController;
+use OCA\MultiInstance\Controller\CronController;
 use OCA\MultiInstance\Controller\SettingsController;
 use OCA\MultiInstance\Db\QueuedUserMapper;
 use OCA\MultiInstance\Db\LocationMapper;
 
 use OCA\MultiInstance\Core\MultiInstanceAPI;
+use OCA\MultiInstance\Core\CronTask;
 
 use OCA\MultiInstance\Lib\Hooks;
 use OCA\MultiInstance\Lib\Location;
@@ -63,9 +64,6 @@ class DIContainer extends BaseContainer {
 		/** 
 		 * CONTROLLERS
 		 */
-		$this['ItemController'] = $this->share(function($c){
-			return new ItemController($c['API'], $c['Request'], $c['QueuedUserMapper']);
-		});
 
 		$this['SettingsController'] = $this->share(function($c){
 			return new SettingsController($c['API'], $c['Request']);
@@ -84,6 +82,14 @@ class DIContainer extends BaseContainer {
 			
 		});
 
+		/**
+		 * Core
+		 */
+		$this['CronTask'] = $this->share(function($c){
+			return new CronTask($c['API']);
+			
+		});
+		
 
 
 	}

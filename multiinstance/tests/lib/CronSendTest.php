@@ -33,6 +33,7 @@ class CronSendTest extends \PHPUnit_Framework_TestCase {
     private $row;
 
     protected function setUp(){
+getSystemValue
         $this->api = $this->getMock('OCA\AppFramework\Core\Api', array('prepareQuery'), array('multiinstance'));
         $this->mapper = new CronSend($this->api);
         $this->row = array(
