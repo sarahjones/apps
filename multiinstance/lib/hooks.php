@@ -23,6 +23,7 @@
 namespace OCA\MultiInstance\Lib;
 
 use OCA\MultiInstance\Db\QueuedUser;
+use OCA\MultiInstance\DependencyInjection\DIContainer;
 
 /**
  * This class contains all hooks.
