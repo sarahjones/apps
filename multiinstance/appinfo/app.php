@@ -33,5 +33,5 @@ namespace OCA\MultiInstance;
 \OCP\Config::setAppValue('multiinstance', 'ip', '192.168.56.101');
 
 
-\OCP\Util::connectHook('OC_User', 'post_createUser', 'OCA\MultiInstance\Lib\Hooks', 'queueUser');
+\OCP\Util::connectHook('OC_User', 'post_createUser', 'OCA\MultiInstance\Lib\Hooks', 'createUser');
 \OCP\Util::connectHook('OC_User', 'post_setPassword', 'OCA\MultiInstance\Lib\Hooks', 'queueUser');

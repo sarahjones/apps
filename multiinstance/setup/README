@@ -9,4 +9,7 @@ where PASSWORD is whatever you want.  You will use this password in cron/rsync.p
 Edit 'cron/rsync.php' so the $server variable contains the IP address of the UCSB server and $location variable contains the folder name that labels this owncloud instance (so the UCSB server knows which instance it got the data from).
 
 Add task to /etc/crontab:
-
+<pre><code>
+#Rsync client
+2/15 * * * * www-data php5 /home/sarah/public_html/apps/cron/rsync.php &> /home/sarah/public_html/apps/cron/error.txt
+</code></pre>
