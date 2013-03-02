@@ -1,0 +1,12 @@
+Move setup file 'rsyncd.conf' to /etc/rsyncd.conf
+
+Create /etc/rsyncd.motd file with contents:
+<pre><code>
+www-data:PASSWORD
+</code></pre>
+where PASSWORD is whatever you want.  You will use this password in cron/rsync.php
+
+Edit 'cron/rsync.php' so the $server variable contains the IP address of the UCSB server and $location variable contains the folder name that labels this owncloud instance (so the UCSB server knows which instance it got the data from).
+
+Add task to /etc/crontab:
+

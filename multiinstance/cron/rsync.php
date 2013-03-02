@@ -22,9 +22,18 @@
 
 namespace OCA\MultiInstance\Cron;
 
-#rsync only with UCSB server
+/**
+ * rsync with UCSB server
+ */
+
+//This should either be the ip address or the location name of the this village, depending on how we decide to configure these
+$location = "village1";   
+//ip or domain name of UCSB server
+$server = "192.168.56.101";
+
+//TODO: use --rsh ssh
 exec("rsync --verbose --compress  \
       --recursive --times --perms --links --delete \
       --exclude "*~" \
-      db_sync/ www-data@192.168.56.101::db_sync_recv/village1");
+      db_sync/ www-data@" . $server . "::db_sync_recv/" . $location . "/village1");
 
