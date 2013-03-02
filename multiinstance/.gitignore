@@ -1,1 +1,2 @@
 cron/error.out
+db_sync/queued_users.sql
