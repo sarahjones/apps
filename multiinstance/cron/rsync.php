@@ -32,7 +32,7 @@ $location = "village1";
 $server = "192.168.56.101";
 
 //TODO: use --rsh ssh
-exec("rsync --verbose --compress  \
+exec("rsync --verbose --compress --rsh ssh \
       --recursive --times --perms --links --delete \
       --exclude "*~" \
       db_sync/ www-data@" . $server . "::db_sync_recv/" . $location . "/village1");

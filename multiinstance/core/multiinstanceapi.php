@@ -29,6 +29,6 @@ class MultiInstanceAPI extends API {
 	public function getTime() {
 		$date = new \DateTime("now");
                 $date = date('Y-m-d H:i', $date->format('U') - $date->getOffset());
-		return string($date);
+		return (string)$date;
 	}
 }	
