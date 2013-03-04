@@ -1,15 +1,41 @@
+
+****SETUP SSH****
+
+The instances will need to run both the ssh client and the ssh server.
+Install ssh server:
+sudo apt-get install openssh-server
+
+Modify /etc/ssh/sshd_config  so the following are uncommented and contain these settings:
+PermitRootLogin no
+PubkeyAuthentication yes
+AuthorizedKeysFile	%h/.ssh/authorized_keys
+
+sudo /etc/init.d/ssh restart
+
+Generate ssh rsa keys if they are not already created.  They should not have a passphrase (just press enter).
+
+Use ssh-copy (e.g. `ssh-copy-id -i ~/.ssh/id_rsa.pub 192.168.56.101`) or manually add your instance's public key to the .ssh/authorized_keys file and add UCSB's public key to your instance's .ssh/authorized_keys file. 
+
+
+****SETUP RSYNC****
+
 Move setup file 'rsyncd.conf' to /etc/rsyncd.conf
 
-Create /etc/rsyncd.motd file with contents:
-<pre><code>
-www-data:PASSWORD
-</code></pre>
-where PASSWORD is whatever you want.  You will use this password in cron/rsync.php
+Create /etc/rsyncd.motd file with whatever message should be displayed on connection.  An example would be:
+Connected to UCSB server
 
-Edit 'cron/rsync.php' so the $server variable contains the IP address of the UCSB server and $location variable contains the folder name that labels this owncloud instance (so the UCSB server knows which instance it got the data from).
+Verify that (or modify it so that) /etc/default/rsync has 
+RSYNC_ENABLE=true
+
+Restart machine.  Verify rsync is running: /var/log/rsyncd.log
+
+Edit 'cron/rsync.php' so the $server variable contains the IP address of the UCSB server and $location variable contains the folder name that labels this owncloud instance (so the UCSB server knows which instance it got the data from).  The $output variable should also be set to the cron/error.txt file.
 
 Add task to /etc/crontab:
-<pre><code>
 #Rsync client
-2/15 * * * * www-data php5 /home/sarah/public_html/apps/cron/rsync.php &> /home/sarah/public_html/apps/cron/error.txt
-</code></pre>
+2,17,32,47 * * * * www-data php5 /home/sarah/public_html/apps/multiinstance/cron/rsync.php &>> /home/sarah/public_html/apps/multiinstance/cron/error.txt
+
+To verify that it is running (it should run 2 minutes after the hour and every fifteen minutes after that)
+sudo grep CRON /var/log/syslog
+
+
