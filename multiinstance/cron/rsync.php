@@ -33,10 +33,11 @@ $server = "192.168.56.101";
 //path to apps/multiinstance/cron/error.txt
 $output = "/home/sarah/public_html/apps/multiinstance/cron/error.txt";
 
-
-//TODO: use --rsh ssh
-exec("rsync --verbose --compress --rsh ssh \
+$cmd = "rsync --verbose --compress --rsh ssh \
       --recursive --times --perms --links --delete \
       --exclude "*~" \
-      db_sync/ www-data@" . $server . "::db_sync_recv/" . $location . "/village1 &>> " . $output);
+      db_sync/ www-data@" . $server . "::db_sync_recv/" . $location . " &>> " . $output;
+
+$safe_cmd = escapeshellcmd($cmd);
+exec($safe_cmd);
 
