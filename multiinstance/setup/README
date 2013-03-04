@@ -33,7 +33,7 @@ Edit 'cron/rsync.php' so the $server variable contains the IP address of the UCS
 
 Add task to /etc/crontab:
 #Rsync client
-2,17,32,47 * * * * www-data php5 /home/sarah/public_html/apps/multiinstance/cron/rsync.php &>> /home/sarah/public_html/apps/multiinstance/cron/error.txt
+2,17,32,47 * * * * www-data php5 /home/sarah/public_html/apps/multiinstance/cron/rsync.php >> /home/sarah/public_html/apps/multiinstance/cron/error.txt 2>&1
 
 To verify that it is running (it should run 2 minutes after the hour and every fifteen minutes after that)
 sudo grep CRON /var/log/syslog

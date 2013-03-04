@@ -46,7 +46,8 @@ class CronTask {
 		$db = $this->api->getSystemValue('dbname');
 		$table = $this->api->getSystemValue('dbtableprefix') . 'multiinstance_queued_users';
 		$file = "/home/sjones/public_html/dev/apps/multiinstance/db_sync/queued_users.sql";
-		$cmd = "mysqldump --add-locks -u" . $username .  " -p" . $password . " " . $db . " " . $table . " > " . $file;
+		//--no-create-info --no-create-db
+		$cmd = "mysqldump --add-locks --replace -u" . $username .  " -p" . $password . " " . $db . " " . $table . " >> " . $file;
 		$escaped_comannd = escapeshellcmd($cmd); //escape since input is taken from config/conf.php
 		exec($cmd);
 	}

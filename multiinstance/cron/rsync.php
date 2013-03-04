@@ -36,7 +36,7 @@ $output = "/home/sarah/public_html/apps/multiinstance/cron/error.txt";
 $cmd = "rsync --verbose --compress --rsh ssh \
       --recursive --times --perms --links --delete \
       --exclude "*~" \
-      db_sync/ www-data@" . $server . "::db_sync_recv/" . $location . " &>> " . $output;
+      db_sync/ www-data@" . $server . "::db_sync_recv/" . $location . " >>" . $output " 2>&1";
 
 $safe_cmd = escapeshellcmd($cmd);
 exec($safe_cmd);
