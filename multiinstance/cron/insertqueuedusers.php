@@ -22,22 +22,16 @@
 
 namespace OCA\MultiInstance\Cron;
 
-/**
- * rsync with UCSB server
- */
 
-//This should either be the ip address or the location name of the this village, depending on how we decide to configure these
-$location = "village1";   
-//ip or domain name of UCSB server
-$server = "192.168.56.101";
-//path to apps/multiinstance/cron/error.txt
-$output = "/home/sarah/public_html/apps/multiinstance/cron/error.txt";
+require_once(__DIR__ . "/../tests/classloader.php");
+require_once(__DIR__ . "/../../../owncloud/lib/public/config.php");
+require_once(__DIR__ . "/../../../owncloud/lib/config.php");
+require_once(__DIR__ . "/../../../owncloud/lib/base.php");
 
-$cmd = "rsync --verbose --compress --rsh ssh \
-      --recursive --times --perms --links --delete \
-      --exclude \"*~\" \
-      db_sync/ www-data@" . $server . "::db_sync_recv/" . $location . " >>" . $output . " 2>&1";
+use OCA\MultiInstance\Lib\CronHelper;
+use OCA\MultiInstance\DependencyInjection\DIContainer;
 
-#$safe_cmd = escapeshellcmd($cmd);
-exec($cmd);
+
+$c = new DIContainer();
+$c['CronTask']->insertQueuedUsers();
 

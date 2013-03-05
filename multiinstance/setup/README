@@ -12,9 +12,28 @@ AuthorizedKeysFile	%h/.ssh/authorized_keys
 
 sudo /etc/init.d/ssh restart
 
-Generate ssh rsa keys if they are not already created.  They should not have a passphrase (just press enter).
 
-Use ssh-copy (e.g. `ssh-copy-id -i ~/.ssh/id_rsa.pub 192.168.56.101`) or manually add your instance's public key to the .ssh/authorized_keys file and add UCSB's public key to your instance's .ssh/authorized_keys file. 
+***Not sure what user to use at this point since ssh isn't working
+Generate ssh rsa keys for www-data user if they are not already created.  They should not have a passphrase (just press enter).
+Create a directory that www-data can write to (chown -R www-data:www-data <DIR>)
+Run the below command, with the 'village1 apache' changed to whatever comment you want, easiest to have it identify the machine and user.
+sudo su - www-data -c "ssh-keygen -t rsa -C \"village1 apache\""
+Instead of putting the id_rsa in /var/www/.ssh, enter the full path for the directory you made for www-data.
+For the passphrase, just press enter.
+
+Move the keys:
+sudo mkdir /var/www/.ssh
+sudo mv <DIR>/id_rsa* /var/www/.ssh
+
+You can then delete your <DIR>.
+
+Manually add your instance's www-data public key to the UCSB /var/www/.ssh/authorized_keys file and add UCSB's public key to your instance's /var/www/.ssh/authorized_keys file (you'll need to create the /var/www/.ssh and the authorized_keys file).
+
+Test that this has worked with:
+sudo su - www-data -c "ssh -vvv www-data@<UCSB_IP>"
+Press enter if promped to accept the fingerprint
+If the ssh looks successful, verify the username and machine with `env` and `ifconfig`, use `exit` to logout
+
 
 
 ****SETUP RSYNC****

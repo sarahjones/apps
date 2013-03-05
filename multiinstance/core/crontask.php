@@ -45,11 +45,61 @@ class CronTask {
 		$password = $this->api->getSystemValue('dbpassword');
 		$db = $this->api->getSystemValue('dbname');
 		$table = $this->api->getSystemValue('dbtableprefix') . 'multiinstance_queued_users';
+		$usersTable = $this->api->getSystemValue('dbtableprefix') . 'users';
 		$file = "/home/sjones/public_html/dev/apps/multiinstance/db_sync/queued_users.sql";
-		//--no-create-info --no-create-db
-		$cmd = "mysqldump --add-locks --replace -u" . $username .  " -p" . $password . " " . $db . " " . $table . " >> " . $file;
+		
+		$cmd = "mysqldump --add-locks --replace  --skip-comments --skip-extended-insert --no-create-info --no-create-db -u" . $username .  " -p" . $password . " " . $db . " " . $table . " > " . $file;
 		$escaped_comannd = escapeshellcmd($cmd); //escape since input is taken from config/conf.php
 		exec($cmd);
+		$replace = "sed -i 's/" . $table . "/" . $usersTable . "/g' " . $file ;
+		exec(escapeshellcmd($replace));
+		$eof = "sed -i '1i-- done' " . $file ;
+		exec($eof);
+	}
+
+
+	public function insertQueuedUsers() {
+		$username = $this->api->getSystemValue('dbuser');
+		$password = $this->api->getSystemValue('dbpassword');
+		$db = $this->api->getSystemValue('dbname');
+		$table = $this->api->getSystemValue('dbtableprefix') . 'multiinstance_queued_users';
+		$usersTable = $this->api->getSystemValue('dbtableprefix') . 'users';
+		$path_prefix ="/home/sjones/public_html/dev/apps/multiinstance/db_sync_recv/"; 
+		$file = "/queued_users.sql";
+
+		$dirs = glob($path_prefix . "*", GLOB_ONLYDIR );
+
+		foreach ($dirs as $dir){
+			$full_file =  $dir . $file;
+			$this->mysqlExecuteFile($full_file);
+		}
+	}
+
+	private function execute($sql, array $params=array(), $limit=null, $offset=null){
+		$query = $this->api->prepareQuery($sql);
+		return $query->execute($params);
+	}
+
+	//source: http://stackoverflow.com/questions/7840044/how-to-execute-mysql-script-file-in-php
+	private function mysqlExecuteFile($filename){
+		$first = true;
+		if ($file = file_get_contents($filename)){
+			foreach(explode(";", $file) as $query){
+				$query = trim($query);
+				if ($first) {
+					//If still being written
+					if ($query !== "-- done")
+						return;
+					$first = false;
+					continue;
+				}
+				if (!empty($query) && $query !== ";") {
+					if ($this->execute($query))
+						//ACK
+						;
+		    		}
+			}
+	    	}
 	}
 
 }

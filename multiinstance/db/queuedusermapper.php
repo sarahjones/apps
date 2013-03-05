@@ -101,29 +101,49 @@ class QueuedUserMapper extends Mapper {
 	 * @return the item with the filled in id
 	 */
 	public function save($queuedUser){
-		$date = $this->api->getTime();
+		if ($this->exists($queuedUser->getUid())) {
+			$this->update($queuedUser);
+		}
 
-		$sql = 'INSERT INTO `'. $this->tableName . '` (`uid`, `displayname`, `password`, `added_at`)'.
-				' VALUES(?, ?, ?, ?)';
+		$sql = 'INSERT INTO `'. $this->tableName . '` (`uid`, `displayname`, `password`)'.
+				' VALUES(?, ?, ?)';
 
 		$params = array(
 			$queuedUser->getUid(),
 			$queuedUser->getDisplayname(),
-			$queuedUser->getPassword(),
-			$date
+			$queuedUser->getPassword()
 		);
 
 		return $this->execute($sql, $params);
 
 	}
 
+	public function update($queuedUser){
+		$sql = 'UPDATE `'. $this->tableName . '` SET
+				`displayname` = ?,
+				`password` = ?
+				WHERE `uid` = ?';
+
+		$params = array(
+			$queuedUser->getDisplayname(),
+			$queuedUser->getPassword(),
+			$queuedUser->getId()
+		);
+
+		$this->execute($sql, $params);
+	}
+
 	/**
 	 * Deletes an item
 	 * @param string $uid: the uid of the QueuedUser
 	 */
-	public function delete($uid, $added_at){
-		$sql = 'DELETE FROM `' . $this->tableName . '` WHERE `uid` = ? AND `added_at` = ?';
-		$params = array($uid, $added_at);
+	public function delete($queuedUser){
+		$sql = 'DELETE FROM `' . $this->tableName . '` WHERE `uid` = ? AND `displayname` = ? AND `password` = ?';
+		$params = array(
+			$queuedUser->getUid(),
+			$queuedUser->getDisplayname(),
+			$queuedUser->getPassword(),
+		);
 		
 		return $this->execute($sql, $params);
 	}

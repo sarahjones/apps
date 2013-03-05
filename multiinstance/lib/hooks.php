@@ -33,9 +33,22 @@ class Hooks{
 	static public function createUser($parameters) {
 		$c = new DIContainer();
 #		Addressbook::addDefault($parameters['uid']);
+		$uid = $parameters['uid'];
+		$displayname = '';
+		$password = $parameters['password'];
 		
-		$queuedUser = new QueuedUser();
+		$queuedUser = new QueuedUser($uid, $displayname, $password);
 		$c['QueuedUserMapper']->save($queuedUser);
+		return true;
+	}
+
+	static public function updateUser($parameters) {
+		$c = new DIContainer();
+		$uid = $parameters['uid'];
+		$displayname = '';
+		$password = $parameters['password'];
+		$queuedUser = new QueuedUser($uid, $displayname, $password);
+		$c['QueuedUserMapper']->update($queuedUser);
 		return true;
 	}
 
