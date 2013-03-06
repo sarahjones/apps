@@ -27,7 +27,7 @@ use \OCA\AppFramework\Db\Mapper;
 use \OCA\AppFramework\Db\DoesNotExistException;
 
 
-class QueuedUserMapper extends Mapper {
+class UserUpdateMapper extends Mapper {
 
 
 	private $tableName;
@@ -37,10 +37,9 @@ class QueuedUserMapper extends Mapper {
 	 */
 	public function __construct($api){
 		parent::__construct($api);
-		$this->tableName = '*PREFIX*multiinstance_queued_users';
+		$this->tableName = '*PREFIX*multiinstance_user_updates';
 	}
 
-	//Uid won't be unique, so don't use this
 	/**
 	 * Finds an item by id
 	 * @throws DoesNotExistException: if the item does not exist
@@ -56,15 +55,14 @@ class QueuedUserMapper extends Mapper {
 		$row = $result->fetchRow();
 
 		if ($row === false) {
-			throw new DoesNotExistException('QueuedUser with uid ' . $uid . ' does not exist!');
+			throw new DoesNotExistException('UserUpdate with uid ' . $uid . ' does not exist!');
 		} elseif($result->fetchRow() !== false) {
-			throw new MultipleObjectsReturnedException('QueuedUser with uid ' . $uid . ' returned more than one result.');
+			throw new MultipleObjectsReturnedException('UserUpdate with uid ' . $uid . ' returned more than one result.');
 		}
-		return new QueuedUser($row);
+		return new UserUpdate($row);
 
 	}
 
-	//Uid won't be unique, so don't use this
 	public function exists($uid){
 		try{
 			$this->find($uid);
@@ -87,7 +85,7 @@ class QueuedUserMapper extends Mapper {
 
 		$entityList = array();
 		while($row = $result->fetchRow()){
-			$entity = new QueuedUser($row);
+			$entity = new UserUpdate($row);
 			array_push($entityList, $row);
 		}
 
@@ -97,38 +95,43 @@ class QueuedUserMapper extends Mapper {
 
 	/**
 	 * Saves an item into the database
-	 * @param Item $queuedUser: the item to be saved
+	 * @param Item $userUpdate: the item to be saved
 	 * @return the item with the filled in id
 	 */
-	public function save($queuedUser){
-		$date = $this->api->getTime();
+	public function save($userUpdate){
 
-		$sql = 'INSERT INTO `'. $this->tableName . '` (`uid`, `displayname`, `password`, `added_at`)'.
-				' VALUES(?, ?, ?, ?)';
+		$sql = 'INSERT INTO `'. $this->tableName . '` (`uid`, `updated_at`)'.
+				' VALUES(?, ?)';
 
 		$params = array(
-			$queuedUser->getUid(),
-			$queuedUser->getDisplayname(),
-			$queuedUser->getPassword(),
-			$date
+			$userUpdate->getUid(),
+			$userUpdate->getUpdatedAt();
 		);
 
 		return $this->execute($sql, $params);
 
 	}
+       public function update($queuedUser){
+               $sql = 'UPDATE `'. $this->tableName . '` SET
+                               `updated_at` = ?
+                               WHERE `uid` = ?';
 
+               $params = array(
+                       $queuedUser->getUpdatedAt(),
+                       $queuedUser->getId()
+               );
+
+               $this->execute($sql, $params);
+       }
 
 	/**
 	 * Deletes an item
-	 * @param string $uid: the uid of the QueuedUser
+	 * @param string $uid: the uid of the UserUpdate
 	 */
-	public function delete($queuedUser){
-		$sql = 'DELETE FROM `' . $this->tableName . '` WHERE `uid` = ? AND `displayname` = ? AND `password` = ? AND `added_at` = ?';
+	public function delete($userUpdate){
+		$sql = 'DELETE FROM `' . $this->tableName . '` WHERE `uid` = ?';
 		$params = array(
-			$queuedUser->getUid(),
-			$queuedUser->getDisplayname(),
-			$queuedUser->getPassword(),
-			$queuedUser->getAddedAt();
+			$userUpdate->getUid(),
 		);
 		
 		return $this->execute($sql, $params);

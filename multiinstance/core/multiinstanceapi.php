@@ -31,4 +31,12 @@ class MultiInstanceAPI extends API {
                 $date = date('Y-m-d H:i', $date->format('U') - $date->getOffset());
 		return (string)$date;
 	}
+
+	public function beginTransaction() {
+		\OCP\DB::beginTransaction();
+	}
+
+	public function commit() {
+		\OCP\DB::commit();
+	}
 }	

@@ -1,10 +1,9 @@
 <?php
-
 /**
 * ownCloud - App Template Example
 *
 * @author Bernhard Posselt
-* @copyright 2012 Bernhard Posselt nukeawhale@gmail.com 
+* @copyright 2012 Bernhard Posselt nukeawhale@gmail.com
 *
 * This library is free software; you can redistribute it and/or
 * modify it under the terms of the GNU AFFERO GENERAL PUBLIC LICENSE
@@ -21,21 +20,38 @@
 *
 */
 
-namespace OCA\MultiInstance;
-
-use \OCA\AppFramework\App;
-
-use \OCA\MultiInstance\DependencyInjection\DIContainer;
+namespace OCA\MultiInstance\Db;
 
 
-/*************************
- * Define your routes here
- ************************/
+class UserUpdate {
 
-/**
- * Normal Routes
- */
+	private $uid;
+	private $updatedAt;
 
-/**
- * Ajax Routes
- */
+	public function __construct($uidOrRow, $updatedAt=null){
+		if ($updatedAt !== null) {
+			$this->uid = $uid;
+			$this->updatedAt = $updatedAt;
+		}
+		else{
+			$this->fromRow($uidOrRow);
+		}
+	}
+	public function fromRow($row){
+		$this->uid = $row['uid'];
+		$this->updatedAt = $row['updated_at'];
+	}
+
+	public function getUid(){
+		return $this->uid;
+	}
+
+	public function getUpdatedAt(){
+		return $this->updatedAt;
+	}
+
+
+	public function setUpdatedAt($datetime){
+		$this->updatedAt($datetime);
+	}
+}

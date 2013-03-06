@@ -23,7 +23,7 @@
 namespace OCA\MultiInstance\Db;
 
 
-class QueuedUser {
+class ReceivedUser {
 
 	private $uid;
 	private $displayname;
@@ -37,6 +37,14 @@ class QueuedUser {
 		$this->addedAt = $addedAt;
 
 	}
+
+	public function fromRow($row){
+		$this->uid = $row['uid'];
+		$this->displayname = $row['displayname'];
+		$this->password = $row['password'];
+		$this->addedAt = $row['added_at'];
+	}
+
 
 	public function getUid(){
 		return $this->uid;

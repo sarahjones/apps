@@ -58,6 +58,97 @@
 				<notnull>true</notnull>
 				<length>255</length>
 			</field>
+			<field>
+				<name>added_at</name>
+				<type>timestamp</type>
+				<default></default>
+				<notnull>false</notnull>
+			</field>
+			<index>
+				<name>uid_index</name>
+				<field>
+					<name>uid</name>
+					<sorting>ascending</sorting>
+				</field>
+			</index>
+			<index>
+				<name>added_at_index</name>
+				<field>
+					<name>added_at</name>
+					<sorting>descending</sorting>
+				</field>
+			</index>
+		</declaration>
+
+	</table>
+
+	<table>
+		<name>*dbprefix*multiinstance_received_users</name>
+
+		<declaration>
+			<field>
+				<name>uid</name>
+				<type>text</type>
+				<default></default>
+				<notnull>true</notnull>
+				<length>64</length>
+			</field>
+
+			<field>
+				<name>displayname</name>
+				<type>text</type>
+				<default></default>
+				<notnull>true</notnull>
+				<length>64</length>
+			</field>
+
+			<field>
+				<name>password</name>
+				<type>text</type>
+				<default></default>
+				<notnull>true</notnull>
+				<length>255</length>
+			</field>
+			<field>
+				<name>added_at</name>
+				<type>timestamp</type>
+				<default></default>
+				<notnull>false</notnull>
+			</field>
+			<index>
+				<name>uid_index</name>
+				<field>
+					<name>uid</name>
+					<sorting>ascending</sorting>
+				</field>
+			</index>
+			<index>
+				<name>added_at_index</name>
+				<field>
+					<name>added_at</name>
+					<sorting>descending</sorting>
+				</field>
+			</index>
+		</declaration>
+	</table>
+
+	<table>
+		<name>*dbprefix*multiinstance_user_updates</name>
+
+		<declaration>	
+			<field>
+				<name>uid</name>
+				<type>text</type>
+				<default></default>
+				<notnull>true</notnull>
+				<length>64</length>
+			</field>
+			<field>
+				<name>added_at</name>
+				<type>timestamp</type>
+				<default></default>
+				<notnull>false</notnull>
+			</field>
 			<index>
 				<name>uid_index</name>
 				<field>
@@ -66,6 +157,5 @@
 				</field>
 			</index>
 		</declaration>
-
 	</table>
 </database>

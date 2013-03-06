@@ -28,6 +28,8 @@ use OCA\AppFramework\DependencyInjection\DIContainer as BaseContainer;
 use OCA\MultiInstance\Controller\CronController;
 use OCA\MultiInstance\Controller\SettingsController;
 use OCA\MultiInstance\Db\QueuedUserMapper;
+use OCA\MultiInstance\Db\ReceivedUserMapper;
+use OCA\MultiInstance\Db\UserUpdateMapper;
 use OCA\MultiInstance\Db\LocationMapper;
 
 use OCA\MultiInstance\Core\MultiInstanceAPI;
@@ -77,16 +79,26 @@ class DIContainer extends BaseContainer {
 			return new QueuedUserMapper($c['API']);
 		});
 
+		$this['ReceivedUserMapper'] = $this->share(function($c){
+			return new ReceivedUserMapper($c['API']);
+		});
+
 		$this['LocationMapper'] = $this->share(function($c){
 			return new LocationMapper($c['API']);
 			
 		});
 
+		$this['UserUpdateMapper'] = $this->share(function($c){
+			return new UserUpdateMapper($c['API']);
+			
+		});
+		
+
 		/**
 		 * Core
 		 */
 		$this['CronTask'] = $this->share(function($c){
-			return new CronTask($c['API']);
+			return new CronTask($c['API'], $c['ReceiverUserMapper'], $c['UserUpdateMapper']);
 			
 		});
 		

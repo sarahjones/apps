@@ -35,6 +35,9 @@ Press enter if promped to accept the fingerprint
 If the ssh looks successful, verify the username and machine with `env` and `ifconfig`, use `exit` to logout
 
 
+****
+
+sudo usermod -a -G www-data sjones
 
 ****SETUP RSYNC****
 

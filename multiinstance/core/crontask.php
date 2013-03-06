@@ -23,17 +23,22 @@
 
 namespace OCA\MultiInstance\Core;
 
+use \OCP\OC_User;
 
 
 class CronTask {
 	
 
 	private $api; 
+	private $receivedUserMapper;
+	
 	/**
 	 * @param API $api: an api wrapper instance
 	 */
-	public function __construct($api){
+	public function __construct($api, $receivedUserMapper, $userUpdateMapper){
 		$this->api = $api;
+		$this->receivedUserMapper = $receivedUserMapper;
+		$this->userUpdateMapper = $userUpdateMapper;
 	}
 
 	/**
@@ -45,7 +50,7 @@ class CronTask {
 		$password = $this->api->getSystemValue('dbpassword');
 		$db = $this->api->getSystemValue('dbname');
 		$table = $this->api->getSystemValue('dbtableprefix') . 'multiinstance_queued_users';
-		$usersTable = $this->api->getSystemValue('dbtableprefix') . 'users';
+		$usersTable = $this->api->getSystemValue('dbtableprefix') . 'multiinstance_received_users';
 		$file = "/home/sjones/public_html/dev/apps/multiinstance/db_sync/queued_users.sql";
 		
 		$cmd = "mysqldump --add-locks --replace  --skip-comments --skip-extended-insert --no-create-info --no-create-db -u" . $username .  " -p" . $password . " " . $db . " " . $table . " > " . $file;
@@ -53,17 +58,12 @@ class CronTask {
 		exec($cmd);
 		$replace = "sed -i 's/" . $table . "/" . $usersTable . "/g' " . $file ;
 		exec(escapeshellcmd($replace));
-		$eof = "sed -i '1i-- done' " . $file ;
+		$eof = "sed -i '1i-- done;' " . $file ;
 		exec($eof);
 	}
 
 
 	public function insertQueuedUsers() {
-		$username = $this->api->getSystemValue('dbuser');
-		$password = $this->api->getSystemValue('dbpassword');
-		$db = $this->api->getSystemValue('dbname');
-		$table = $this->api->getSystemValue('dbtableprefix') . 'multiinstance_queued_users';
-		$usersTable = $this->api->getSystemValue('dbtableprefix') . 'users';
 		$path_prefix ="/home/sjones/public_html/dev/apps/multiinstance/db_sync_recv/"; 
 		$file = "/queued_users.sql";
 
@@ -72,6 +72,38 @@ class CronTask {
 		foreach ($dirs as $dir){
 			$full_file =  $dir . $file;
 			$this->mysqlExecuteFile($full_file);
+		}
+	}
+
+
+	public function updateUsersWithReceivedUsers() {
+		$receivedUsers = $this->receivedUserMapper->findAll();		
+
+		foreach ($receivedUsers as $receivedUser){
+			$id = $receiverUser->getUid();
+			$receivedTimestamp = $receiverUser->getUpdatedAt();
+			if (OC_User::userExists($id)) {
+				$this->api->beginTransaction();
+
+				//TODO: All of this should be wrapped in a try block with a rollback...
+				$userUpdate = $this->userUpdateMapper->find($id);	
+				//if this is new
+				if ($receivedTimestamp > $userUpdate->getUpdatedAt()) {
+					$userUpdate->setUpdatedAt($receivedTimestamp);	
+					$this->userUpdateMapper->update($userUpdate);
+					OC_User::setPassword($id, $receivedUser->getPassword());
+					OC_User::setDisplayName($id, $receivedUser->getDisplayname());
+					
+				}
+				$this->receivedUserMapper->delete($id);
+
+				$this->api->commit();
+			}
+			else {
+			//  createUser -- need to modify create user to handle if the username already has @
+				//OC_User::createUser($id, $receiverUser->getPassword());
+			}
+
 		}
 	}
 
