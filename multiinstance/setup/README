@@ -1,3 +1,31 @@
+****APP CONFIG****
+
+mv appinfo/app.sample.php appinfo/app.php
+
+Modify the lines that say setAppValue to have the correct value.  The comments should be helpful.
+
+
+You will need to create two subdirectories for multiinstance for the syncing:
+cd <path to multiinstance app>
+mkdir db_sync
+chown //FIX
+mkdir db_sync_recv
+chown //FIX
+
+You will need to create the 'cronErrorLog' cron/error.txt file.
+touch cron/error.txt
+chown //FIX
+
+****CONFIGURE APACHE GROUP****
+www-data is a pseudo-user, but we need a real user for some of the syncing tasks.
+<user> should be whatever user "owns" the owncloud code.
+
+sudo usermod -a -G www-data <user>
+
+Close all terminals and reopen them.  This change should now be in effect.
+
+Files that need to add group write permissions:
+cd <oc_directory>; sudo chown 660 config/config.php 
 
 ****SETUP SSH****
 
@@ -35,9 +63,7 @@ Press enter if promped to accept the fingerprint
 If the ssh looks successful, verify the username and machine with `env` and `ifconfig`, use `exit` to logout
 
 
-****
 
-sudo usermod -a -G www-data sjones
 
 ****SETUP RSYNC****
 
@@ -51,7 +77,6 @@ RSYNC_ENABLE=true
 
 Restart machine.  Verify rsync is running: /var/log/rsyncd.log
 
-Edit 'cron/rsync.php' so the $server variable contains the IP address of the UCSB server and $location variable contains the folder name that labels this owncloud instance (so the UCSB server knows which instance it got the data from).  The $output variable should also be set to the cron/error.txt file.
 
 Add task to /etc/crontab:
 #Rsync client
