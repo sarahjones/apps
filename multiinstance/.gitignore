@@ -1,2 +1,4 @@
 cron/error.out
-db_sync/queued_users.sql
+appinfo/app.php
+db_sync/*
+db_sync_recv/*

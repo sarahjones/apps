@@ -28,9 +28,19 @@ namespace OCA\MultiInstance;
 
 //No Nav Entry because this app does not have an UI
 
-//App location settings
-\OCP\Config::setAppValue('multiinstance', 'location', 'UCSB');
-\OCP\Config::setAppValue('multiinstance', 'ip', '192.168.56.101');
+//This instance's location settings
+//location name should be in Linux file format (no spaces, etc), as it will be used as a folder name
+\OCP\Config::setAppValue('multiinstance', 'location', 'Macha');
+//IP address
+\OCP\Config::setAppValue('multiinstance', 'ip', '192.168.56.102');
+
+//ip or domain name of UCSB server (or whatever the central server is)
+\OCP\Config::setAppValue('multiinstance', 'centralServerIP', '192.168.56.101');
+
+
+//path to apps/multiinstance/cron/error.txt
+$errorLog =  "/home/sarah/public_html/apps/multiinstance/cron/error.txt";
+\OCP\Config::setAppValue('multiinstance', 'cronErrorLog', $errorLog);
 
 
 \OCP\Util::connectHook('OC_User', 'post_createUser', 'OCA\MultiInstance\Lib\Hooks', 'createUser');

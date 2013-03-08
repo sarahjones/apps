@@ -105,7 +105,7 @@ class UserUpdateMapper extends Mapper {
 
 		$params = array(
 			$userUpdate->getUid(),
-			$userUpdate->getUpdatedAt();
+			$userUpdate->getUpdatedAt()
 		);
 
 		return $this->execute($sql, $params);

@@ -22,16 +22,29 @@
 
 namespace OCA\MultiInstance\Cron;
 
+
+require_once(__DIR__ . "/../tests/classloader.php");
+require_once(__DIR__ . "/../../../owncloud/lib/public/config.php");
+require_once(__DIR__ . "/../../../owncloud/lib/config.php");
+require_once(__DIR__ . "/../../../owncloud/lib/base.php");
+
+use OCA\MultiInstance\DependencyInjection\DIContainer;
+
 /**
  * rsync with UCSB server
  */
 
-//This should either be the ip address or the location name of the this village, depending on how we decide to configure these
-$location = "village1";   
-//ip or domain name of UCSB server
-$server = "192.168.56.101";
-//path to apps/multiinstance/cron/error.txt
-$output = "/home/sarah/public_html/apps/multiinstance/cron/error.txt";
+//TODO: Test this
+
+$dicontainer = new DIContainer();
+$api = $dicontainer['API'];
+$appName = $api->getAppName();
+
+$location = $api->getAppValue($appName, 'location');
+
+$server = $api->getAppValue($appName, 'centralServerIP');
+
+$output = $api->getAppValue($appName, 'cronErrorLog');
 
 $cmd = "rsync --verbose --compress --rsh ssh \
       --recursive --times --perms --links --delete \

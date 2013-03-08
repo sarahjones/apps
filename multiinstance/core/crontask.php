@@ -31,14 +31,17 @@ class CronTask {
 
 	private $api; 
 	private $receivedUserMapper;
+	private $userUpdateMapper;
+	private $locationMapper;
 	
 	/**
 	 * @param API $api: an api wrapper instance
 	 */
-	public function __construct($api, $receivedUserMapper, $userUpdateMapper){
+	public function __construct($api, $receivedUserMapper, $userUpdateMapper, $locationMapper){
 		$this->api = $api;
 		$this->receivedUserMapper = $receivedUserMapper;
 		$this->userUpdateMapper = $userUpdateMapper;
+		$this->locationMapper = $locationMapper;
 	}
 
 	/**
@@ -53,7 +56,7 @@ class CronTask {
 		$usersTable = $this->api->getSystemValue('dbtableprefix') . 'multiinstance_received_users';
 		$file = "/home/sjones/public_html/dev/apps/multiinstance/db_sync/queued_users.sql";
 		
-		$cmd = "mysqldump --add-locks --replace  --skip-comments --skip-extended-insert --no-create-info --no-create-db -u" . $username .  " -p" . $password . " " . $db . " " . $table . " > " . $file;
+		$cmd = "mysqldump --add-locks --insert  --skip-comments --skip-extended-insert --no-create-info --no-create-db -u" . $username .  " -p" . $password . " " . $db . " " . $table . " > " . $file;
 		$escaped_comannd = escapeshellcmd($cmd); //escape since input is taken from config/conf.php
 		exec($cmd);
 		$replace = "sed -i 's/" . $table . "/" . $usersTable . "/g' " . $file ;
@@ -63,7 +66,7 @@ class CronTask {
 	}
 
 
-	public function insertQueuedUsers() {
+	public function insertReceivedUsers() {
 		$path_prefix ="/home/sjones/public_html/dev/apps/multiinstance/db_sync_recv/"; 
 		$file = "/queued_users.sql";
 
@@ -71,7 +74,8 @@ class CronTask {
 
 		foreach ($dirs as $dir){
 			$full_file =  $dir . $file;
-			$this->mysqlExecuteFile($full_file);
+			$ip = $this->locationMapper->findByLocation($dir);
+			$this->mysqlExecuteFile($full_file, $ip);
 		}
 	}
 
@@ -82,6 +86,7 @@ class CronTask {
 		foreach ($receivedUsers as $receivedUser){
 			$id = $receiverUser->getUid();
 			$receivedTimestamp = $receiverUser->getUpdatedAt();
+
 			if (OC_User::userExists($id)) {
 				$this->api->beginTransaction();
 
@@ -105,6 +110,7 @@ class CronTask {
 			}
 
 		}
+
 	}
 
 	private function execute($sql, array $params=array(), $limit=null, $offset=null){
@@ -113,8 +119,9 @@ class CronTask {
 	}
 
 	//source: http://stackoverflow.com/questions/7840044/how-to-execute-mysql-script-file-in-php
-	private function mysqlExecuteFile($filename){
+	protected function mysqlExecuteFile($filename, $ip){
 		$first = true;
+		$ackedList = array();
 		if ($file = file_get_contents($filename)){
 			foreach(explode(";", $file) as $query){
 				$query = trim($query);
@@ -125,13 +132,41 @@ class CronTask {
 					$first = false;
 					continue;
 				}
+				$ackedList .= $this->toAckFormat($query);
 				if (!empty($query) && $query !== ";") {
-					if ($this->execute($query))
-						//ACK
-						;
+					$this->execute($query);
 		    		}
 			}
 	    	}
+		$this->ack($ackedList);
+	}
+
+	/**
+	 * Should be private.  Public for testing access
+	 * @param $query string
+	 */
+	public function toAckFormat($query) {
+		//INSERT  IGNORE INTO `oc_multiinstance_received_users` VALUES ('Matt@UCSB','kitty','matt',NULL);
+		$matches = array();
+		//$pattern = '/^INSERT.*VALUES \(.(?<uid>),[^,]*,[^,]*(?<timestamp>)\);$/';
+		$pattern = '/^INSERT.*VALUES \((?<uid>[^,]+),[^,]*,[^,]*,(?<timestamp>[^,]+)\);$/';
+		preg_match($pattern, $query, $matches);
+		if (sizeof($matches) >= 3){
+			$formattedQuery = "{$matches[1]}|{$matches[2]}";
+		}
+		else {
+			$formattedQuery = "";
+		}
+		return $formattedQuery;
+	}
+
+	/**
+	 * @param $ackedList string
+	 */
+	protected function ack($ackedList){
+		$output = $this->getAppValue($this->getAppName(), 'cronErrorLog');
+		exec('( ssh -f -L 23333:192.168.56.102:3334 sarah@192.168.56.102 sleep 1;  \
+			echo "' . $ackedList . '" |  nc -w 1 192.168.56.102 23333 ) > ' . $output . ' 2>&1 &');	
 	}
 
 }

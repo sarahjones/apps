@@ -101,7 +101,6 @@ class QueuedUserMapper extends Mapper {
 	 * @return the item with the filled in id
 	 */
 	public function save($queuedUser){
-		$date = $this->api->getTime();
 
 		$sql = 'INSERT INTO `'. $this->tableName . '` (`uid`, `displayname`, `password`, `added_at`)'.
 				' VALUES(?, ?, ?, ?)';
@@ -110,7 +109,7 @@ class QueuedUserMapper extends Mapper {
 			$queuedUser->getUid(),
 			$queuedUser->getDisplayname(),
 			$queuedUser->getPassword(),
-			$date
+			$queuedUser->getAddedAt()
 		);
 
 		return $this->execute($sql, $params);
@@ -128,7 +127,7 @@ class QueuedUserMapper extends Mapper {
 			$queuedUser->getUid(),
 			$queuedUser->getDisplayname(),
 			$queuedUser->getPassword(),
-			$queuedUser->getAddedAt();
+			$queuedUser->getAddedAt()
 		);
 		
 		return $this->execute($sql, $params);

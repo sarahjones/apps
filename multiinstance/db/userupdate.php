@@ -30,7 +30,7 @@ class UserUpdate {
 
 	public function __construct($uidOrRow, $updatedAt=null){
 		if ($updatedAt !== null) {
-			$this->uid = $uid;
+			$this->uid = $uidOrRow;
 			$this->updatedAt = $updatedAt;
 		}
 		else{

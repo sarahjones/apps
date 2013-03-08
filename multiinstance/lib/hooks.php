@@ -23,6 +23,7 @@
 namespace OCA\MultiInstance\Lib;
 
 use OCA\MultiInstance\Db\QueuedUser;
+use OCA\MultiInstance\Db\UserUpdate;
 use OCA\MultiInstance\DependencyInjection\DIContainer;
 
 /**
@@ -30,6 +31,7 @@ use OCA\MultiInstance\DependencyInjection\DIContainer;
  */
 class Hooks{
 
+	//TODO: try catch with rollback
 	static public function createUser($parameters) {
 		$c = new DIContainer();
 #		Addressbook::addDefault($parameters['uid']);
@@ -37,8 +39,13 @@ class Hooks{
 		$displayname = '';
 		$password = $parameters['password'];
 		
-		$queuedUser = new QueuedUser($uid, $displayname, $password);
+		$date = $c['API']->getTime();
+		$queuedUser = new QueuedUser($uid, $displayname, $password, $date);
+		$userUpdate = new UserUpdate($uid, $date);
+		$c['API']->beginTransaction();
 		$c['QueuedUserMapper']->save($queuedUser);
+		$c['UserUpdateMapper']->save($userUpdate);
+		$c['API']->commit();
 		return true;
 	}
 

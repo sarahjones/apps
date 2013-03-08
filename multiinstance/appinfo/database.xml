@@ -144,7 +144,7 @@
 				<length>64</length>
 			</field>
 			<field>
-				<name>added_at</name>
+				<name>updated_at</name>
 				<type>timestamp</type>
 				<default></default>
 				<notnull>false</notnull>

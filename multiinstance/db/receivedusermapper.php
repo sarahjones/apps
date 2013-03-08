@@ -67,7 +67,7 @@ class ReceiveduserMapper extends Mapper {
 			$receivedUser->getUid(),
 			$receivedUser->getDisplayname(),
 			$receivedUser->getPassword(),
-			$receivedUser->getAddedAt();
+			$receivedUser->getAddedAt()
 		);
 		
 		return $this->execute($sql, $params);
