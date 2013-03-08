@@ -39,4 +39,16 @@ class MultiInstanceAPI extends API {
 	public function commit() {
 		\OCP\DB::commit();
 	}
+
+        public function userExists($uid) {
+                return \OC_User::userExists($uid);
+        }
+
+        public function fileGetContents($url) {
+                return file_get_contents($url);
+        }
+
+	public function exec($cmd) {
+		exec($cmd);
+	}
 }	

@@ -58,11 +58,11 @@ class CronTask {
 		
 		$cmd = "mysqldump --add-locks --insert  --skip-comments --skip-extended-insert --no-create-info --no-create-db -u" . $username .  " -p" . $password . " " . $db . " " . $table . " > " . $file;
 		$escaped_comannd = escapeshellcmd($cmd); //escape since input is taken from config/conf.php
-		exec($cmd);
+		$this->api->exec($cmd);
 		$replace = "sed -i 's/" . $table . "/" . $usersTable . "/g' " . $file ;
-		exec(escapeshellcmd($replace));
+		$this->api->exec(escapeshellcmd($replace));
 		$eof = "sed -i '1i-- done;' " . $file ;
-		exec($eof);
+		$this->api->exec($eof);
 	}
 
 
@@ -87,7 +87,7 @@ class CronTask {
 			$id = $receiverUser->getUid();
 			$receivedTimestamp = $receiverUser->getUpdatedAt();
 
-			if (OC_User::userExists($id)) {
+			if (this->api->userExists($id)) {
 				$this->api->beginTransaction();
 
 				//TODO: All of this should be wrapped in a try block with a rollback...
@@ -113,8 +113,9 @@ class CronTask {
 
 	}
 
+	//Copied from OCA\AppFramework\Db\Mapper for general query execution
 	private function execute($sql, array $params=array(), $limit=null, $offset=null){
-		$query = $this->api->prepareQuery($sql);
+		$query = $this->api->prepareQuery($sql); //PDO object
 		return $query->execute($params);
 	}
 
@@ -122,7 +123,7 @@ class CronTask {
 	protected function mysqlExecuteFile($filename, $ip){
 		$first = true;
 		$ackedList = array();
-		if ($file = file_get_contents($filename)){
+		if ($file = $this->api->fileGetContents($filename)){
 			foreach(explode(";", $file) as $query){
 				$query = trim($query);
 				if ($first) {
@@ -146,9 +147,7 @@ class CronTask {
 	 * @param $query string
 	 */
 	public function toAckFormat($query) {
-		//INSERT  IGNORE INTO `oc_multiinstance_received_users` VALUES ('Matt@UCSB','kitty','matt',NULL);
 		$matches = array();
-		//$pattern = '/^INSERT.*VALUES \(.(?<uid>),[^,]*,[^,]*(?<timestamp>)\);$/';
 		$pattern = '/^INSERT.*VALUES \((?<uid>[^,]+),[^,]*,[^,]*,(?<timestamp>[^,]+)\);$/';
 		preg_match($pattern, $query, $matches);
 		if (sizeof($matches) >= 3){
@@ -165,7 +164,7 @@ class CronTask {
 	 */
 	protected function ack($ackedList){
 		$output = $this->getAppValue($this->getAppName(), 'cronErrorLog');
-		exec('( ssh -f -L 23333:192.168.56.102:3334 sarah@192.168.56.102 sleep 1;  \
+		$this->api->exec('( ssh -f -L 23333:192.168.56.102:3334 sarah@192.168.56.102 sleep 1;  \
 			echo "' . $ackedList . '" |  nc -w 1 192.168.56.102 23333 ) > ' . $output . ' 2>&1 &');	
 	}
 
