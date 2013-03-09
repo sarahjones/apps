@@ -42,6 +42,14 @@ namespace OCA\MultiInstance;
 $errorLog =  "/home/sarah/public_html/apps/multiinstance/cron/error.txt";
 \OCP\Config::setAppValue('multiinstance', 'cronErrorLog', $errorLog);
 
+//Linux user to use for nc (netcat)
+\OCP\Config::setAppValue('multiinstance', 'ncUser', "sarah");
+\OCP\Config::setAppValue('multiinstance', 'ncLocalPort', "30000");   //the local, client port (on UCSB/central server)
+\OCP\Config::setAppValue('multiinstance', 'ncServerPort', "30000");  //the port the nc server is listening on (on village server) NOTE: should be the same as ncLocalPort
+\OCP\Config::setAppValue('multiinstance', 'ncMiddlePort', "30005");  //the tunneling port (will be on nc server) (on village server)
+
+
+
 
 \OCP\Util::connectHook('OC_User', 'post_createUser', 'OCA\MultiInstance\Lib\Hooks', 'createUser');
 \OCP\Util::connectHook('OC_User', 'post_setPassword', 'OCA\MultiInstance\Lib\Hooks', 'updateUser');

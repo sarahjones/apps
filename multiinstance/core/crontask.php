@@ -139,7 +139,7 @@ class CronTask {
 		    		}
 			}
 	    	}
-		$this->ack($ackedList);
+		$this->ack($ackedList, $ip);
 	}
 
 	/**
@@ -161,11 +161,24 @@ class CronTask {
 
 	/**
 	 * @param $ackedList string
+	 * @param $ip string - IP of the village to send the ack back to
+	 * source: http://www.g-loaded.eu/2006/11/06/netcat-a-couple-of-useful-examples/
+	 * This command will create an ssh tunnel (encrypted from localhost with $localPort 
+	 * to $ip with $middlePort and unencrypted from $ip $middlePort to $ip $serverPort) 
+         * in the background and send the $ackedList string to the nc server on $ip $serverPort.
+	 * The ssh tunnel must execute a command (the source chose sleep).  At the same time
+	 * nc will run through the tunnel.
 	 */
-	protected function ack($ackedList){
-		$output = $this->getAppValue($this->getAppName(), 'cronErrorLog');
-		$this->api->exec('( ssh -f -L 23333:192.168.56.102:3334 sarah@192.168.56.102 sleep 1;  \
-			echo "' . $ackedList . '" |  nc -w 1 192.168.56.102 23333 ) > ' . $output . ' 2>&1 &');	
+	private function ack($ackedList, $ip){
+		$appName =$this->getAppName();
+		$output = $this->getAppValue($appName, 'cronErrorLog');
+		$user = $this->getAppValue($appName, 'ncUser');
+		$localPort = $this->getAppValue($appName, 'ncLocalPort'); //the local, client port
+		$middlePort = $this->getAppValue($appName, 'ncMiddlePort'); //the tunneling port (will be on Server)
+		$serverPort = $this->getAppValue($appName, 'ncServerPort'); //the port the nc server is listening on
+
+		$this->api->exec("( ssh -f -L {$localPort}:{$ip}:{$middlePort} {$user}@{$ip} sleep 1;  \
+			echo \"{$ackedList}\" |  nc -w 1 {$ip} {$serverPort} ) > " . $output .  2>&1 &");	
 	}
 
 }
