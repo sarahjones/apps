@@ -46,10 +46,12 @@ $server = $api->getAppValue($appName, 'centralServerIP');
 
 $output = $api->getAppValue($appName, 'cronErrorLog');
 
+$dbSyncRecvPath = $api->getAppValue($appName, 'dbSyncRecvPath');
+
 $cmd = "rsync --verbose --compress --rsh ssh \
       --recursive --times --perms --links --delete \
       --exclude \"*~\" \
-      db_sync/ www-data@" . $server . "::db_sync_recv/" . $location . " >>" . $output . " 2>&1";
+      db_sync/ www-data@" . $server . ":" . $dbSyncRecvPath . "/" . $location . " >>" . $output . " 2>&1";
 
 #$safe_cmd = escapeshellcmd($cmd);
 exec($cmd);

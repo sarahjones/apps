@@ -41,11 +41,17 @@ namespace OCA\MultiInstance;
 //path to apps/multiinstance/cron/error.txt
 $errorLog =  "/home/sarah/public_html/apps/multiinstance/cron/error.txt";
 \OCP\Config::setAppValue('multiinstance', 'cronErrorLog', $errorLog);
+//path to apps/multiinstance/db_sync_recv
+$dbSyncRecvPath = "/home/sarah/public_html/apps/multiinstance/db_sync_recv";
+\OCP\Config::setAppValue('multiinstance', 'dbSyncRecvPath', $dbSyncRecvPath);
+
+
 
 //Linux user to use for nc (netcat)
+$ncPort = "30000"
 \OCP\Config::setAppValue('multiinstance', 'ncUser', "sarah");
-\OCP\Config::setAppValue('multiinstance', 'ncLocalPort', "30000");   //the local, client port (on UCSB/central server)
-\OCP\Config::setAppValue('multiinstance', 'ncServerPort', "30000");  //the port the nc server is listening on (on village server) NOTE: should be the same as ncLocalPort
+\OCP\Config::setAppValue('multiinstance', 'ncLocalPort', $ncPort);   //the local, client port (on UCSB/central server)
+\OCP\Config::setAppValue('multiinstance', 'ncServerPort', $ncPort);  //the port the nc server is listening on (on village server) ****NOTE: should be the same as ncLocalPort, at least I think so.  :D
 \OCP\Config::setAppValue('multiinstance', 'ncMiddlePort', "30005");  //the tunneling port (will be on nc server) (on village server)
 
 

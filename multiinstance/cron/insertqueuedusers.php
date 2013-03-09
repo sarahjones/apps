@@ -33,5 +33,5 @@ use OCA\MultiInstance\DependencyInjection\DIContainer;
 
 
 $c = new DIContainer();
-$c['CronTask']->insertQueuedUsers();
+$c['CronTask']->insertReceivedUsers();
 

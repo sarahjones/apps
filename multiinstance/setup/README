@@ -69,9 +69,6 @@ If the ssh looks successful, verify the username and machine with `env` and `ifc
 
 Move setup file 'rsyncd.conf' to /etc/rsyncd.conf
 
-Create /etc/rsyncd.motd file with whatever message should be displayed on connection.  An example would be:
-Connected to UCSB server
-
 Verify that (or modify it so that) /etc/default/rsync has 
 RSYNC_ENABLE=true
 
