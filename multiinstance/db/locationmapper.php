@@ -60,4 +60,23 @@ class LocationMapper extends Mapper {
 	}
 
 
+	public function existsByLocation($location){
+
+		$sql = 'SELECT * FROM `' . $this->tableName . '` WHERE `location` = ?';
+		$params = array($location);
+
+		$result = array();
+		
+		$result = $this->execute($sql, $params);
+		$row = $result->fetchRow();
+
+		if ($row) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+
+
 }

@@ -24,16 +24,40 @@ namespace OCA\MultiInstance\Lib;
 
 use OCA\AppFramework\Core\API;
 use OCA\MultiInstance\Db\LocationMapper;
+use OCA\MultiInstance\DependencyInjection\DIContainer;
 
 /**
  * This is a static method to get locations
  */
-class Location{
+class MILocation{
 
 	static public function getLocations() {
 		$api = new API('multiinstance');
 		$locationMapper = new LocationMapper($api);
 		return $locationMapper->findAll();
+	}
+
+
+	static public function uidContainsLocation($uid, $locationMapper=null) {
+		if (strpos($uid,'@')) {
+			$pattern = '/@(?P<location>[^@]+)$/';
+			$matches = array();
+			if (preg_match($pattern, $uid, $matches) === false) //must use === for this function (according to documentation)
+				return false;
+			else {
+				if ($locationMapper !== null) { //For testability 
+					$lm = $locationMapper;
+				} 
+				else {  
+					$di = new DIContainer();
+					$lm = $di['LocationMapper']; 
+				}
+				return $lm->existsByLocation($matches['location']); 
+			}
+		}
+		else {
+			return false;
+		}
 	}
 
 }
