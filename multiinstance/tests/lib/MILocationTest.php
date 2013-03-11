@@ -34,7 +34,7 @@ class MILocationTest extends \PHPUnit_Framework_TestCase {
     private $row;
 
     protected function setUp(){
-        $this->api = $this->getMock('OCA\AppFramework\Core\Api', array('prepareQuery'), array('multiinstance'));
+        $this->api = $this->getMock('OCA\MultiInstance\Core\MultiInstanceAPI', array('prepareQuery', 'getAppValue'), array('multiinstance'));
 
     }
 
@@ -83,5 +83,25 @@ class MILocationTest extends \PHPUnit_Framework_TestCase {
 	
 	}
 
+	public function testUidContainsThisLocation(){
+
+		$this->api->expects($this->any())
+			->method('getAppValue')
+			->with('location')
+			->will($this->returnValue("UCSB"));
+
+		$contains1 = MILocation::uidContainsThisLocation("Sarah@UCSB", $this->api); 
+		$this->assertEquals(true, $contains1);
+
+		$contains2 = MILocation::uidContainsThisLocation("Sarah@Me@UCSB", $this->api);
+		$this->assertEquals(true, $contains2);
+		
+		$notContain = MILocation::uidContainsThisLocation("Sarah@Kalene", $this->api);
+		$this->assertEquals(false, $notContain);
+
+		$notContain2 = MILocation::uidContainsThisLocation("Sarah", $this->api);
+		$this->assertEquals(false, $notContain);
+	
+	}
 
 }

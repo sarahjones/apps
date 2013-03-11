@@ -22,17 +22,17 @@
 
 namespace OCA\MultiInstance\Lib;
 
-use OCA\AppFramework\Core\API;
+use OCA\MultiInstance\Core\MultiInstanceAPI;
 use OCA\MultiInstance\Db\LocationMapper;
 use OCA\MultiInstance\DependencyInjection\DIContainer;
 
 /**
- * This is a static method to get locations
+ * This is a static library methods for MultiInstance app.
  */
 class MILocation{
 
 	static public function getLocations() {
-		$api = new API('multiinstance');
+		$api = new MultiInstanceAPI('multiinstance');
 		$locationMapper = new LocationMapper($api);
 		return $locationMapper->findAll();
 	}
@@ -42,9 +42,7 @@ class MILocation{
 		if (strpos($uid,'@')) {
 			$pattern = '/@(?P<location>[^@]+)$/';
 			$matches = array();
-			if (preg_match($pattern, $uid, $matches) === false) //must use === for this function (according to documentation)
-				return false;
-			else {
+			if (preg_match($pattern, $uid, $matches) === 1) { //must use === for this function (according to documentation)
 				if ($locationMapper !== null) { //For testability 
 					$lm = $locationMapper;
 				} 
@@ -55,9 +53,28 @@ class MILocation{
 				return $lm->existsByLocation($matches['location']); 
 			}
 		}
-		else {
-			return false;
-		}
+		return false;
 	}
 
+	static public function uidContainsThisLocation($uid, $apiForTest=null) {
+		if ($apiForTest === null) {
+			$api = new MultiInstanceAPI('multiinstance');
+		}
+		else {
+			$api = $apiForTest;
+		}
+		$location = $api->getAppValue('location');
+		if (strpos($uid, '@')) {
+			$pattern = '/@' . $location . '$/';
+			if (preg_match($pattern, $uid) === 1) { //must use === for this function (according to documentation)
+				return true;
+			}
+		}
+		return false;
+	}
+
+
+	static public function userExistsAtCentralServer($uid) {
+
+	}
 }
