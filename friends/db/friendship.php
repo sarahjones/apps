@@ -27,6 +27,14 @@ class Friendship {
 
 	private $uid1;
 	private $uid2;
+	private $updatedAt;
+	private $status;
+
+
+	private static $ACCEPTED = 1;
+	private static $DELETED = 2;
+	private static $UID1_REQUESTS_UID2 = 3;
+	private static $UID2_REQUESTS_UID1 = 4;
 
 	public function __construct($fromRow=null){
 		if($fromRow){
@@ -37,6 +45,8 @@ class Friendship {
 	public function fromRow($row){
 		$this->uid1 = $row['friend_uid1'];
 		$this->uid2 = $row['friend_uid2'];
+		$this->updatedAt = $row['updated_at'];
+		$this->status = $row['status'];
 	}
 
 
@@ -48,6 +58,14 @@ class Friendship {
 		return $this->uid2;
 	}
 
+	public function getUpdatedAt(){
+		return $this->updatedAt;
+	}
+
+	public function getStatus(){
+		return $this->status;
+	}
+
 	public function setUid1($uid){
 		$this->uid1 = $uid;
 	}
@@ -57,4 +75,19 @@ class Friendship {
 	}
 
 
+	public static function getAcceptedStatus(){
+		return $ACCEPTED;
+	} 
+
+	public static function getDeletedStatus(){
+		return $DELETED;
+	}
+
+	public static function getUid1RequestsUid2Status(){
+		return $UID1_REQUESTS_UID2;
+	}
+
+	public static function getUid2RequestsUid1Status(){
+		return $UID2_REQUESTS_UID1;
+	}
 }

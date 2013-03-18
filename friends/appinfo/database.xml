@@ -21,7 +21,19 @@
 				<notnull>true</notnull>
 				<length>64</length>
 			</field>
-
+			<field>				
+				<name>status</name>
+				<type>integer</type>
+				<default></default>
+				<notnull>true</notnull>
+				<length>1</length>
+			</field>
+                        <field>
+                                <name>added_at</name>
+                                <type>timestamp</type>
+                                <default></default>
+                                <notnull>false</notnull>
+                        </field>
 			<index>
 				<name>friend_uid1_index</name>
 				<field>
@@ -33,40 +45,6 @@
 				<name>friend_uid2_index</name>
 				<field>
 					<name>friend_uid2</name>
-					<sorting>ascending</sorting>
-				</field>
-			</index>
-		</declaration>
-	</table>
-	<table>
-		<name>*dbprefix*friends_friendship_requests</name>
-		<declaration>
-			<field>				
-				<name>requester_uid</name>
-				<type>text</type>
-				<default></default>
-				<notnull>true</notnull>
-				<length>64</length>
-			</field>
-			<field>				
-				<name>recipient_uid</name>
-				<type>text</type>
-				<default></default>
-				<notnull>true</notnull>
-				<length>64</length>
-			</field>
-
-			<index>
-				<name>requester_uid_index</name>
-				<field>
-					<name>requester_uid</name>
-					<sorting>ascending</sorting>
-				</field>
-			</index>
-			<index>
-				<name>recipient_uid_index</name>
-				<field>
-					<name>recipient_uid</name>
 					<sorting>ascending</sorting>
 				</field>
 			</index>

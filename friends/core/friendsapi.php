@@ -27,6 +27,11 @@ use  OCA\AppFramework\Core\API as API;
 
 class FriendsAPI extends API {
 
+        public function getTime() {
+                $date = new \DateTime("now");
+                $date = date('Y-m-d H:i', $date->format('U') - $date->getOffset());
+                return (string)$date;
+        }
 
 	public function beginTransaction() {
 		\OCP\DB::beginTransaction();
