@@ -28,7 +28,6 @@ use OCA\AppFramework\Db\DoesNotExistException as DoesNotExistException;
 use OCA\AppFramework\Http\RedirectResponse as RedirectResponse;
 
 use OCA\Friends\Db\Friendship as Friendship;
-use OCA\Friends\Db\FriendshipRequest as FriendshipRequest;
 use OCA\Friends\Db\UserFacebookId as UserFacebookId;
 use OCA\Friends\Db\FacebookFriend as FacebookFriend;
 
@@ -41,10 +40,9 @@ class FriendshipController extends Controller {
 	 * @param API $api: an api wrapper instance
 	 * @param ItemMapper $friendshipMapper: an itemwrapper instance
 	 */
-	public function __construct($api, $request, $friendshipMapper, $friendshipRequestMapper, $userFacebookIdMapper){
+	public function __construct($api, $request, $friendshipMapper, $userFacebookIdMapper){
 		parent::__construct($api, $request);
 		$this->friendshipMapper = $friendshipMapper;
-		$this->friendshipRequestMapper = $friendshipRequestMapper;
 		$this->userFacebookIdMapper = $userFacebookIdMapper;
 		
 		$this->app_id = $this->api->getSystemValue('friends_fb_app_id');
@@ -251,12 +249,14 @@ class FriendshipController extends Controller {
 	public function createFriendshipRequest(){
 		$recipientId = $this->params('recipient');
 
-		$friendshipRequest = new FriendshipRequest();
-		$friendshipRequest->setRequester($this->api->getUserId()); 
-		$friendshipRequest->setRecipient($recipientId);
+		$friendshipRequest = new Friendship();
+		$friendshipRequest->setUid1($this->api->getUserId()); 
+		$friendshipRequest->setUid2($recipientId);
+		$friendshipRequest->setStatus(Friendship::getUid1RequestsUid2());
+		
 
 		//TODO: error handling
-		if($this->friendshipRequestMapper->save($friendshipRequest)){
+		if($this->friendshipMapper->save($friendshipRequest)){
 			//TODO: return something useful
 			return $this->renderJSON(array(true));
 		}
@@ -290,8 +290,8 @@ class FriendshipController extends Controller {
 			//TODO: error handling
 		}
 
-		if($this->friendshipRequestMapper->exists($requester, $recipient)){
-			$this->friendshipRequestMapper->delete($requester, $recipient);
+		if($this->friendshipMapper->exists($requester, $recipient)){
+			$this->friendshipMapper->delete($requester, $recipient);
 			//TODO: return something useful
 			return $this->renderJSON(array(true));
 		}
@@ -313,37 +313,23 @@ class FriendshipController extends Controller {
 	 * @param 
 	 */
 	public function acceptFriendshipRequest(){
-		$friendshipExists = false;
-		$friendshipRequestExists = false;
-		$deleted = false;
-		$saved = false;
-
 		$requester = $this->params('acceptedFriend');	
 		$currentUser = $this->api->getUserId();
-		$this->api->beginTransaction();
 
-		if ($this->friendshipRequestMapper->exists($requester, $currentUser)){
-			$friendshipRequestExists = true;			
+		if ($this->friendshipMapper->exists($requester, $currentUser)){
+			$this->api->beginTransaction();
+			$friendship = $this->friendshipMapper->find($requester, $currentUser);
+			if (($requester === $friendship->getUid1() && Friendship::getUid1RequestsUid2Status() === $friendship->getStatus()) ||
+				($requester === $friendship->getUId2() && Friendship::getUid2RequestsUid1Status() === $friendship->getStatus())){
+				
+				$this->friendshipMapper->accept($friendship);
+			} else
+				//TODO: change this to an exception with more detail
+				error_log("Error in acceptFriendshipRequest");
+			}
+			$this->api->commit();
 		}
-		if ($this->friendshipMapper->exists($currentUser, $requester)){
-			$friendshipExists = true;	
-		}	
 
-		if ($friendshipRequestExists && !$friendshipExists){
-			if($this->friendshipRequestMapper->delete($requester, $currentUser))
-				$deleted = true;
-			$friendship = new Friendship();
-			$friendship->setUid1($currentUser); 
-			$friendship->setUid2($requester);
-			if($this->friendshipMapper->save($friendship)){
-				$saved = true;	
-			}	
-		}
-		if (!$deleted || !$saved){
-			//TODO: change this to an exception with more detail
-			error_log("Error in acceptFriendshipRequest");
-		} 
-		$this->api->commit();
 		//TODO: change this to return something useful
 		return $this->renderJSON(array(true));
 	}
@@ -358,8 +344,8 @@ class FriendshipController extends Controller {
 	 * @param 
 	 */
 	public function getFriendshipRequests(){
-		$receivedfriendrequests = $this->friendshipRequestMapper->findAllRecipientFriendshipRequestsByUser($this->api->getUserId());
-		$sentfriendrequests = $this->friendshipRequestMapper->findAllRequesterFriendshipRequestsByUser($this->api->getUserId());
+		$receivedfriendrequests = $this->friendshipMapper->findAllRecipientFriendshipRequestsByUser($this->api->getUserId());
+		$sentfriendrequests = $this->friendshipMapper->findAllRequesterFriendshipRequestsByUser($this->api->getUserId());
 
 		$params = array(
 			'receivedFriendshipRequests' => $receivedfriendrequests,
