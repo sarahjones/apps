@@ -31,10 +31,10 @@ class Friendship {
 	private $status;
 
 
-	private static $ACCEPTED = 1;
-	private static $DELETED = 2;
-	private static $UID1_REQUESTS_UID2 = 3;
-	private static $UID2_REQUESTS_UID1 = 4;
+	const ACCEPTED = 1;
+	const DELETED = 2;
+	const UID1_REQUESTS_UID2 = 3;
+	const UID2_REQUESTS_UID1 = 4;
 
 	public function __construct($fromRow=null){
 		if($fromRow){
@@ -74,20 +74,8 @@ class Friendship {
 		$this->uid2 = $uid;
 	}
 
-
-	public static function getAcceptedStatus(){
-		return $ACCEPTED;
-	} 
-
-	public static function getDeletedStatus(){
-		return $DELETED;
+	public function setStatus($status){
+		$this->status = $status;
 	}
 
-	public static function getUid1RequestsUid2Status(){
-		return $UID1_REQUESTS_UID2;
-	}
-
-	public static function getUid2RequestsUid1Status(){
-		return $UID2_REQUESTS_UID1;
-	}
 }

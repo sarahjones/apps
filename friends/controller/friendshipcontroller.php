@@ -192,7 +192,7 @@ class FriendshipController extends Controller {
 								$friendship = new Friendship();
 								$friendship->setUid1($friend->getUid());
 								$friendship->setUid2($currentUser);
-								$this->friendshipMapper->save($friendship);
+								$this->friendshipMapper->accept($friendship);
 							}
 							$this->api->commit();
 							//End Transaction
@@ -252,11 +252,11 @@ class FriendshipController extends Controller {
 		$friendshipRequest = new Friendship();
 		$friendshipRequest->setUid1($this->api->getUserId()); 
 		$friendshipRequest->setUid2($recipientId);
-		$friendshipRequest->setStatus(Friendship::getUid1RequestsUid2());
+		$friendshipRequest->setStatus(Friendship::UID1_REQUESTS_UID2);
 		
 
 		//TODO: error handling
-		if($this->friendshipMapper->save($friendshipRequest)){
+		if($this->friendshipMapper->request($friendshipRequest)){
 			//TODO: return something useful
 			return $this->renderJSON(array(true));
 		}
@@ -319,11 +319,11 @@ class FriendshipController extends Controller {
 		if ($this->friendshipMapper->exists($requester, $currentUser)){
 			$this->api->beginTransaction();
 			$friendship = $this->friendshipMapper->find($requester, $currentUser);
-			if (($requester === $friendship->getUid1() && Friendship::getUid1RequestsUid2Status() === $friendship->getStatus()) ||
-				($requester === $friendship->getUId2() && Friendship::getUid2RequestsUid1Status() === $friendship->getStatus())){
+			if (($requester === $friendship->getUid1() && Friendship::UID1_REQUESTS_UID2 == $friendship->getStatus()) ||
+				($requester === $friendship->getUId2() && Friendship::UID2_REQUESTS_UID1 == $friendship->getStatus())){
 				
 				$this->friendshipMapper->accept($friendship);
-			} else
+			} else {
 				//TODO: change this to an exception with more detail
 				error_log("Error in acceptFriendshipRequest");
 			}
