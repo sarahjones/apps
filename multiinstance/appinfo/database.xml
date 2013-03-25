@@ -158,4 +158,50 @@
 			</index>
 		</declaration>
 	</table>
+	<table>
+		<name>*dbprefix*multiinstance_friendship_updates</name>
+
+		<declaration>	
+			<field>
+				<name>friend_uid1</name>
+				<type>text</type>
+				<default></default>
+				<notnull>true</notnull>
+				<length>64</length>
+			</field>
+			<field>
+				<name>friend_uid2</name>
+				<type>text</type>
+				<default></default>
+				<notnull>true</notnull>
+				<length>64</length>
+			</field>
+			<field>
+				<name>delete</name>
+				<type>boolean</type>
+				<default>false</default>
+				<notnull>true</notnull>
+			</field>
+			<field>
+				<name>updated_at</name>
+				<type>timestamp</type>
+				<default></default>
+				<notnull>false</notnull>
+			</field>
+			<index>
+				<name>requester_index</name>
+				<field>
+					<name>friend_uid1</name>
+					<sorting>ascending</sorting>
+				</field>
+			</index>
+			<index>
+				<name>recipient_index</name>
+				<field>
+					<name>friend_uid2</name>
+					<sorting>ascending</sorting>
+				</field>
+			</index>
+		</declaration>
+	</table>
 </database>
