@@ -159,7 +159,7 @@
 		</declaration>
 	</table>
 	<table>
-		<name>*dbprefix*multiinstance_friendship_updates</name>
+		<name>*dbprefix*multiinstance_queued_friendships</name>
 
 		<declaration>	
 			<field>
@@ -177,10 +177,11 @@
 				<length>64</length>
 			</field>
 			<field>
-				<name>delete</name>
-				<type>boolean</type>
-				<default>false</default>
+				<name>status</name>
+				<type>integer</type>
+				<default></default>
 				<notnull>true</notnull>
+				<length>1</length>
 			</field>
 			<field>
 				<name>updated_at</name>
@@ -199,6 +200,13 @@
 				<name>recipient_index</name>
 				<field>
 					<name>friend_uid2</name>
+					<sorting>ascending</sorting>
+				</field>
+			</index>
+			<index>
+				<name>updated_at_index</name>
+				<field>
+					<name>updated_at</name>
 					<sorting>ascending</sorting>
 				</field>
 			</index>

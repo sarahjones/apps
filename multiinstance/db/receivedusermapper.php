@@ -27,7 +27,7 @@ use \OCA\AppFramework\Db\Mapper;
 use \OCA\AppFramework\Db\DoesNotExistException;
 
 
-class ReceiveduserMapper extends Mapper {
+class ReceivedUserMapper extends Mapper {
 
 
 	private $tableName;

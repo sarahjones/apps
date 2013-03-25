@@ -48,4 +48,8 @@ class FriendsAPI extends API {
 	public function fileGetContents($url) {
 		return file_get_contents($url);
 	}
+
+	public function multiInstanceEnabled() {
+		return \OC_App::isEnabled('multiinstance');
+	}
 }	

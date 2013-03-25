@@ -25,6 +25,7 @@ namespace OCA\MultiInstance\Lib;
 use OCA\MultiInstance\Core\MultiInstanceAPI;
 use OCA\MultiInstance\Db\LocationMapper;
 use OCA\MultiInstance\DependencyInjection\DIContainer;
+use OCA\MultiInstance\Db\QueuedFriendship;
 
 /**
  * This is a static library methods for MultiInstance app.
@@ -76,5 +77,17 @@ class MILocation{
 
 	static public function userExistsAtCentralServer($uid) {
 
+	}
+
+	static public function createQueuedFriendship($friend_uid1, $friend_uid2, $updated_at, $status, $queuedFriendshipMapper=null) {
+		if ($queuedFriendshipMapper !== null) {
+			$qfm = $queuedFriendshipMapper;
+		}
+		else {
+			$di = new DIContainer();
+			$qfm = $di['QueuedFriendshipMapper'];
+		}
+		$queuedFriendship = new QueuedFriendship($friend_uid1, $friend_uid2, $updated_at, $status);
+		return $qfm->save($queuedFriendship);
 	}
 }

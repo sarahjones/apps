@@ -26,6 +26,7 @@ namespace OCA\MultiInstance\Lib;
 require_once(__DIR__ . "/../classloader.php");
 
 use OCA\MultiInstance\Db\Location;
+use OCA\MultiInstance\Db\QueuedFriendship;
 
 class MILocationTest extends \PHPUnit_Framework_TestCase {
 
@@ -104,4 +105,15 @@ class MILocationTest extends \PHPUnit_Framework_TestCase {
 	
 	}
 
+	public function testCreateQueuedFriendship(){
+		$queuedFriendshipMapper = $this->getMock('OCA\MultiInstance\Db\QueuedFriendshipMapper', array('save'), array($this->api));
+
+		$queuedFriendship = new QueuedFriendship("user1", "user2", "timestamp", 1);
+		$queuedFriendshipMapper->expects($this->once())
+			->method('save')
+			->with($queuedFriendship)
+			->will($this->returnValue(true));
+		
+		$this->assertEquals(true, MILocation::createQueuedFriendship("user1", "user2", "timestamp", 1, $queuedFriendshipMapper));
+	}
 }

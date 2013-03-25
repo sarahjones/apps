@@ -30,6 +30,8 @@ use OCA\MultiInstance\Controller\SettingsController;
 use OCA\MultiInstance\Db\QueuedUserMapper;
 use OCA\MultiInstance\Db\ReceivedUserMapper;
 use OCA\MultiInstance\Db\UserUpdateMapper;
+use OCA\MultiInstance\Db\QueuedFriendshipMapper;
+
 use OCA\MultiInstance\Db\LocationMapper;
 
 use OCA\MultiInstance\Core\MultiInstanceAPI;
@@ -75,6 +77,11 @@ class DIContainer extends BaseContainer {
 		/**
 		 * MAPPERS
 		 */
+		$this['LocationMapper'] = $this->share(function($c){
+			return new LocationMapper($c['API']);
+			
+		});
+
 		$this['QueuedUserMapper'] = $this->share(function($c){
 			return new QueuedUserMapper($c['API']);
 		});
@@ -83,16 +90,16 @@ class DIContainer extends BaseContainer {
 			return new ReceivedUserMapper($c['API']);
 		});
 
-		$this['LocationMapper'] = $this->share(function($c){
-			return new LocationMapper($c['API']);
-			
-		});
-
 		$this['UserUpdateMapper'] = $this->share(function($c){
 			return new UserUpdateMapper($c['API']);
 			
 		});
-		
+
+		$this['QueuedFriendshipMapper'] = $this->share(function($c){
+			return new QueuedFriendshipMapper($c['API']);
+			
+		});
+				
 
 		/**
 		 * Core

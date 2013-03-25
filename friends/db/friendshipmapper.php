@@ -29,6 +29,7 @@ use \OCA\AppFramework\Db\DoesNotExistException as DoesNotExistException;
 use \OCA\AppFramework\Db\MultipleObjectsReturnedException as MultipleObjectsReturnedException;
 use OCA\Friends\Db\AlreadyExistsException as AlreadyExistsException;
 
+use OCA\MultiInstance\Lib\MILocation as MILocation;
 
 class FriendshipMapper extends Mapper {
 
@@ -165,7 +166,7 @@ class FriendshipMapper extends Mapper {
 	 * @param  $friendship: the friendship to be saved
 	 * @return true if successful
 	 */
-	public function request($friendship){
+	public function request($friendship, $milocationMock=null){
 		//Must save in alphanumeric order (for multiinstance app)
 		$uids = $this->sortUids($friendship->getUid1(), $friendship->getUid2());
 
@@ -207,10 +208,15 @@ class FriendshipMapper extends Mapper {
 			$friendship->getUid2()
 		);
 
-		return $this->execute($sql, $params);
+		$result = $this->execute($sql, $params);
+		if ($result && $this->api->multiInstanceEnabled()){
+			$mi = $milocationMock ? $milocationMock : 'OCA\MultiInstance\Lib\MILocation';
+			$mi::createQueuedFriendship($friendship->getUid1(), $friendship->getUid2(), $date, $friendship->getStatus());	
+		}
+		return $result;
 	}
 
-	public function accept($friendship) {
+	public function accept($friendship, $milocationMock=null) {
 		$uids = $this->sortUids($friendship->getUid1(), $friendship->getUid2());
 
 		if (!$this->exists($uids[0], $uids[1])){
@@ -220,7 +226,13 @@ class FriendshipMapper extends Mapper {
 		$date = $this->api->getTime();
 		$sql = 'UPDATE `' . $this->tableName . '` SET status=?, updated_at=? WHERE (friend_uid1 = ? AND friend_uid2 = ?)';
 		$params = array(Friendship::ACCEPTED, $date, $uids[0], $uids[1]);
-		return $this->execute($sql, $params);
+
+		$result = $this->execute($sql, $params);
+		if ($result && $this->api->multiInstanceEnabled()){
+			$mi = $milocationMock ? $milocationMock : 'OCA\MultiInstance\Lib\MILocation';
+			$mi::createQueuedFriendship($uids[0], $uids[1], $date, Friendship::ACCEPTED);	
+		}
+		return $result;
 		
 	}
 
@@ -233,14 +245,19 @@ class FriendshipMapper extends Mapper {
 	 * @param userId1: the first user
 	 * @param userId2: the second user
 	 */
-	public function delete($userId1, $userId2){
+	public function delete($userId1, $userId2, $milocationMock=null){
 		$date = $this->api->getTime();
 		$uids = $this->sortUids($userId1, $userId2);
 		
 		$sql = 'UPDATE `' . $this->tableName . '` SET status=?, updated_at=? WHERE (friend_uid1 = ? AND friend_uid2 = ?) OR (friend_uid1 = ? AND friend_uid2 = ?)';
 		$params = array(Friendship::DELETED, $date, $userId1, $userId2, $userId2, $userId1);
 		
-		return $this->execute($sql, $params);
+		$result = $this->execute($sql, $params);
+		if ($result && $this->api->multiInstanceEnabled()){
+			$mi = $milocationMock ? $milocationMock : 'OCA\MultiInstance\Lib\MILocation';
+			$mi::createQueuedFriendship($uids[0], $uids[1], $date, Friendship::DELETED);	
+		}
+		return $result;
 	}
 
 	/**
