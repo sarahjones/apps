@@ -26,6 +26,7 @@ use OCA\MultiInstance\Core\MultiInstanceAPI;
 use OCA\MultiInstance\Db\LocationMapper;
 use OCA\MultiInstance\DependencyInjection\DIContainer;
 use OCA\MultiInstance\Db\QueuedFriendship;
+use OCA\MultiInstance\Db\QueuedUserFacebookId;
 
 /**
  * This is a static library methods for MultiInstance app.
@@ -89,5 +90,18 @@ class MILocation{
 		}
 		$queuedFriendship = new QueuedFriendship($friend_uid1, $friend_uid2, $updated_at, $status);
 		return $qfm->save($queuedFriendship);
+	}
+
+	static public function createQueuedUserFacebookId($uid, $facebookId, $facebookName, $syncedAt, $queuedUserFacebookIdMapper=null) {
+		if ($queuedUserFacebookIdMapper !== null) {
+			$qm = $queuedUserFacebookIdMapper;
+		}
+		else {
+			$di = new DIContainer();
+			$qm = $di['QueuedUserFacebookIdMapper'];
+		}
+		$queuedUserFacebookId = new QueuedUserFacebookId($uid, $facebookId, $facebookName, $syncedAt);
+		return $qm->save($queuedUserFacebookId);
+		
 	}
 }

@@ -131,6 +131,8 @@ class FriendshipController extends Controller {
 
 		$currentUser = $this->api->getUserId();
 
+		$userFacebookId = null; //Used below
+
 		//Have permission
 		if(array_key_exists('state', $_SESSION) && array_key_exists('state', $_REQUEST)) {
 			
@@ -184,7 +186,7 @@ class FriendshipController extends Controller {
 							$this->api->beginTransaction();
 							
 							if (!$this->api->userExists($friend->getUid())){
-								error_log("User " . $friend->getUid() . " does not exist but is in UserFacebookId table as uid.");
+								$this->api->log("User " . $friend->getUid() . " does not exist but is in UserFacebookId table as uid.");
 								$this->api->commit();
 								continue;
 							}
@@ -192,12 +194,13 @@ class FriendshipController extends Controller {
 								$friendship = new Friendship();
 								$friendship->setUid1($friend->getUid());
 								$friendship->setUid2($currentUser);
-								$this->friendshipMapper->accept($friendship);
+								$this->friendshipMapper->create($friendship);
 							}
 							$this->api->commit();
 							//End Transaction
 						}
-						$this->userFacebookIdMapper->updateSyncTime($currentUser);
+						$userFacebookId = $this->userFacebookIdMapper->find($currentUser);
+						$this->userFacebookIdMapper->updateSyncTime($userFacebookId);
 					}
 				}
 			}
@@ -207,9 +210,13 @@ class FriendshipController extends Controller {
 		}
 		/* 	End Facebook Code	*/
 		try{
-			$facebookUser = $this->userFacebookIdMapper->find($currentUser);
-			$facebookName = $facebookUser->getFacebookName();
-			$facebookUpdatedAt = $facebookUser->getFriendsSyncedAt();
+			if ($userFacebookId === null) {
+				$userFacebookId = $this->userFacebookIdMapper->find($currentUser);
+			}
+			else {
+			}
+			$facebookName = $userFacebookId->getFacebookName();
+			$facebookUpdatedAt = $userFacebookId->getFriendsSyncedAt();
 		}
 		catch (DoesNotExistException $e){
 			$facebookName = null;

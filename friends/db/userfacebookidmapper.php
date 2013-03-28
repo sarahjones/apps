@@ -129,7 +129,7 @@ class UserFacebookIdMapper extends Mapper {
 	}
 
 	/**
-	 * Saves a friendship into the database
+	 * 
 	 * @param  $userFacebookId: the UserFacebookId object to be saved
 	 * @return true if successful
 	 */
@@ -146,38 +146,28 @@ class UserFacebookIdMapper extends Mapper {
 			$userFacebookId->getFacebookName()
 		);
 
+		//If decide to add a way to update here or a delete (perhaps by making values empty), need to add multiInstance call.
 		return $this->execute($sql, $params);
 	}
 
 
-	public function updateSyncTime($uid){
+	public function updateSyncTime($userFacebookId, $milocationMock=null){
 
 		$date = new \DateTime("now");
-		$date = date('Y-m-d H:i', $date->format('U') - $date->getOffset());
+		$date = $this->api->getTime();
 
 		$sql = 'UPDATE `' . $this->tableName . '` SET friends_synced_at = ? WHERE uid = ?';
 		$params = array(
 			$date,
-			$uid
+			$userFacebookId->getUid()
 		);
 
-		return $this->execute($sql, $params);
-	}
-
-
-	/**
-	 * Deletes a friendship
-	 * @param userId1: the first user
-	 * @param userId2: the second user
-	 */
-	public function delete($userId1, $userId2){
-		
-		//must check both ways to delete friend
-		$sql = 'DELETE FROM `' . $this->tableName . '` WHERE (friend_uid1 = ? AND friend_uid2 = ?) OR (friend_uid1 = ? AND friend_uid2 = ?)';
-		$params = array($userId1, $userId2, $userId2, $userId1);
-		
-		return $this->execute($sql, $params);
-	
+		$result = $this->execute($sql, $params);
+		if ($result && $this->api->multiInstanceEnabled()){
+			$mi = $milocationMock ? $milocationMock : 'OCA\MultiInstance\Lib\MILocation';
+			$mi::createQueuedUserFacebookId($userFacebookId->getUid(), $userFacebookId->getFacebookId(), $userFacebookId->getFacebookName(), $date);	
+		}
+		return $result;
 	}
 
 

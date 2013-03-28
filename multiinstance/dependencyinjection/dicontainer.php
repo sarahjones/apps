@@ -31,6 +31,7 @@ use OCA\MultiInstance\Db\QueuedUserMapper;
 use OCA\MultiInstance\Db\ReceivedUserMapper;
 use OCA\MultiInstance\Db\UserUpdateMapper;
 use OCA\MultiInstance\Db\QueuedFriendshipMapper;
+use OCA\MultiInstance\Db\QueuedUserFacebookIdMapper;
 
 use OCA\MultiInstance\Db\LocationMapper;
 
@@ -98,6 +99,9 @@ class DIContainer extends BaseContainer {
 		$this['QueuedFriendshipMapper'] = $this->share(function($c){
 			return new QueuedFriendshipMapper($c['API']);
 			
+		});
+		$this['QueuedUserFacebookIdMapper'] = $this->share(Function($c){
+			return new QueuedUserFacebookIdMapper($c['API']);
 		});
 				
 

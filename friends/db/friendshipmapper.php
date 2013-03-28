@@ -236,7 +236,42 @@ class FriendshipMapper extends Mapper {
 		
 	}
 
-	public function create($friendship) {
+	/**
+	 * This method bypasses the request and accept for Facebook sync
+	 */
+	public function create($friendship, $milocationMock=null) {
+		//Must save in alphanumeric order (for multiinstance app)
+		$uids = $this->sortUids($friendship->getUid1(), $friendship->getUid2());
+
+		if ($this->exists($uids[0], $uids[1])){
+			throw new AlreadyExistsException('Cannot save Friendship with friend_uid1 = ' . $friendship->getUid1() . ' and friend_uid2 = ' . $friendship->getUid2());
+		}
+
+		$sql = 'INSERT INTO `'. $this->tableName . '` (status, updated_at, friend_uid1, friend_uid2)'.
+			' VALUES(?, ?, ?, ?)';
+		
+
+		$date = $this->api->getTime();
+		if ($uids[0] !== $friendship->getUid1()) {
+			//switch order of request
+			$friendship->setUid1($uids[0]);
+			$friendship->setUid2($uids[1]);
+			$friendship->setStatus(Friendship::ACCEPTED);
+		}
+
+		$params = array(
+			Friendship::ACCEPTED,
+			$date,
+			$friendship->getUid1(),
+			$friendship->getUid2()
+		);
+
+		$result = $this->execute($sql, $params);
+		if ($result && $this->api->multiInstanceEnabled()){
+			$mi = $milocationMock ? $milocationMock : 'OCA\MultiInstance\Lib\MILocation';
+			$mi::createQueuedFriendship($friendship->getUid1(), $friendship->getUid2(), $date, Friendship::ACCEPTED);	
+		}
+		return $result;
 
 	}
 

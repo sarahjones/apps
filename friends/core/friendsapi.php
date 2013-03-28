@@ -29,7 +29,7 @@ class FriendsAPI extends API {
 
         public function getTime() {
                 $date = new \DateTime("now");
-                $date = date('Y-m-d H:i', $date->format('U') - $date->getOffset());
+                $date = date('Y-m-d H:i:s', $date->format('U') - $date->getOffset());
                 return (string)$date;
         }
 

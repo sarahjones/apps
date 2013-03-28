@@ -70,7 +70,7 @@ class FriendshipControllerTest extends ControllerTestUtility {
 	public function testFacebookSyncFirstLoad(){
 		$api = $this->getAPIMock();
 		$userFacebookIdMapperMock = $this->getMock('UserFacebookIdMapper', array('exists', 'save', 'find'));
-		$controller = new FriendshipController($api, new Request(), null, null, $userFacebookIdMapperMock);
+		$controller = new FriendshipController($api, new Request(), null, $userFacebookIdMapperMock);
 
 		$api->expects($this->at(0))
 					->method('getUserId')
@@ -90,10 +90,9 @@ class FriendshipControllerTest extends ControllerTestUtility {
 	public function testFacebookSyncResponseRedirectUserSync(){
 		$api = $this->getAPIMock('OCA\Friends\Core\FriendsAPI');
 		$friendshipMapperMock = $this->getMock('FriendshipMapper', array('exists'));
-		$friendshipRequestMapperMock = $this->getMock('FriendshipRequestMapper');
 		$userFacebookIdMapperMock = $this->getMock('UserFacebookIdMapper', array('exists', 'save', 'find'));
 
-		$controller = new FriendshipController($api, new Request(), $friendshipMapperMock, $friendshipRequestMapperMock, $userFacebookIdMapperMock);
+		$controller = new FriendshipController($api, new Request(), $friendshipMapperMock, $userFacebookIdMapperMock);
 		$controller->my_url = "http://myfakeurl.com/index.php";
 		$controller->app_id = "myid";
 		$controller->app_secret = "mysecret";
@@ -130,10 +129,6 @@ class FriendshipControllerTest extends ControllerTestUtility {
 		$userFacebookIdObj = new UserFacebookId();
 		$userFacebookIdObj->setFacebookName('Sarah J');
 		$userFacebookIdObj->setFacebookId('1234');
-		$userFacebookIdMapperMock->expects($this->once())
-					->method('find')
-					->with($this->equalTo('Sarah'))
-					->will($this->returnValue($userFacebookIdObj));
 
 		$_REQUEST = array(
 			'code' => 'mycode',
@@ -151,10 +146,9 @@ class FriendshipControllerTest extends ControllerTestUtility {
 	public function testFacebookSyncResponseRedirectFriendsSync(){
 		$api = $this->getAPIMock('OCA\Friends\Core\FriendsAPI');
 		$friendshipMapperMock = $this->getMock('FriendshipMapper', array('exists'));
-		$friendshipRequestMapperMock = $this->getMock('FriendshipRequestMapper');
 		$userFacebookIdMapperMock = $this->getMock('UserFacebookIdMapper', array('exists', 'save', 'find', 'findByFacebookId', 'updateSyncTime'));
 
-		$controller = new FriendshipController($api, new Request(), $friendshipMapperMock, $friendshipRequestMapperMock, $userFacebookIdMapperMock);
+		$controller = new FriendshipController($api, new Request(), $friendshipMapperMock, $userFacebookIdMapperMock);
 		$controller->my_url = "http://myfakeurl.com/index.php";
 		$controller->app_id = "myid";
 		$controller->app_secret = "mysecret";

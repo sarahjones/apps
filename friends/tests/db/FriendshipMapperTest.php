@@ -241,8 +241,54 @@ class FriendshipMapperTest extends \PHPUnit_Framework_TestCase {
 
 	}
 
-	public function testAcceptFacebook(){
-		$this->assertEquals(true, false);
+	public function testCreateForFacebook(){
+		$userId1 = 'thisisuser1';
+		$userId2 = 'thisisuser2';
+		$params = array( Friendship::ACCEPTED, 'timestamp', $userId1, $userId2);
+		$expected = 'INSERT INTO `*PREFIX*friends_friendships` (status, updated_at, friend_uid1, friend_uid2) VALUES(?, ?, ?, ?)';
+
+		$this->api->expects($this->once())
+			->method('getTime')
+			->with()
+			->will($this->returnValue('timestamp'));
+
+		$friendshipMapper = $this->getMock('OCA\Friends\Db\FriendshipMapper', array('exists'), array($this->api));
+		$friendshipMapper->expects($this->once())
+			->method('exists')
+			->with($userId1, $userId2)
+			->will($this->returnValue(false));
+		
+		$query = $this->getMock('query', array('execute'));
+		$query->expects($this->once())
+			->method('execute')
+			->with($this->equalTo($params))
+			->will($this->returnValue(true));
+
+		$this->api->expects($this->once())
+			->method('prepareQuery')
+			->with($this->equalTo($expected))
+			->will($this->returnValue($query));
+
+		$this->api->expects($this->once())
+			->method('multiInstanceEnabled')
+			->with()
+			->will($this->returnValue(true));
+
+		$milocation = $this->getMock('OCA\MultiInstance\Lib\MILocation', array('createQueuedFriendship'));
+		$milocation->staticExpects($this->once())
+			->method('createQueuedFriendship')
+			->with($userId1, $userId2, 'timestamp', Friendship::ACCEPTED)
+			->will($this->returnValue(true));
+	
+		$friendship = new Friendship();
+		$friendship->setUid1($userId2);
+		$friendship->setUid2($userId1);
+
+		$result = $friendshipMapper->create($friendship, $milocation);
+		$this->assertEquals(true, $result);
+		$this->assertEquals(Friendship::ACCEPTED, $friendship->getStatus());
+		
+		
 	}
 
 	public function testDelete(){

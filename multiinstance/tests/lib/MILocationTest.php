@@ -27,6 +27,7 @@ require_once(__DIR__ . "/../classloader.php");
 
 use OCA\MultiInstance\Db\Location;
 use OCA\MultiInstance\Db\QueuedFriendship;
+use OCA\MultiInstance\Db\QueuedUserFacebookId;
 
 class MILocationTest extends \PHPUnit_Framework_TestCase {
 
@@ -115,5 +116,16 @@ class MILocationTest extends \PHPUnit_Framework_TestCase {
 			->will($this->returnValue(true));
 		
 		$this->assertEquals(true, MILocation::createQueuedFriendship("user1", "user2", "timestamp", 1, $queuedFriendshipMapper));
+	}
+
+	public function testCreateQueuedUserFacebookId(){
+		$queuedUserFacebookIdMapper = $this->getMock('OCA\MultiInstance\Db\QueuedUserFacebookIdMapper', array('save'), array($this->api));
+		$queuedUserFacebookId = new QueuedUserFacebookId("user1", "12345", "User", "timestamp");
+		$queuedUserFacebookIdMapper->expects($this->once())
+			->method('save')
+			->with($queuedUserFacebookId)
+			->will($this->returnValue(true));
+		$this->assertEquals(true, MILocation::createQueuedUserFacebookId("user1", "12345", "User", "timestamp", $queuedUserFacebookIdMapper));
+		
 	}
 }
