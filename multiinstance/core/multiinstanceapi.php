@@ -44,9 +44,18 @@ class MultiInstanceAPI extends API {
                 return \OC_User::userExists($uid);
         }
 
+	public function createUser($uid, $password) {
+		return \OC_User::createUser($id, $password);
+
+	}
+
         public function fileGetContents($url) {
                 return file_get_contents($url);
         }
+
+	public function filePutContents($filename, $string) {
+		return file_put_contents($filename, $string);
+	}
 
 	public function exec($cmd) {
 		exec($cmd);

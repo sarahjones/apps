@@ -110,13 +110,58 @@ class CronTask {
 		}
 	}
 
+	public function processAcks() {
+		$dirs = glob($this->recvPathPrefix . "*", GLOB_ONLYDIR );
+
+		foreach ($dirs as $dir){
+			$files = glob($dir . "/a*");
+			$lastReadFilename = "{$dir}/last_read.txt";  
+			$lastUpdatedFilename = "{$dir}/last_updated.txt");
+			$lastReadStringTime = $this->api->fileGetContents($lastReadFilename);  //this should be in microTime format
+			if ($lastReadStringTime === false) {
+				$this->api->log("last_read.txt for {$dir} cannot be read.  Using time 0");
+				$lastReadStringTime = "0.0";
+			}
+			else if ($lastReadStringTime == "") {
+				$this->api->log("last_read.txt for {$dir} does not have anything in it.  Using time 0");
+				$lastReadStringTime = "0.0";
+			}
+			$lastReadTime = (float)$lastReadStringTime;
+			
+			$lastUpdatedStringTime = $this->api->fileGetContents($lastUpdatedFilename); //this should be in microTime format
+			if ($lastUpdatedStringTime === false) {
+				$this->api->log("last_updated.txt for {$dir} cannot be read.");
+				continue;
+			}
+			if ($lastUpdatedStringTime == "") {
+				$this->api->log("last_updated.txt for {$dir} does not have anything in it.");
+				continue;
+			}
+			$lastUpdatedTime = (float)$lastUpdatedStringTime;
+
+			foreach ($files as $file) {
+				$filename = $this->api->baseName($file);
+				$time = floatval(substr($filename,1)); //remove 'a' and get microTime
+				if ($time == 0) {
+					continue;
+				}
+				if ($lastReadTime < $time && $time <= $lastUpdatedTime) {
+					$cmd = "mysql -u{$this->dbuser} -p{$this->dbpassword} {$this->dbname} < {$file}";
+					$this->api->exec($cmd);
+				}
+			}
+			if ($this->api->filePutContents($lastReadFilename, $lastUpdatedStringTime) === false) {
+				$this->log("Error writing to 'last_read.txt' for {$dir}.");
+			}
+		}
+	}
 
 	public function updateUsersWithReceivedUsers() {
 		$receivedUsers = $this->receivedUserMapper->findAll();		
 
 		foreach ($receivedUsers as $receivedUser){
 			$id = $receiverUser->getUid();
-			$receivedTimestamp = $receiverUser->getUpdatedAt();
+			$receivedTimestamp = $receivedUser->getUpdatedAt();
 
 			if ($this->api->userExists($id)) {
 				$this->api->beginTransaction();
@@ -131,17 +176,66 @@ class CronTask {
 					OC_User::setDisplayName($id, $receivedUser->getDisplayname());
 					
 				}
-				$this->receivedUserMapper->delete($id);
+				$this->receivedUserMapper->delete($id, $receivedTimestamp);
 
 				$this->api->commit();
 			}
 			else {
-			//  createUser -- need to modify create user to handle if the username already has @
-				//OC_User::createUser($id, $receiverUser->getPassword());
+				$userUpdate = new UserUpdate();
+				$userUpdate->setUpdatedAt($receivedTimestamp);
+				$userUpdate->setUid($id);
+
+				$this->api->beginTransaction();
+				//TODO: createUser will cause the user to be sent back to UCSB, maybe add another parameter?
+				$this->api->createUser($id, $receivedUser->getPassword());
+				$this->userUpdateMapper->save($userUpdate);
+				$this->api->commit();
 			}
 
 		}
 
+	}
+
+
+	public function updateFriendshipsWithReceivedFriendships() {
+		$receivedFriendships = $this->receivedFriendshipMapper->findAll();
+		
+		foreach ($receivedFriendships as $receivedFriendship) {
+			//TODO: try block with rollback?
+			$this->api->beginTransaction();
+			try {
+				$friendship = $this->friendshipMapper->find($receivedFriendship->getUid1(), $receivedFriendship->getUid2());
+				if ($receivedFriendship->getAddedAt() > $friendship->getUpdatedAt()) { //if newer than last update
+					$this->friendshipMapper->save($receivedFriendship);
+				}
+			}
+			catch (DoesNotExistException) {
+				$this->friendshipMapper->save($receivedFriendship);
+			}
+			$this->receivedFriendshipMapper->delete($receivedFriendship->getUid1(), $receivedFriendship->getUid2(), $receivedFriendship->getAddedAt());
+			$this->api->commit();
+		}
+	}
+
+	public function updateUserFacebookIdsWithReceivedUserFacebookIds() {
+		$receivedUserFacebookIds = $this->receivedUserFacebookIdMapper->findAll();
+	
+		foreach ($receivedUserFacebookIds as $receivedUserFacebookId) {
+			//TODO: try block with rollback?
+			$this->api->beginTransaction();
+			try {
+				$userFacebookId = $this->userFacebookIdMapper->find($receivedUserFacebookId->getUid());
+				//TODO: check if I need to convert to datetimes?
+				if ($receivedUserFacebookId->getAddedAt() > $friendship->getUpdatedAt()) {
+					$this->userFacebookIdMapper->save($receivedUserFacebookId);
+				}
+			}
+			catch (DoesNotExistException) {
+					$this->userFacebookIdMapper->save($receivedUserFacebookId);
+			}
+			$this->receivedUserFacebookIdMapper->delete($receivedUserFacebookId->getUid(), $receivedUserFacebookId->getAddedAt());
+			$this->api->commit();
+		}
 	}
 
 	//Copied from OCA\AppFramework\Db\Mapper for general query execution
@@ -226,7 +320,7 @@ class CronTask {
 	 */
 	private function ack($ackedList, $locationName){
 		$time = $this->api->microTime();
-		$filename = "{$this->sendPathPrefix}{$locationName}/{$time}";
+		$filename = "{$this->sendPathPrefix}{$locationName}/a{$time}";
 		$cmd = "echo \"{$ackedList}\" >> {$filename}";
 		$this->api->exec($cmd);
 	}
