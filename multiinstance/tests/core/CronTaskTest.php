@@ -75,19 +75,19 @@ class CronTaskTest extends \PHPUnit_Framework_TestCase {
 }
     public function testToAckFormat(){
 	
-	$insert = "INSERT  IGNORE INTO `oc_multiinstance_received_users` VALUES ('Matt@UCSB','kitty','matt',NULL);";
+	$insert = "INSERT  IGNORE INTO `oc_multiinstance_received_users` VALUES ('Matt@UCSB','kitty','matt',NULL)";
 	$insertResult = $this->cronTask->toAckFormat($insert, 'multiinstance_queued_users.sql');
 	$this->assertEquals("DELETE IGNORE FROM `oc_multiinstance_queued_users` WHERE `uid` = 'Matt@UCSB' AND `added_at` = NULL", $insertResult);
 
-	$insertDate = "INSERT  IGNORE INTO `oc_multiinstance_received_users` VALUES ('Maria@UCSB','','Maria','2013-03-07 23:07:00');";
+	$insertDate = "INSERT  IGNORE INTO `oc_multiinstance_received_users` VALUES ('Maria@UCSB','','Maria','2013-03-07 23:07:00')";
 	$insertDateResult = $this->cronTask->toAckFormat($insertDate, 'multiinstance_queued_users.sql');
 	$this->assertEquals("DELETE IGNORE FROM `oc_multiinstance_queued_users` WHERE `uid` = 'Maria@UCSB' AND `added_at` = '2013-03-07 23:07:00'", $insertDateResult);
 
-	$comment = "/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;";
+	$comment = "/*!40101 SET SQL_MODE=@OLD_SQL_MODE */";
 	$commentResult = $this->cronTask->toAckFormat($comment, 'multiinstance_queued_users.sql');
 	$this->assertEquals("", $commentResult);
 
-	$sqlNotInsert = "LOCK TABLES `oc_multiinstance_received_users` WRITE;";
+	$sqlNotInsert = "LOCK TABLES `oc_multiinstance_received_users` WRITE";
 	$sqlNotInsertResult =$this->cronTask->toAckFormat($sqlNotInsert, 'multiinstance_queued_users.sql');
 	$this->assertEquals("", $sqlNotInsertResult);
     }

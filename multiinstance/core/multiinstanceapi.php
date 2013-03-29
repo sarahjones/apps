@@ -59,4 +59,8 @@ class MultiInstanceAPI extends API {
 	public function fileExists($path) {
 		return file_exists($path);
 	}
+
+	public function microTime() {
+		return microtime(true);
+	}
 }	

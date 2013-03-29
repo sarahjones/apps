@@ -46,15 +46,9 @@ class CronTask {
 	);
 	
 	private static $patterns = array(
-		'multiinstance_queued_users.sql' => '/^INSERT.*VALUES \((?<uid>[^,]+),[^,]*,[^,]*,(?<timestamp>[^,]+)\);$/',
-		'multiinstance_queued_friendships.sql' =>'/^INSERT.*VALUES \((?<uid>[^,]+),[^,]*,(?<timestamp>[^,]+)\);$/',  
-		'multiinstance_queued_user_facebook_ids.sql' =>  '/^INSERT.*VALUES \((?<uid>[^,]+),[^,]*,[^,]*,(?<timestamp>[^,]+)\);$/' 
-	);
-
-	private static $deleteFiles = array(
-		'multiinstance_queued_users.sql' => 'delete_queued_users.sql',
-		'multiinstance_queued_friendships.sql' => 'delete_queued_friendships.sql',
-		'multiinstance_queued_user_facebook_ids.sql' => 'delete_queued_user_facebook_ids.sql'
+		'multiinstance_queued_users.sql' => '/^INSERT.*VALUES \((?<uid>[^,]+),[^,]*,[^,]*,(?<timestamp>[^,]+)\)$/',
+		'multiinstance_queued_friendships.sql' =>'/^INSERT.*VALUES \((?<friend_uid1>[^,]+),(?<friend_uid2>[^,]+),(?<timestamp>[^,]+),\d\)$/',  
+		'multiinstance_queued_user_facebook_ids.sql' =>  '/^INSERT.*VALUES \((?<uid>[^,]+),[^,]*,[^,]*,(?<timestamp>[^,]+)\)$/' 
 	);
 
 	/**
@@ -177,7 +171,9 @@ class CronTask {
 		    		}
 			}
 	    	}
-		$this->ack($ackedList, $locationName, $filebase);
+		if ($ackedList !== "") {
+			$this->ack($ackedList, $locationName);
+		}
 	}
 
 	/**
@@ -192,14 +188,13 @@ class CronTask {
 		}
 		$pattern = self::$patterns[$filename];
 		preg_match($pattern, $query, $matches);
-var_dump($matches);
 		switch ($filename) {
 			case 'multiinstance_queued_users.sql':
 				if (sizeof($matches) < 3) {
 					$formattedQuery = "";
 				}
 				else {			
-					$formattedQuery = $this->deleteQueuedUserSql($matches['uid'], $matches['timestamp']);
+					$formattedQuery = $this->deleteQueuedUserSql($matches['uid'], $matches['timestamp']) . ";\n";
 				}
 				break;
 			case 'multiinstance_queued_friendships.sql':
@@ -207,7 +202,7 @@ var_dump($matches);
 					$formattedQuery = "";
 				}
 				else {
-					$formattedQuery = $this->deleteQueuedFriendshipSql();
+					$formattedQuery = $this->deleteQueuedFriendshipSql($matches['friend_uid1'], $matches['friend_uid2'], $matches['timestamp']) . ";\n";
 				}
 				break;
 			case 'multiinstance_queued_user_facebook_ids.sql':
@@ -215,14 +210,13 @@ var_dump($matches);
 					$formattedQuery = "";
 				}
 				else {
-					$formattedQuery = $this->deleteQueuedUserFacebookIdSql();
+					$formattedQuery = $this->deleteQueuedUserFacebookIdSql($matches['uid'], $matches['timestamp']) . ";\n";
 				}		
 				break;
 			default:
 				throw new \Exception("No delete query function for {$filename}");
 
 		}
-echo $formattedQuery;
 		return $formattedQuery;
 	}
 
@@ -230,26 +224,22 @@ echo $formattedQuery;
 	 * @param $ackedList string
 	 * @param $ip string - IP of the village to send the ack back to
 	 */
-	private function ack($ackedList, $locationName, $filebase){
-		if (array_key_exists($filebase, self::$deleteFiles) !== true) {
-			throw new \Exception("No deleteFile entry in deleteFiles for {$filebase}");
-		}
-		$deleteFile =self::$deleteFiles[$filebase];
-		$filename = "{$this->sendPathPrefix}{$locationName}/{$deleteFile}";
-		$cmd = "echo {$ackedList} > {$filename}";
-var_dump($cmd);
+	private function ack($ackedList, $locationName){
+		$time = $this->api->microTime();
+		$filename = "{$this->sendPathPrefix}{$locationName}/{$time}";
+		$cmd = "echo \"{$ackedList}\" >> {$filename}";
 		$this->api->exec($cmd);
 	}
 
 	public function deleteQueuedUserSql($uid, $addedAt) {
-		return "DELETE IGNORE FROM `{$this->dbtableprefix}multiinstance_queued_users` WHERE `uid` = {$uid} AND `added_at` = {$addedAt}";
+		return "DELETE IGNORE FROM \`{$this->dbtableprefix}multiinstance_queued_users\` WHERE \`uid\` = {$uid} AND \`added_at\` = {$addedAt}";
 	} 
 
 	public function deleteQueuedFriendshipSql($uid1, $uid2, $updatedAt) {
-		return "DELETE IGNORE FROM `{$this->dbtableprefix}multiinstance_queued_friendships` WHERE `friend_uid1` = {$uid1}  AND `friend_uid2` = {$uid2} AND `updated_at` = {$updatedAt}";
+		return "DELETE IGNORE FROM \`{$this->dbtableprefix}multiinstance_queued_friendships\` WHERE \`friend_uid1\` = {$uid1}  AND \`friend_uid2\` = {$uid2} AND \`updated_at\` = {$updatedAt}";
 	}
 	
 	public function deleteQueuedUserFacebookIdSql($uid, $syncedAt) {
-		return "DELETE IGNORE FROM `{$this->dbtableprefix}multiinstance_queued_user_facebook_ids` WHERE `uid` = {$uid} AND `friends_synced_at` = {$syncedAt}";
+		return "DELETE IGNORE FROM \`{$this->dbtableprefix}multiinstance_queued_user_facebook_ids\` WHERE \`uid\` = {$uid} AND \`friends_synced_at\` = {$syncedAt}";
 	}
 }
