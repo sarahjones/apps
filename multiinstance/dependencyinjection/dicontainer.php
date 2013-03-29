@@ -112,8 +112,6 @@ class DIContainer extends BaseContainer {
 			return new CronTask($c['API'], $c['ReceivedUserMapper'], $c['UserUpdateMapper'], $c['LocationMapper']);
 			
 		});
-		
-
 
 	}
 }

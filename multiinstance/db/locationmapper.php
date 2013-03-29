@@ -78,5 +78,20 @@ class LocationMapper extends Mapper {
 		}
 	}
 
+	public function findIPByLocation($location){
+		$sql = "SELECT * FROM `{$this->tableName}` WHERE `location` = ?";
+		$params = array($location);
+	
+		$result = array();
+		
+		$result = $this->execute($sql, $params);
+		$row = $result->fetchRow();
+		
+		return $row['ip'];
+		
+
+
+	}
+
 
 }

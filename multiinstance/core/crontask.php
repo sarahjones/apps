@@ -23,8 +23,6 @@
 
 namespace OCA\MultiInstance\Core;
 
-use \OCP\OC_User;
-
 
 class CronTask {
 	
@@ -33,7 +31,32 @@ class CronTask {
 	private $receivedUserMapper;
 	private $userUpdateMapper;
 	private $locationMapper;
+	private $dbuser;
+	private $dbpassword;
+	private $dbname;
+	private $dbtableprefix;
+
+	private $recvPathPrefix;
+	private $sendPathPrefix;
 	
+	private static $tables = array(
+		'multiinstance_queued_users' => 'multiinstance_received_users',
+		'multiinstance_queued_friendships' => 'multiinstance_received_friendships',
+		'multiinstance_queued_user_facebook_ids' => 'multiinstance_received_user_facebook_ids'
+	);
+	
+	private static $patterns = array(
+		'multiinstance_queued_users.sql' => '/^INSERT.*VALUES \((?<uid>[^,]+),[^,]*,[^,]*,(?<timestamp>[^,]+)\);$/',
+		'multiinstance_queued_friendships.sql' =>'/^INSERT.*VALUES \((?<uid>[^,]+),[^,]*,(?<timestamp>[^,]+)\);$/',  
+		'multiinstance_queued_user_facebook_ids.sql' =>  '/^INSERT.*VALUES \((?<uid>[^,]+),[^,]*,[^,]*,(?<timestamp>[^,]+)\);$/' 
+	);
+
+	private static $deleteFiles = array(
+		'multiinstance_queued_users.sql' => 'delete_queued_users.sql',
+		'multiinstance_queued_friendships.sql' => 'delete_queued_friendships.sql',
+		'multiinstance_queued_user_facebook_ids.sql' => 'delete_queued_user_facebook_ids.sql'
+	);
+
 	/**
 	 * @param API $api: an api wrapper instance
 	 */
@@ -42,40 +65,54 @@ class CronTask {
 		$this->receivedUserMapper = $receivedUserMapper;
 		$this->userUpdateMapper = $userUpdateMapper;
 		$this->locationMapper = $locationMapper;
+
+		$this->dbuser = $this->api->getSystemValue('dbuser'); 
+		$this->dbpassword = $this->api->getSystemValue('dbpassword'); 
+		$this->dbname = $this->api->getSystemValue('dbname'); 
+		$this->dbtableprefix = $this->api->getSystemValue('dbtableprefix');
+		$this->recvPathPrefix = $this->api->getAppValue('dbSyncRecvPath'); 
+		$this->sendPathPrefix = $this->api->getAppValue('dbSyncPath');
+
+
 	}
 
 	/**
 	 *
 	 * runs cron
 	 */
-	public function dumpQueuedUsers() {
-		$username = $this->api->getSystemValue('dbuser');
-		$password = $this->api->getSystemValue('dbpassword');
-		$db = $this->api->getSystemValue('dbname');
-		$table = $this->api->getSystemValue('dbtableprefix') . 'multiinstance_queued_users';
-		$usersTable = $this->api->getSystemValue('dbtableprefix') . 'multiinstance_received_users';
-		$file = "/home/sjones/public_html/dev/apps/multiinstance/db_sync/queued_users.sql";
-		
-		$cmd = "mysqldump --add-locks --insert  --skip-comments --skip-extended-insert --no-create-info --no-create-db -u" . $username .  " -p" . $password . " " . $db . " " . $table . " > " . $file;
-		$escaped_comannd = escapeshellcmd($cmd); //escape since input is taken from config/conf.php
-		$this->api->exec($cmd);
-		$replace = "sed -i 's/" . $table . "/" . $usersTable . "/g' " . $file ;
-		$this->api->exec(escapeshellcmd($replace));
-		$eof = "sed -i '1i-- done;' " . $file ;
-		$this->api->exec($eof);
+	public function dumpQueued() {
+		foreach (self::$tables as $queuedTable => $receivedTable) {
+			$qTable = $this->dbtableprefix  . $queuedTable;
+			$rTable = $this->dbtableprefix . $receivedTable;
+			$file = "/home/sjones/public_html/dev/apps/multiinstance/db_sync/{$queuedTable}.sql";
+			
+			$cmd = "mysqldump --add-locks --insert  --skip-comments --skip-extended-insert --no-create-info --no-create-db -u{$this->dbuser} -p{$this->dbpassword} {$this->dbname} {$qTable} > {$file}";
+			$escaped_comannd = escapeshellcmd($cmd); //escape since input is taken from config/conf.php
+			$this->api->exec($cmd);
+			$replace = "sed -i 's/{$qTable}/{$rTable}/g' {$file}";
+			$this->api->exec(escapeshellcmd($replace));
+			$eof = "sed -i '1i-- done;' {$file}";
+			$this->api->exec($eof);
+		}
 	}
 
 
-	public function insertReceivedUsers() {
-		$path_prefix ="/home/sjones/public_html/dev/apps/multiinstance/db_sync_recv/"; 
-		$file = "/queued_users.sql";
-
-		$dirs = glob($path_prefix . "*", GLOB_ONLYDIR );
+	public function insertReceived() {
+		$dirs = glob($this->recvPathPrefix . "*", GLOB_ONLYDIR );
 
 		foreach ($dirs as $dir){
-			$full_file =  $dir . $file;
-			$ip = $this->locationMapper->findByLocation($dir);
-			$this->mysqlExecuteFile($full_file, $ip);
+			$locationName = $this->api->baseName($dir);	
+			$ip = $this->locationMapper->findIPByLocation($locationName);
+			if ($ip === null) {
+				throw new \Exception("Location {$dir} does not have an IP address.");
+			}
+			foreach (self::$tables as $queuedTable => $receivedTable) {
+				$full_file =  "{$dir}/{$queuedTable}.sql";
+				if(!$this->api->fileExists($full_file)) {
+					continue;
+				}
+				$this->mysqlExecuteFile($full_file, $locationName);
+			}
 		}
 	}
 
@@ -87,7 +124,7 @@ class CronTask {
 			$id = $receiverUser->getUid();
 			$receivedTimestamp = $receiverUser->getUpdatedAt();
 
-			if (this->api->userExists($id)) {
+			if ($this->api->userExists($id)) {
 				$this->api->beginTransaction();
 
 				//TODO: All of this should be wrapped in a try block with a rollback...
@@ -120,9 +157,10 @@ class CronTask {
 	}
 
 	//source: http://stackoverflow.com/questions/7840044/how-to-execute-mysql-script-file-in-php
-	protected function mysqlExecuteFile($filename, $ip){
+	protected function mysqlExecuteFile($filename, $locationName){
 		$first = true;
-		$ackedList = array();
+		$ackedList = "";
+		$filebase = $this->api->baseName($filename);
 		if ($file = $this->api->fileGetContents($filename)){
 			foreach(explode(";", $file) as $query){
 				$query = trim($query);
@@ -133,29 +171,58 @@ class CronTask {
 					$first = false;
 					continue;
 				}
-				$ackedList .= $this->toAckFormat($query);
+				$ackedList .= $this->toAckFormat($query, $filebase);
 				if (!empty($query) && $query !== ";") {
 					$this->execute($query);
 		    		}
 			}
 	    	}
-		$this->ack($ackedList, $ip);
+		$this->ack($ackedList, $locationName, $filebase);
 	}
 
 	/**
 	 * Should be private.  Public for testing access
 	 * @param $query string
 	 */
-	public function toAckFormat($query) {
+	public function toAckFormat($query, $filename) {
 		$matches = array();
-		$pattern = '/^INSERT.*VALUES \((?<uid>[^,]+),[^,]*,[^,]*,(?<timestamp>[^,]+)\);$/';
+		
+		if (array_key_exists($filename, self::$patterns) !== true) {
+			throw new \Exception("No pattern for sql file {$filename}");
+		}
+		$pattern = self::$patterns[$filename];
 		preg_match($pattern, $query, $matches);
-		if (sizeof($matches) >= 3){
-			$formattedQuery = "{$matches[1]}|{$matches[2]}";
+var_dump($matches);
+		switch ($filename) {
+			case 'multiinstance_queued_users.sql':
+				if (sizeof($matches) < 3) {
+					$formattedQuery = "";
+				}
+				else {			
+					$formattedQuery = $this->deleteQueuedUserSql($matches['uid'], $matches['timestamp']);
+				}
+				break;
+			case 'multiinstance_queued_friendships.sql':
+				if (sizeof($matches) < 4) {
+					$formattedQuery = "";
+				}
+				else {
+					$formattedQuery = $this->deleteQueuedFriendshipSql();
+				}
+				break;
+			case 'multiinstance_queued_user_facebook_ids.sql':
+				if (sizeof($matches) < 3) {
+					$formattedQuery = "";
+				}
+				else {
+					$formattedQuery = $this->deleteQueuedUserFacebookIdSql();
+				}		
+				break;
+			default:
+				throw new \Exception("No delete query function for {$filename}");
+
 		}
-		else {
-			$formattedQuery = "";
-		}
+echo $formattedQuery;
 		return $formattedQuery;
 	}
 
@@ -163,8 +230,26 @@ class CronTask {
 	 * @param $ackedList string
 	 * @param $ip string - IP of the village to send the ack back to
 	 */
-	private function ack($ackedList, $ip){
-		$this->nctask->send($ackedList, $ip);
+	private function ack($ackedList, $locationName, $filebase){
+		if (array_key_exists($filebase, self::$deleteFiles) !== true) {
+			throw new \Exception("No deleteFile entry in deleteFiles for {$filebase}");
+		}
+		$deleteFile =self::$deleteFiles[$filebase];
+		$filename = "{$this->sendPathPrefix}{$locationName}/{$deleteFile}";
+		$cmd = "echo {$ackedList} > {$filename}";
+var_dump($cmd);
+		$this->api->exec($cmd);
 	}
 
+	public function deleteQueuedUserSql($uid, $addedAt) {
+		return "DELETE IGNORE FROM `{$this->dbtableprefix}multiinstance_queued_users` WHERE `uid` = {$uid} AND `added_at` = {$addedAt}";
+	} 
+
+	public function deleteQueuedFriendshipSql($uid1, $uid2, $updatedAt) {
+		return "DELETE IGNORE FROM `{$this->dbtableprefix}multiinstance_queued_friendships` WHERE `friend_uid1` = {$uid1}  AND `friend_uid2` = {$uid2} AND `updated_at` = {$updatedAt}";
+	}
+	
+	public function deleteQueuedUserFacebookIdSql($uid, $syncedAt) {
+		return "DELETE IGNORE FROM `{$this->dbtableprefix}multiinstance_queued_user_facebook_ids` WHERE `uid` = {$uid} AND `friends_synced_at` = {$syncedAt}";
+	}
 }

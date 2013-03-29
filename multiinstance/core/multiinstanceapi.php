@@ -51,4 +51,12 @@ class MultiInstanceAPI extends API {
 	public function exec($cmd) {
 		exec($cmd);
 	}
+
+	public function baseName($path) {
+		return basename($path);
+	}
+
+	public function fileExists($path) {
+		return file_exists($path);
+	}
 }	

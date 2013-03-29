@@ -36,7 +36,7 @@ class CronTaskTest extends \PHPUnit_Framework_TestCase {
     private $row;
 
     protected function setUp(){
-        $this->api = $this->getMock('OCA\MultiInstance\Core\MultiInstanceAPI', array('prepareQuery'), array('multiinstance'));
+        $this->api = $this->getMock('OCA\MultiInstance\Core\MultiInstanceAPI', array('prepareQuery', 'getSystemValue', 'getAppValue'), array('multiinstance'));
         $this->locationMapper = $this->getMock('OCA\Multiinstance\Db\LocationMapper', array(), array($this->api));
 	$this->userUpdateMapper = $this->getMock('OCA\Multiinstance\Db\UserUpdateMapper', array(), array($this->api));	
 	$this->receivedUserMapper = $this->getMock('OCA\Multiinstance\Db\ReceivedUserMapper', array(), array($this->api));	
@@ -49,23 +49,46 @@ class CronTaskTest extends \PHPUnit_Framework_TestCase {
             'name' => 'right'
         );
 
-    }
+	$this->api->expects($this->at(0))
+		->method('getSystemValue')
+		->with('dbuser')
+		->will($this->returnValue('owncloud'));
+	$this->api->expects($this->at(1))
+		->method('getSystemValue')
+		->with('dbpassword')
+		->will($this->returnValue('password'));
+	$this->api->expects($this->at(2))
+		->method('getSystemValue')
+		->with('dbname')
+		->will($this->returnValue('dev-owncloud'));
+	$this->api->expects($this->at(3))
+		->method('getSystemValue')
+		->with('dbtableprefix')
+		->will($this->returnValue('oc_'));
+	$this->api->expects($this->at(4))
+		->method('getAppValue')
+		->with('dbSyncRecvPath')
+		->will($this->returnValue(""));
+
+
+	$this->cronTask = new CronTask($this->api, null, null, null);
+}
     public function testToAckFormat(){
-	$cronTask = new CronTask(null, null, null, null);
+	
 	$insert = "INSERT  IGNORE INTO `oc_multiinstance_received_users` VALUES ('Matt@UCSB','kitty','matt',NULL);";
-	$insertResult = $cronTask->toAckFormat($insert);
-	$this->assertEquals("'Matt@UCSB'|NULL", $insertResult);
+	$insertResult = $this->cronTask->toAckFormat($insert, 'multiinstance_queued_users.sql');
+	$this->assertEquals("DELETE IGNORE FROM `oc_multiinstance_queued_users` WHERE `uid` = 'Matt@UCSB' AND `added_at` = NULL", $insertResult);
 
 	$insertDate = "INSERT  IGNORE INTO `oc_multiinstance_received_users` VALUES ('Maria@UCSB','','Maria','2013-03-07 23:07:00');";
-	$insertDateResult = $cronTask->toAckFormat($insertDate);
-	$this->assertEquals("'Maria@UCSB'|'2013-03-07 23:07:00'", $insertDateResult);
+	$insertDateResult = $this->cronTask->toAckFormat($insertDate, 'multiinstance_queued_users.sql');
+	$this->assertEquals("DELETE IGNORE FROM `oc_multiinstance_queued_users` WHERE `uid` = 'Maria@UCSB' AND `added_at` = '2013-03-07 23:07:00'", $insertDateResult);
 
 	$comment = "/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;";
-	$commentResult = $cronTask->toAckFormat($comment);
+	$commentResult = $this->cronTask->toAckFormat($comment, 'multiinstance_queued_users.sql');
 	$this->assertEquals("", $commentResult);
 
 	$sqlNotInsert = "LOCK TABLES `oc_multiinstance_received_users` WRITE;";
-	$sqlNotInsertResult =$cronTask->toAckFormat($sqlNotInsert);
+	$sqlNotInsertResult =$this->cronTask->toAckFormat($sqlNotInsert, 'multiinstance_queued_users.sql');
 	$this->assertEquals("", $sqlNotInsertResult);
     }
 
