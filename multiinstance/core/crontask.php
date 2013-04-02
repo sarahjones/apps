@@ -30,7 +30,10 @@ class CronTask {
 	private $api; 
 	private $receivedUserMapper;
 	private $userUpdateMapper;
+	private $receivedFriendshipMapper;
+	private $receivedUserFacebookIdMapper;
 	private $locationMapper;
+
 	private $dbuser;
 	private $dbpassword;
 	private $dbname;
@@ -54,10 +57,12 @@ class CronTask {
 	/**
 	 * @param API $api: an api wrapper instance
 	 */
-	public function __construct($api, $receivedUserMapper, $userUpdateMapper, $locationMapper){
+	public function __construct($api, $receivedUserMapper, $userUpdateMapper, $locationMapper, $receivedFriendshipMapper, $receivedUserFacebookIdMapper){
 		$this->api = $api;
 		$this->receivedUserMapper = $receivedUserMapper;
 		$this->userUpdateMapper = $userUpdateMapper;
+		$this->receivedFriendshipMapper = $receivedFriendshipMapper;
+		$this->receivedUserFacebookIdMapper = $receivedUserFacebookIdMapper;
 		$this->locationMapper = $locationMapper;
 
 		$this->dbuser = $this->api->getSystemValue('dbuser'); 
@@ -71,8 +76,9 @@ class CronTask {
 	}
 
 	/**
-	 *
-	 * runs cron
+	 * Dumps all the Queued<object> tables into files in the db_sync directory.
+	 * Other code containing rsync commands will sync these files.  Deleted by
+	 * other code on a time interval
 	 */
 	public function dumpQueued() {
 		foreach (self::$tables as $queuedTable => $receivedTable) {
@@ -90,9 +96,12 @@ class CronTask {
 		}
 	}
 
-
+	/**
+	 * Executes the dumped Queued<object> scripts to put the received rows
+	 * into Received<object>.
+	 */
 	public function insertReceived() {
-		$dirs = glob($this->recvPathPrefix . "*", GLOB_ONLYDIR );
+		$dirs = $this->api->glob($this->recvPathPrefix . "*", true );
 
 		foreach ($dirs as $dir){
 			$locationName = $this->api->baseName($dir);	
@@ -110,13 +119,20 @@ class CronTask {
 		}
 	}
 
+
+	/**
+	 * processAcks processes all unread acknowledgements by executing their contents
+	 * which will delete the acknowledged Queued<object> entries.  Acknowledments are
+	 * all files in the db_sync_recv folder which are in the format "a<timestamp-as-a-float>".
+	 * These acknowledement files will be deleted by other code on a time interval.
+	 */
 	public function processAcks() {
-		$dirs = glob($this->recvPathPrefix . "*", GLOB_ONLYDIR );
+		$dirs = $this->api->glob($this->recvPathPrefix . "*", true );
 
 		foreach ($dirs as $dir){
-			$files = glob($dir . "/a*");
+			$files = $this->api->glob($dir . "/a*");
 			$lastReadFilename = "{$dir}/last_read.txt";  
-			$lastUpdatedFilename = "{$dir}/last_updated.txt");
+			$lastUpdatedFilename = "{$dir}/last_updated.txt";
 			$lastReadStringTime = $this->api->fileGetContents($lastReadFilename);  //this should be in microTime format
 			if ($lastReadStringTime === false) {
 				$this->api->log("last_read.txt for {$dir} cannot be read.  Using time 0");
@@ -156,87 +172,6 @@ class CronTask {
 		}
 	}
 
-	public function updateUsersWithReceivedUsers() {
-		$receivedUsers = $this->receivedUserMapper->findAll();		
-
-		foreach ($receivedUsers as $receivedUser){
-			$id = $receiverUser->getUid();
-			$receivedTimestamp = $receivedUser->getUpdatedAt();
-
-			if ($this->api->userExists($id)) {
-				$this->api->beginTransaction();
-
-				//TODO: All of this should be wrapped in a try block with a rollback...
-				$userUpdate = $this->userUpdateMapper->find($id);	
-				//if this is new
-				if ($receivedTimestamp > $userUpdate->getUpdatedAt()) {
-					$userUpdate->setUpdatedAt($receivedTimestamp);	
-					$this->userUpdateMapper->update($userUpdate);
-					OC_User::setPassword($id, $receivedUser->getPassword());
-					OC_User::setDisplayName($id, $receivedUser->getDisplayname());
-					
-				}
-				$this->receivedUserMapper->delete($id, $receivedTimestamp);
-
-				$this->api->commit();
-			}
-			else {
-				$userUpdate = new UserUpdate();
-				$userUpdate->setUpdatedAt($receivedTimestamp);
-				$userUpdate->setUid($id);
-
-				$this->api->beginTransaction();
-				//TODO: createUser will cause the user to be sent back to UCSB, maybe add another parameter?
-				$this->api->createUser($id, $receivedUser->getPassword());
-				$this->userUpdateMapper->save($userUpdate);
-				$this->api->commit();
-			}
-
-		}
-
-	}
-
-
-	public function updateFriendshipsWithReceivedFriendships() {
-		$receivedFriendships = $this->receivedFriendshipMapper->findAll();
-		
-		foreach ($receivedFriendships as $receivedFriendship) {
-			//TODO: try block with rollback?
-			$this->api->beginTransaction();
-			try {
-				$friendship = $this->friendshipMapper->find($receivedFriendship->getUid1(), $receivedFriendship->getUid2());
-				if ($receivedFriendship->getAddedAt() > $friendship->getUpdatedAt()) { //if newer than last update
-					$this->friendshipMapper->save($receivedFriendship);
-				}
-			}
-			catch (DoesNotExistException) {
-				$this->friendshipMapper->save($receivedFriendship);
-			}
-			$this->receivedFriendshipMapper->delete($receivedFriendship->getUid1(), $receivedFriendship->getUid2(), $receivedFriendship->getAddedAt());
-			$this->api->commit();
-		}
-	}
-
-	public function updateUserFacebookIdsWithReceivedUserFacebookIds() {
-		$receivedUserFacebookIds = $this->receivedUserFacebookIdMapper->findAll();
-	
-		foreach ($receivedUserFacebookIds as $receivedUserFacebookId) {
-			//TODO: try block with rollback?
-			$this->api->beginTransaction();
-			try {
-				$userFacebookId = $this->userFacebookIdMapper->find($receivedUserFacebookId->getUid());
-				//TODO: check if I need to convert to datetimes?
-				if ($receivedUserFacebookId->getAddedAt() > $friendship->getUpdatedAt()) {
-					$this->userFacebookIdMapper->save($receivedUserFacebookId);
-				}
-			}
-			catch (DoesNotExistException) {
-					$this->userFacebookIdMapper->save($receivedUserFacebookId);
-			}
-			$this->receivedUserFacebookIdMapper->delete($receivedUserFacebookId->getUid(), $receivedUserFacebookId->getAddedAt());
-			$this->api->commit();
-		}
-	}
 
 	//Copied from OCA\AppFramework\Db\Mapper for general query execution
 	private function execute($sql, array $params=array(), $limit=null, $offset=null){
@@ -244,7 +179,11 @@ class CronTask {
 		return $query->execute($params);
 	}
 
-	//source: http://stackoverflow.com/questions/7840044/how-to-execute-mysql-script-file-in-php
+	/**
+	 * Execute queries one at a time and generate an ack for each of them.
+	 *
+	 * source: http://stackoverflow.com/questions/7840044/how-to-execute-mysql-script-file-in-php
+	 */
 	protected function mysqlExecuteFile($filename, $locationName){
 		$first = true;
 		$ackedList = "";
@@ -271,7 +210,7 @@ class CronTask {
 	}
 
 	/**
-	 * Should be private.  Public for testing access
+	 * Return the ack (delete query) for a row
 	 * @param $query string
 	 */
 	public function toAckFormat($query, $filename) {
@@ -315,15 +254,104 @@ class CronTask {
 	}
 
 	/**
+	 * Writes out the acknowlegements to a file in db_sync to be synced
+	 * back to the sending village.
 	 * @param $ackedList string
 	 * @param $ip string - IP of the village to send the ack back to
 	 */
-	private function ack($ackedList, $locationName){
+	public function ack($ackedList, $locationName){
 		$time = $this->api->microTime();
 		$filename = "{$this->sendPathPrefix}{$locationName}/a{$time}";
 		$cmd = "echo \"{$ackedList}\" >> {$filename}";
 		$this->api->exec($cmd);
 	}
+
+/* Methods for updating instance db rows based on received rows */
+
+	public function updateUsersWithReceivedUsers() {
+		$receivedUsers = $this->receivedUserMapper->findAll();		
+
+		foreach ($receivedUsers as $receivedUser){
+			$id = $receiverUser->getUid();
+			$receivedTimestamp = $receivedUser->getUpdatedAt();
+
+			if ($this->api->userExists($id)) {
+				$this->api->beginTransaction();
+
+				//TODO: All of this should be wrapped in a try block with a rollback...
+				$userUpdate = $this->userUpdateMapper->find($id);	
+				//if this is new
+				if ($receivedTimestamp > $userUpdate->getUpdatedAt()) {
+					$userUpdate->setUpdatedAt($receivedTimestamp);	
+					$this->userUpdateMapper->update($userUpdate);
+					OC_User::setPassword($id, $receivedUser->getPassword());
+					OC_User::setDisplayName($id, $receivedUser->getDisplayname());
+					
+				}
+				$this->receivedUserMapper->delete($id, $receivedTimestamp);
+
+				$this->api->commit();
+			}
+			else {
+				$userUpdate = new UserUpdate();
+				$userUpdate->setUpdatedAt($receivedTimestamp);
+				$userUpdate->setUid($id);
+
+				$this->api->beginTransaction();
+				//TODO: createUser will cause the user to be sent back to UCSB, maybe add another parameter?
+				$this->api->createUser($id, $receivedUser->getPassword());
+				$this->userUpdateMapper->save($userUpdate);
+				$this->api->commit();
+			}
+
+		}
+
+	}
+
+	public function updateFriendshipsWithReceivedFriendships() {
+		$receivedFriendships = $this->receivedFriendshipMapper->findAll();
+		
+		foreach ($receivedFriendships as $receivedFriendship) {
+			//TODO: try block with rollback?
+			$this->api->beginTransaction();
+			try {
+				$friendship = $this->friendshipMapper->find($receivedFriendship->getUid1(), $receivedFriendship->getUid2());
+				if ($receivedFriendship->getAddedAt() > $friendship->getUpdatedAt()) { //if newer than last update
+					$this->friendshipMapper->save($receivedFriendship);
+				}
+			}
+			catch (DoesNotExistException $e) {
+				$this->friendshipMapper->save($receivedFriendship);
+			}
+			$this->receivedFriendshipMapper->delete($receivedFriendship->getUid1(), $receivedFriendship->getUid2(), $receivedFriendship->getAddedAt());
+			$this->api->commit();
+		}
+	}
+
+	public function updateUserFacebookIdsWithReceivedUserFacebookIds() {
+		$receivedUserFacebookIds = $this->receivedUserFacebookIdMapper->findAll();
+	
+		foreach ($receivedUserFacebookIds as $receivedUserFacebookId) {
+			//TODO: try block with rollback?
+			$this->api->beginTransaction();
+			try {
+				$userFacebookId = $this->userFacebookIdMapper->find($receivedUserFacebookId->getUid());
+				//TODO: check if I need to convert to datetimes?
+				if ($receivedUserFacebookId->getAddedAt() > $friendship->getUpdatedAt()) {
+					$this->userFacebookIdMapper->save($receivedUserFacebookId);
+				}
+			}
+			catch (DoesNotExistException $e) {
+					$this->userFacebookIdMapper->save($receivedUserFacebookId);
+			}
+			$this->receivedUserFacebookIdMapper->delete($receivedUserFacebookId->getUid(), $receivedUserFacebookId->getAddedAt());
+			$this->api->commit();
+		}
+	}
+
+/* End update methods */
+
+/* Methods for ack content (delete queued rows) */
 
 	public function deleteQueuedUserSql($uid, $addedAt) {
 		return "DELETE IGNORE FROM \`{$this->dbtableprefix}multiinstance_queued_users\` WHERE \`uid\` = {$uid} AND \`added_at\` = {$addedAt}";
@@ -336,4 +364,7 @@ class CronTask {
 	public function deleteQueuedUserFacebookIdSql($uid, $syncedAt) {
 		return "DELETE IGNORE FROM \`{$this->dbtableprefix}multiinstance_queued_user_facebook_ids\` WHERE \`uid\` = {$uid} AND \`friends_synced_at\` = {$syncedAt}";
 	}
+
+/* End methods for ack content */
+
 }

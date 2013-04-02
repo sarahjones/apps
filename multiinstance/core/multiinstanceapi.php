@@ -72,4 +72,11 @@ class MultiInstanceAPI extends API {
 	public function microTime() {
 		return microtime(true);
 	}
+
+	public function glob($pathAndPattern, $directoryOnly=null) {
+		if ($directoryOnly) {
+			return glob($pathAndPattern, GLOB_ONLYDIR);
+		}
+		return glob($pathAndPattern);
+	}
 }	

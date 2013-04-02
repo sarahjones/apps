@@ -31,7 +31,9 @@ use OCA\MultiInstance\Db\QueuedUserMapper;
 use OCA\MultiInstance\Db\ReceivedUserMapper;
 use OCA\MultiInstance\Db\UserUpdateMapper;
 use OCA\MultiInstance\Db\QueuedFriendshipMapper;
+use OCA\MultiInstance\Db\ReceivedFriendshipMapper;
 use OCA\MultiInstance\Db\QueuedUserFacebookIdMapper;
+use OCA\MultiInstance\Db\ReceivedUserFacebookIdMapper;
 
 use OCA\MultiInstance\Db\LocationMapper;
 
@@ -100,16 +102,23 @@ class DIContainer extends BaseContainer {
 			return new QueuedFriendshipMapper($c['API']);
 			
 		});
+		$this['ReceivedFriendshipMapper'] = $this->share(function($c){
+			return new ReceivedFriendshipMapper($c['API']);
+		});
 		$this['QueuedUserFacebookIdMapper'] = $this->share(Function($c){
 			return new QueuedUserFacebookIdMapper($c['API']);
 		});
+		$this['ReceivedUserFacebookIdMapper'] = $this->share(Function($c){
+			return new ReceivedUserFacebookIdMapper($c['API']);
+		});
+		
 				
 
 		/**
 		 * Core
 		 */
 		$this['CronTask'] = $this->share(function($c){
-			return new CronTask($c['API'], $c['ReceivedUserMapper'], $c['UserUpdateMapper'], $c['LocationMapper']);
+			return new CronTask($c['API'], $c['ReceivedUserMapper'], $c['UserUpdateMapper'], $c['LocationMapper'], $c['ReceivedFriendshipMapper'], $c['ReceivedUserFacebookIdMapper']);
 			
 		});
 
