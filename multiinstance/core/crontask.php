@@ -45,7 +45,8 @@ class CronTask {
 	private static $tables = array(
 		'multiinstance_queued_users' => 'multiinstance_received_users',
 		'multiinstance_queued_friendships' => 'multiinstance_received_friendships',
-		'multiinstance_queued_user_facebook_ids' => 'multiinstance_received_user_facebook_ids'
+		'multiinstance_queued_user_facebook_ids' => 'multiinstance_received_user_facebook_ids', 
+		'multiinstance_requests' => 'multiinstance_received_requests'
 	);
 	
 	private static $patterns = array(
@@ -84,15 +85,42 @@ class CronTask {
 		foreach (self::$tables as $queuedTable => $receivedTable) {
 			$qTable = $this->dbtableprefix  . $queuedTable;
 			$rTable = $this->dbtableprefix . $receivedTable;
-			$file = "/home/sjones/public_html/dev/apps/multiinstance/db_sync/{$queuedTable}.sql";
+			$file = "{$this->sendPathPrefix}{$queuedTable}.sql";
 			
 			$cmd = "mysqldump --add-locks --insert  --skip-comments --skip-extended-insert --no-create-info --no-create-db -u{$this->dbuser} -p{$this->dbpassword} {$this->dbname} {$qTable} > {$file}";
-			$escaped_comannd = escapeshellcmd($cmd); //escape since input is taken from config/conf.php
-			$this->api->exec($cmd);
+			$escaped_command = escapeshellcmd($cmd); //escape since input is taken from config/conf.php
+			$this->api->exec($escaped_cmd);
 			$replace = "sed -i 's/{$qTable}/{$rTable}/g' {$file}";
 			$this->api->exec(escapeshellcmd($replace));
 			$eof = "sed -i '1i-- done;' {$file}";
 			$this->api->exec($eof);
+		}
+	}
+
+	/**
+	 * Dumps all Responses for each location into their folder of the db_sync
+	 * directory.  Responses are accumulated and dumped because in order to
+	 * reduce how often sync is necessary.
+	 */
+	public function dumpResponses() {
+		$queuedTable = $this->dbtableprefix . "responses";
+		$receivedTable = $this->dbtableprefix . "received_responses";
+
+		foreach ($locationMapper->findAll() as $location) {
+			$file = "{$this->sendPathPrefix}{$location->getLocation()}/r{$this->api->microTime()}";
+
+			if (strpos($location->getLocation(), ";") !== false) {
+				$this->api->log("A location has a semicolon in it.  This is not allowed.");
+			}
+			else {
+				$cmd = "mysqldump --add-locks --insert --skip-comments --no-create-info --no-create-db -u{$this->dbuser} -p{$this->dbpassword} {$this->dbname} {$queuedTable} --where=\"location='{$location->getLocation()}'\" > {$file}";
+				$escaped_command = escapeshellcmd($cmd);
+				$this->api->exec($escaped_command);
+				$replace = "sed -i 's/{$queuedTable}/{$receivedTable}/g' {$file}";
+				$this->api->exec(escapeshellcmd($replace));
+				$eof = "sed -i '1i-- done;' {$file}";
+				$this->api->exec($eof);
+			}
 		}
 	}
 
@@ -126,11 +154,13 @@ class CronTask {
 	 * all files in the db_sync_recv folder which are in the format "a<timestamp-as-a-float>".
 	 * These acknowledement files will be deleted by other code on a time interval.
 	 */
-	public function processAcks() {
+	public function processAcksAndResponses() {
 		$dirs = $this->api->glob($this->recvPathPrefix . "*", true );
 
 		foreach ($dirs as $dir){
-			$files = $this->api->glob($dir . "/a*");
+			$files1 = $this->api->glob($dir . "/a*");
+			$files2 = $this->api->glob($dir . "/r*");
+			$files = array_merge($files1, $files2);
 			$lastReadFilename = "{$dir}/last_read.txt";  
 			$lastUpdatedFilename = "{$dir}/last_updated.txt";
 			$lastReadStringTime = $this->api->fileGetContents($lastReadFilename);  //this should be in microTime format
@@ -188,6 +218,7 @@ class CronTask {
 		$first = true;
 		$ackedList = "";
 		$filebase = $this->api->baseName($filename);
+		$acks = $filebase !== "requests.sql" ? true : false //Don't want to delete with acknowledgement, want to delete with answer
 		if ($file = $this->api->fileGetContents($filename)){
 			foreach(explode(";", $file) as $query){
 				$query = trim($query);
@@ -198,13 +229,15 @@ class CronTask {
 					$first = false;
 					continue;
 				}
-				$ackedList .= $this->toAckFormat($query, $filebase);
+				if ($acks) {
+					$ackedList .= $this->toAckFormat($query, $filebase);
+				}
 				if (!empty($query) && $query !== ";") {
 					$this->execute($query);
 		    		}
 			}
 	    	}
-		if ($ackedList !== "") {
+		if ($acks && $ackedList !== "") {
 			$this->ack($ackedList, $locationName);
 		}
 	}
@@ -266,90 +299,76 @@ class CronTask {
 		$this->api->exec($cmd);
 	}
 
-/* Methods for updating instance db rows based on received rows */
-
-	public function updateUsersWithReceivedUsers() {
-		$receivedUsers = $this->receivedUserMapper->findAll();		
-
-		foreach ($receivedUsers as $receivedUser){
-			$id = $receiverUser->getUid();
-			$receivedTimestamp = $receivedUser->getUpdatedAt();
-
-			if ($this->api->userExists($id)) {
-				$this->api->beginTransaction();
-
-				//TODO: All of this should be wrapped in a try block with a rollback...
-				$userUpdate = $this->userUpdateMapper->find($id);	
-				//if this is new
-				if ($receivedTimestamp > $userUpdate->getUpdatedAt()) {
-					$userUpdate->setUpdatedAt($receivedTimestamp);	
-					$this->userUpdateMapper->update($userUpdate);
-					OC_User::setPassword($id, $receivedUser->getPassword());
-					OC_User::setDisplayName($id, $receivedUser->getDisplayname());
-					
-				}
-				$this->receivedUserMapper->delete($id, $receivedTimestamp);
-
-				$this->api->commit();
-			}
-			else {
-				$userUpdate = new UserUpdate();
-				$userUpdate->setUpdatedAt($receivedTimestamp);
-				$userUpdate->setUid($id);
-
-				$this->api->beginTransaction();
-				//TODO: createUser will cause the user to be sent back to UCSB, maybe add another parameter?
-				$this->api->createUser($id, $receivedUser->getPassword());
-				$this->userUpdateMapper->save($userUpdate);
-				$this->api->commit();
+	/**
+	 * Should be called UCSB side only
+	 */
+	public function processRequests() {
+		$receivedRequests = $this->receivedRequestMapper->findAll();
+		foreach ($receivedRequests as $receivedRequest) {
+			$location = $receivedRequest->getLocation();
+			$type = $receivedRequest->getType();
+			$addedAt = $receivedRequest->getAddedAt();
+			$field1 = $receivedRequest->getField1();
+			
+			switch ($type) {
+				case Request::USER_EXISTS:
+					$userExists = $this->api->userExists($field1);
+					$response = new QueuedResponse($type, $location, $addedAt, $field1, (string) $userExists);
+					//TODO: Send the user information, perhaps through a QueuedUser 
+					$this->responseMapper->save($response);
+					break;
+				case Request::FETCH_USER:
+					//TODO
+					throw new \Exception("not implemented");
+					break;
+				default:
+					throw \Exception("Invalid request_type {$type} for request from {$location} added_at {$addedAt)}, field1 = {$field1}";
+					break;
 			}
 
-		}
-
-	}
-
-	public function updateFriendshipsWithReceivedFriendships() {
-		$receivedFriendships = $this->receivedFriendshipMapper->findAll();
-		
-		foreach ($receivedFriendships as $receivedFriendship) {
-			//TODO: try block with rollback?
-			$this->api->beginTransaction();
-			try {
-				$friendship = $this->friendshipMapper->find($receivedFriendship->getUid1(), $receivedFriendship->getUid2());
-				if ($receivedFriendship->getAddedAt() > $friendship->getUpdatedAt()) { //if newer than last update
-					$this->friendshipMapper->save($receivedFriendship);
-				}
-			}
-			catch (DoesNotExistException $e) {
-				$this->friendshipMapper->save($receivedFriendship);
-			}
-			$this->receivedFriendshipMapper->delete($receivedFriendship->getUid1(), $receivedFriendship->getUid2(), $receivedFriendship->getAddedAt());
-			$this->api->commit();
+			$request = $this->receiveRequestMapper->delete($type, $location, $addedAt);
 		}
 	}
 
-	public function updateUserFacebookIdsWithReceivedUserFacebookIds() {
-		$receivedUserFacebookIds = $this->receivedUserFacebookIdMapper->findAll();
-	
-		foreach ($receivedUserFacebookIds as $receivedUserFacebookId) {
-			//TODO: try block with rollback?
-			$this->api->beginTransaction();
-			try {
-				$userFacebookId = $this->userFacebookIdMapper->find($receivedUserFacebookId->getUid());
-				//TODO: check if I need to convert to datetimes?
-				if ($receivedUserFacebookId->getAddedAt() > $friendship->getUpdatedAt()) {
-					$this->userFacebookIdMapper->save($receivedUserFacebookId);
-				}
+
+	/**
+	 * Should be called Village side only
+	 */
+	public function processResponses() {
+		$receivedResponses = $this->receivedResponsesMapper->findAll();
+		foreach ($receivedResponses as $receivedResponse) {
+			$location = $receivedResponse->getLocation();
+			$requestId = $receivedResponse->getRequestId();
+
+			$queuedRequest = $this->queuedRequest->find($requestId,  
+			$addedAt = $receivedResponse->getAddedAt();
+			$field1 = $receivedResponse->getField1();
+			$answer = $receivedResponse->getAnswer();
+
+			switch ($type) {
+				case Request::USER_EXISTS:
+					if ($answer !== "true" AND $answer !== "false") {
+						$this->api->log("ReceivedResponse for Request USER_EXISTS, request_id = {$receivedResponse->getId()} had invalid response = {$answer}"); 
+						continue;
+					}
+					if ($answer === "false") {
+						$friendshipRequests = $this->friendshipMapper->findAllRecipientFriendshipRequestsByUser($field1);
+						foreach ($friendshipRequests as $friendshipRequest) {
+							$this->friendshipMapper->delete($friendshipRequest-getUid1(), $friendshipRequest->getUid2());
+						}
+					$this->requestMapper->delete($requestId, $location);
+					break;
+				case Request::FETCH_USER: 
+					throw new \Exception("Not implemented");
+					break;	
+				default:
+					$this->api->log("Invalid request_type {$type} for request from {$location} added_at {$addedAt)}, field1 = {$field1}");
+					continue;
+					break;
 			}
-			catch (DoesNotExistException $e) {
-					$this->userFacebookIdMapper->save($receivedUserFacebookId);
-			}
-			$this->receivedUserFacebookIdMapper->delete($receivedUserFacebookId->getUid(), $receivedUserFacebookId->getAddedAt());
-			$this->api->commit();
 		}
 	}
 
-/* End update methods */
 
 /* Methods for ack content (delete queued rows) */
 

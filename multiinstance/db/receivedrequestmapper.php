@@ -30,7 +30,7 @@ use \OCA\AppFramework\Db\MultipleObjectsReturnedException as MultipleObjectsRetu
 use OCA\Friends\Db\AlreadyExistsException as AlreadyExistsException;
 
 
-class ReceivedFriendshipMapper extends Mapper {
+class ReceivedRequestMapper extends Mapper {
 
 
 
@@ -41,22 +41,19 @@ class ReceivedFriendshipMapper extends Mapper {
 	 */
 	public function __construct($api){
 		parent::__construct($api);
-		$this->tableName = '*PREFIX*multiinstance_received_friendships';
+		$this->tableName = '*PREFIX*multiinstance_received_requests';
 	}
 
 
 
 	/**
-	 * Finds a friendship  
-	 * @param string $userId1: the id of one of the users
-	 * @param string $userId2: the id  of the other user
 	 * @throws DoesNotExistException: if the item does not exist
-	 * @throws MultipleObjectsReturnedException: if more than one friendship with those ids exists
-	 * @return a friendship object
+	 * @throws MultipleObjectsReturnedException: if more than one row with those ids exists
+	 * @return an object
 	 */
-	public function find($userId1, $userId2, $updatedAt){
-		$sql = 'SELECT * FROM `' . $this->tableName . '` WHERE friend_uid1 = ? AND friend_uid2 = ? AND updated_at = ?';
-		$params = array($userId1, $userId2, $updatedAt);
+	public function find($type, $location, $addedAt){
+		$sql = 'SELECT * FROM `' . $this->tableName . '` WHERE request_type = ? AND location = ? AND added_at = ?';
+		$params = array($type, $location, $addedAt);
 
 		$result = array();
 		
@@ -65,16 +62,16 @@ class ReceivedFriendshipMapper extends Mapper {
 
 
 		if ($row === false) {
-			throw new DoesNotExistException('Friendship with users ' . $userId1 . ' and ' . $userId2 . ' does not exist!');
+			throw new DoesNotExistException('ReceivedRequest with request_type ' . $type . ' and location' . $location . ' and added_at ' . $addedAt . ' does not exist!');
 		} elseif($result->fetchRow() !== false) {
-			throw new MultipleObjectsReturnedException('Friendship with users ' .$userId1 . ' and ' . $userId2 . ' returned more than one result.');
+			throw new MultipleObjectsReturnedException('ReceivedRequest with request_type ' . $type . ' and location' . $location . ' and added_at ' . $addedAt . ' returned more than one result.');
 		}
-		return new Friendship($row);
+		return new ReceivedRequest($row);
 	}	
 
-	public function delete($userId1, $userId2, $updatedAt) {
-		$sql = 'DELETE FROM `' . $this->tableName . '` WHERE (friend_uid1 = ? AND friend_uid2 = ? AND updated_at = ?)';
-		$params = array($userId1, $userId2, $syncedAt);
+	public function delete($type, $location, $addedAt) {
+		$sql = 'DELETE FROM `' . $this->tableName . '` WHERE (request_type = ? AND location = ? AND added_at = ?)';
+		$params = array($type, $location, $syncedAt);
 
 		return $this->execute($sql, $params);
 	}
