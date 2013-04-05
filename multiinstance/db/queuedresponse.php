@@ -23,57 +23,44 @@
 namespace OCA\MultiInstance\Db;
 
 
-class QueuedRequest {
+class QueuedResponse {
 
 	//Request types
 	const USER_EXISTS = 1;
 	const FETCH_USER = 2;
 	
-	private $id;
-	private $type;
-	private $sendingLocation;
-	private $addedAt;
-	private $field1;
+	private $requestId;
+	private $destinationLocation;
+	private $answer;
 
-	public function __construct($typeOrFromRow, $id==null, $sendingLocation=null, $addedAt=null, $field1=null){
-		if($sendingLocation === null){
-			$this->fromRow($typeOrFromRow);
+	public function __construct($requestIdOrFromRow, $destinationLocation=null, $answer=null){
+		if($destinationLocation === null){
+			$this->fromRow($requestIdOrFromRow);
 		}
 		else {
-			$this->type = $typeOrFromRow;
-			$this->sendingLocation = $sendingLocation;
-			$this->id = $id;
-			$this->addedAt = $addedAt;
-			$this->field1 = $field1;
+			$this->destinationLocation = $destinationLocation;
+			$this->requestId = $requestIdOrFromRow;
+			$this->answer = $answer;
 		}
 	}
 
 	public function fromRow($row){
-		$this->id = $row['id'];
-		$this->type = $row['request_type'];
-		$this->sendingLocation = $row['sending_location'];
-		$this->addedAt = $row['added_at'];
-		$this->field1 = $row['field1'];
+		$this->id = $row['request_id'];
+		$this->destinationLocation = $row['destination_location'];
+		$this->answer = $row['answer'];
 	}
 
-	public function getId() {
-		return $this->id;
+	public function getRequestId() {
+		return $this->requestId;
 	}
 
-	public function getType(){
-		return $this->type;
+	public function getDestinationLocation(){
+		return $this->destinationLocation;
 	}
 
-	public function getSendingLocation(){
-		return $this->sendingLocation;
+	public function getAnswer(){
+		return $this->answer;
 	}
 
-	public function getAddedAt(){
-		return $this->addedAt;
-	}
-
-	public function getField1(){
-		return $this->field1;
-	}
 	
 }

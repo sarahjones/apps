@@ -40,15 +40,14 @@ class QueuedUserMapper extends Mapper {
 		$this->tableName = '*PREFIX*multiinstance_queued_users';
 	}
 
-	//Uid won't be unique, so don't use this
 	/**
 	 * Finds an item by id
 	 * @throws DoesNotExistException: if the item does not exist
 	 * @return the item
 	 */
-	public function find($uid){
-		$sql = 'SELECT * FROM `' . $this->tableName . '` WHERE uid = ?';
-		$params = array($uid);
+	public function find($uid, $addedAt){
+		$sql = 'SELECT * FROM `' . $this->tableName . '` WHERE `uid` = ? AND `added_at` = ?';
+		$params = array($uid, $addedAt);
 
 		$result = array();
 		
@@ -56,18 +55,17 @@ class QueuedUserMapper extends Mapper {
 		$row = $result->fetchRow();
 
 		if ($row === false) {
-			throw new DoesNotExistException('QueuedUser with uid ' . $uid . ' does not exist!');
+			throw new DoesNotExistException("QueuedUser with uid {$uid} and addedAt = {$addedAt} does not exist!");
 		} elseif($result->fetchRow() !== false) {
-			throw new MultipleObjectsReturnedException('QueuedUser with uid ' . $uid . ' returned more than one result.');
+			throw new MultipleObjectsReturnedException("QueuedUser with uid {$uid} and addedAt = {$addedAt} returned more than one result.");
 		}
 		return new QueuedUser($row);
 
 	}
 
-	//Uid won't be unique, so don't use this
-	public function exists($uid){
+	public function exists($uid, $addedAt){
 		try{
-			$this->find($uid);
+			$this->find($uid, $addedAt);
 		}
 		catch (DoesNotExistException $e){
 			return false;
@@ -101,6 +99,9 @@ class QueuedUserMapper extends Mapper {
 	 * @return the item with the filled in id
 	 */
 	public function save($queuedUser){
+		if ($this->exists($queuedUser->getUid(), $queuedUser->getAddedAt())) {
+			return false;  //Already exists, do nothing
+		}
 
 		$sql = 'INSERT INTO `'. $this->tableName . '` (`uid`, `displayname`, `password`, `added_at`)'.
 				' VALUES(?, ?, ?, ?)';

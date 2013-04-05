@@ -305,28 +305,35 @@ class CronTask {
 	public function processRequests() {
 		$receivedRequests = $this->receivedRequestMapper->findAll();
 		foreach ($receivedRequests as $receivedRequest) {
-			$location = $receivedRequest->getLocation();
+			$id = $receivedRequest->getId();
+			$sendingLocation = $receivedRequest->getSendingLocation();
 			$type = $receivedRequest->getType();
 			$addedAt = $receivedRequest->getAddedAt();
 			$field1 = $receivedRequest->getField1();
 			
 			switch ($type) {
-				case Request::USER_EXISTS:
-					$userExists = $this->api->userExists($field1);
-					$response = new QueuedResponse($type, $location, $addedAt, $field1, (string) $userExists);
-					//TODO: Send the user information, perhaps through a QueuedUser 
-					$this->responseMapper->save($response);
-					break;
-				case Request::FETCH_USER:
-					//TODO
-					throw new \Exception("not implemented");
+				case Request::USER_EXISTS: //Want same behavior for these two queries
+				case Request::FETCH_USER: //for login for a user that doesn't exist in the db
+					$userExists = $this->api->userExists($field1);	
+
+					$this->api->beginTransaction();
+					$response = new QueuedResponse($id, $sendingLocation, (string) $userExists);
+					$this->queuedResponseMapper->save($response); //Does not throw Exception if already exists
+
+					$userUpdate = $this->userUpdateMapper->find($uid);
+					$displayName = $this->api->getDisplayName($uid);
+					$password = $this->api->getPassword($uid);
+					$queuedUser = new QueuedUser($uid, $displayName, $password, $userUpdate->updatedAt(), $sendingLocation); 
+					$this->queuedUserMapper->save($queuedUser); //Does not throw Exception if already exists
+					$this->api->commit();
+					
 					break;
 				default:
 					throw \Exception("Invalid request_type {$type} for request from {$location} added_at {$addedAt)}, field1 = {$field1}";
 					break;
 			}
 
-			$request = $this->receiveRequestMapper->delete($type, $location, $addedAt);
+			$request = $this->receiveRequestMapper->delete($id);
 		}
 	}
 
@@ -337,10 +344,9 @@ class CronTask {
 	public function processResponses() {
 		$receivedResponses = $this->receivedResponsesMapper->findAll();
 		foreach ($receivedResponses as $receivedResponse) {
-			$location = $receivedResponse->getLocation();
 			$requestId = $receivedResponse->getRequestId();
 
-			$queuedRequest = $this->queuedRequest->find($requestId,  
+			$queuedRequest = $this->queuedRequest->find($requestId); 
 			$addedAt = $receivedResponse->getAddedAt();
 			$field1 = $receivedResponse->getField1();
 			$answer = $receivedResponse->getAnswer();
@@ -356,13 +362,28 @@ class CronTask {
 						foreach ($friendshipRequests as $friendshipRequest) {
 							$this->friendshipMapper->delete($friendshipRequest-getUid1(), $friendshipRequest->getUid2());
 						}
-					$this->requestMapper->delete($requestId, $location);
+					}
+					$this->api->beginTransaction();
+					//Don't need destination for delete since they should all be this instance
+					$this->receivedResponseMapper->delete($requestId);
+ 					$this->queuedRequestMapper->delete($requestId);
+					$this->api->commit();
 					break;
 				case Request::FETCH_USER: 
-					throw new \Exception("Not implemented");
+					if ($answer !== "true" AND $answer !== "false") {
+						$this->api->log("ReceivedResponse for Request FETCH_USER, request_id = {$receivedResponse->getId()} had invalid response = {$answer}"); 
+						continue;
+					}
+
+					$this->api->beginTransaction();
+					//Don't need destination for delete since they should all be this instance
+					$this->receivedResponseMapper->delete($requestId);
+ 					$this->queuedRequestMapper->delete($requestId);
+					$this->api->commit();
+					
 					break;	
 				default:
-					$this->api->log("Invalid request_type {$type} for request from {$location} added_at {$addedAt)}, field1 = {$field1}");
+					$this->api->log("Invalid request_type {$type} for request id {$requestId} from {$location} added_at {$addedAt)}, field1 = {$field1}");
 					continue;
 					break;
 			}

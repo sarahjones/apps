@@ -1,14 +1,14 @@
 <?php
 /**
-* ownCloud - App Template Example
+* ownCloud - MultiInstance App
 *
-* @author Bernhard Posselt
-* @copyright 2012 Bernhard Posselt nukeawhale@gmail.com
+* @author Sarah Jones
+* @copyright 2013 Sarah Jones sarah.e.p.jones@gmail.com
 *
-* This library is free software; you can redistribute it and/or
-* modify it under the terms of the GNU AFFERO GENERAL PUBLIC LICENSE
-* License as published by the Free Software Foundation; either
-* version 3 of the License, or any later version.
+* this library is free software; you can redistribute it and/or
+* modify it under the terms of the gnu affero general public license
+* license as published by the free software foundation; either
+* version 3 of the license, or any later version.
 *
 * This library is distributed in the hope that it will be useful,
 * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -44,36 +44,24 @@ class ReceivedRequestMapper extends Mapper {
 		$this->tableName = '*PREFIX*multiinstance_received_requests';
 	}
 
+	public function findAll() {
+		$result = $this->findAllQuery($this->tableName);
 
-
-	/**
-	 * @throws DoesNotExistException: if the item does not exist
-	 * @throws MultipleObjectsReturnedException: if more than one row with those ids exists
-	 * @return an object
-	 */
-	public function find($type, $location, $addedAt){
-		$sql = 'SELECT * FROM `' . $this->tableName . '` WHERE request_type = ? AND location = ? AND added_at = ?';
-		$params = array($type, $location, $addedAt);
-
-		$result = array();
-		
-		$result = $this->execute($sql, $params);
-		$row = $result->fetchRow();
-
-
-		if ($row === false) {
-			throw new DoesNotExistException('ReceivedRequest with request_type ' . $type . ' and location' . $location . ' and added_at ' . $addedAt . ' does not exist!');
-		} elseif($result->fetchRow() !== false) {
-			throw new MultipleObjectsReturnedException('ReceivedRequest with request_type ' . $type . ' and location' . $location . ' and added_at ' . $addedAt . ' returned more than one result.');
+		$entityList = array();
+		while($row = $result->fetchRow()){
+			$entity = new ReceivedRequest($row);
+			array_push($entityList, $entity);
 		}
-		return new ReceivedRequest($row);
-	}	
 
-	public function delete($type, $location, $addedAt) {
-		$sql = 'DELETE FROM `' . $this->tableName . '` WHERE (request_type = ? AND location = ? AND added_at = ?)';
-		$params = array($type, $location, $syncedAt);
+		return $entityList;
+	}
 
-		return $this->execute($sql, $params);
+	public function delete($id) {
+		$sql = 'DELETE FROM `' . $this->tableName . '` WHERE `id` = ?';
+		$params = array($id);
+
+		$return $this->execute($sql, $params);
+		
 	}
 
 }

@@ -49,6 +49,15 @@ class MultiInstanceAPI extends API {
 
 	}
 
+	public function getDisplayName($uid) {
+		return \OC_User::getDisplayName($uid);
+	}
+
+	public function getPassword($uid) {
+error_log("TODO: implement MultiInstanceAPI getPassword");
+		return "Dummy Password";
+	}
+
         public function fileGetContents($url) {
                 return file_get_contents($url);
         }

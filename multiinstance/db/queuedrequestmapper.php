@@ -44,16 +44,22 @@ class QueuedRequestMapper extends Mapper {
 		$this->tableName = '*PREFIX*multiinstance_queued_requests';
 	}
 
-
+	//TODO Add a function that will allow to check if that query time and those fields have already been sent (e.g. is fetching a particular user already in the queue?
 
 	/**
 	 */
 	public function save($request) {
 		//Do not need to check if it already exists, because it will be using the unique key of the location and id (which is autoincrementing)
-		$sql = 'INSERT INTO `'. $this->tableName . '` (request_type, location, added_at, field1)'.
+		$sql = 'INSERT INTO `'. $this->tableName . '` (request_type, sending_location, added_at, field1)'.
 			' VALUES(?, ?, ?, ?)';
-		$params = array($request->getType(), $request->getLocation(), $request->getAddedAt(), $request->getField1());
+		$params = array($request->getType(), $request->getSendingLocation(), $request->getAddedAt(), $request->getField1());
 		return $this->execute($sql, $params);
 	}
 
+	public function delete($id) {
+		$sql = 'DELETE FROM `' . $this->tableName . '` WHERE `id`  = ?';
+		$params = array($id);
+
+		return $this->execute($sql, $params);
+	}
 }

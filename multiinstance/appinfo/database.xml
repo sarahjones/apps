@@ -424,7 +424,7 @@
 				<autoincrement>1</autoincrement>
 			</field>
                         <field>
-                                <name>location</name>
+                                <name>sending_location</name>
                                 <type>text</type>
                                 <default></default>
                                 <notnull>true</notnull>
@@ -465,9 +465,9 @@
 				</field>
 			</index>
                         <index>
-                                <name>location_index</name>
+                                <name>sending_location_index</name>
                                 <field>
-                                        <name>location</name>
+                                        <name>sending_location</name>
                                         <sorting>ascending</sorting>
                                 </field>
                         </index>
@@ -496,7 +496,7 @@
 				<notnull>true</notnull>
 			</field>
                         <field>
-                                <name>location</name>
+                                <name>sending_location</name>
                                 <type>text</type>
                                 <default></default>
                                 <notnull>true</notnull>
@@ -537,9 +537,9 @@
 				</field>
 			</index>
                         <index>
-                                <name>location_index</name>
+                                <name>sending_location_index</name>
                                 <field>
-                                        <name>location</name>
+                                        <name>sending_location</name>
                                         <sorting>ascending</sorting>
                                 </field>
                         </index>
@@ -568,38 +568,24 @@
 				<notnull>true</notnull>
 			</field>
                         <field>
-                                <name>location</name>
+                                <name>destination_location</name>
                                 <type>text</type>
                                 <default></default>
                                 <notnull>true</notnull>
                                 <length>64</length>
                         </field>
-                        <field>
-                                <name>request_type</name>
-                                <type>integer</type>
-                                <default></default>
-                                <notnull>true</notnull>
-                                <length>3</length>
-                        </field>
-                        <field>
-                                <name>added_at</name>
-                                <type>timestamp</type>
-                                <default></default>
-                                <notnull>false</notnull>
-                        </field>
 			<field>
-				<name>destination_location</name>
+				<name>answer</name>
 				<type>text</type>
 				<default></default>
 				<notnull>true</notnull>
 				<length>64</length>
 			</field>
                         <field>
-                                <name>field1</name>
-                                <type>text</type>
+                                <name>added_at_micro_time</name>
+                                <type>float</type>
                                 <default></default>
-                                <notnull>true</notnull>
-                                <length>100</length>
+                                <notnull>false</notnull>
                         </field>
 			<index>
 				<name>request_id_index</name>
@@ -608,27 +594,6 @@
 					<sorting>ascending</sorting>
 				</field>
 			</index>
-                        <index>
-                                <name>location_index</name>
-                                <field>
-                                        <name>location</name>
-                                        <sorting>ascending</sorting>
-                                </field>
-                        </index>
-			<index>
-				<name>request_type_index</name>
-				<field>
-					<name>request_type</name>
-					<sorting>ascending</sorting>
-				</field>
-			</index>
-                        <index>
-                                <name>added_at_index</name>
-                                <field>
-                                        <name>added_at</name>
-                                        <sorting>ascending</sorting>
-                                </field>
-                        </index>
                 </declaration>
         </table>
         <table>
@@ -640,38 +605,24 @@
 				<notnull>true</notnull>
 			</field>
                         <field>
-                                <name>location</name>
+                                <name>destination_location</name>
                                 <type>text</type>
                                 <default></default>
                                 <notnull>true</notnull>
                                 <length>64</length>
                         </field>
-                        <field>
-                                <name>request_type</name>
-                                <type>integer</type>
-                                <default></default>
-                                <notnull>true</notnull>
-                                <length>3</length>
-                        </field>
-                        <field>
-                                <name>added_at</name>
-                                <type>timestamp</type>
-                                <default></default>
-                                <notnull>false</notnull>
-                        </field>
 			<field>
-				<name>destination_location</name>
+				<name>answer</name>
 				<type>text</type>
 				<default></default>
 				<notnull>true</notnull>
 				<length>64</length>
 			</field>
                         <field>
-                                <name>field1</name>
-                                <type>text</type>
+                                <name>added_at_micro_time</name>
+                                <type>float</type>
                                 <default></default>
-                                <notnull>true</notnull>
-                                <length>100</length>
+                                <notnull>false</notnull>
                         </field>
 			<index>
 				<name>request_id_index</name>
@@ -680,27 +631,6 @@
 					<sorting>ascending</sorting>
 				</field>
 			</index>
-                        <index>
-                                <name>location_index</name>
-                                <field>
-                                        <name>location</name>
-                                        <sorting>ascending</sorting>
-                                </field>
-                        </index>
-			<index>
-				<name>request_type_index</name>
-				<field>
-					<name>request_type</name>
-					<sorting>ascending</sorting>
-				</field>
-			</index>
-                        <index>
-                                <name>added_at_index</name>
-                                <field>
-                                        <name>added_at</name>
-                                        <sorting>ascending</sorting>
-                                </field>
-                        </index>
                 </declaration>
         </table>
 </database>

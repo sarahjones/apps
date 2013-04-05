@@ -27,18 +27,18 @@ class ReceivedRequest {
 
 	private $id;
 	private $type;
-	private $location;
+	private $sendingLocation;
 	private $addedAt;
 	private $field1;
 
-	public function __construct($typeOrFromRow, $id=null, $location=null, $addedAt=null, $field1=null){
+	public function __construct($typeOrFromRow, $id=null, $sendingLocation=null, $addedAt=null, $field1=null){
 		if($id === null){
 			$this->fromRow($typeOrFromRow);
 		}
 		else {
 			$this->id = $id;
 			$this->type = $typeOrFromRow;
-			$this->location = $location;
+			$this->sendingLocation = $location;
 			$this->addedAt = $addedAt;
 			$this->field1 = $field1;
 		}
@@ -47,7 +47,7 @@ class ReceivedRequest {
 	public function fromRow($row){
 		$this->id = $row['id'];
 		$this->type = $row['request_type'];
-		$this->location = $row['location'];
+		$this->sendingLocation = $row['sending_location'];
 		$this->addedAt = $row['added_at'];
 		$this->field1 = $row['field1'];
 	}
@@ -60,8 +60,8 @@ class ReceivedRequest {
 		return $this->type;
 	}
 
-	public function getLocation(){
-		return $this->location;
+	public function getSendingLocation(){
+		return $this->sendingLocation;
 	}
 
 	public function getAddedAt(){

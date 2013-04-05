@@ -29,12 +29,14 @@ class QueuedUser {
 	private $displayname;
 	private $password;
 	private $addedAt;
+	private $destinationLocation;
 
-	public function __construct($uid, $displayname, $password, $addedAt){
+	public function __construct($uid, $displayname, $password, $addedAt, $destinationLocation){
 		$this->uid = $uid;
 		$this->displayname = $displayname;
 		$this->password = $password;
 		$this->addedAt = $addedAt;
+		$this->destinationLocation = $destinationLocation;
 
 	}
 
@@ -52,5 +54,9 @@ class QueuedUser {
 
 	public function getAddedAt(){
 		return $this->addedAt;
+	}
+
+	public function getDestinationLocation() {
+		return $this->destinationLocation;
 	}
 }
