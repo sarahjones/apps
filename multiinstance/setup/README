@@ -8,8 +8,13 @@ Modify the lines that say setAppValue to have the correct value.  The comments s
 You will need to create two subdirectories for multiinstance for the syncing:
 cd <path to multiinstance app>
 mkdir db_sync
-chown //FIX
+cd db_sync
+mkdir //if ucsb: foreach other location name; else: UCSB
+cd ..
+chown -R //FIX
 mkdir db_sync_recv
+cd db_sync_recv
+mkdir //for each location name
 chown //FIX
 
 You will need to create the 'cronErrorLog' cron/error.txt file.
@@ -41,7 +46,6 @@ AuthorizedKeysFile	%h/.ssh/authorized_keys
 sudo /etc/init.d/ssh restart
 
 
-***Not sure what user to use at this point since ssh isn't working
 Generate ssh rsa keys for www-data user if they are not already created.  They should not have a passphrase (just press enter).
 Create a directory that www-data can write to (chown -R www-data:www-data <DIR>)
 Run the below command, with the 'village1 apache' changed to whatever comment you want, easiest to have it identify the machine and user.

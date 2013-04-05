@@ -50,15 +50,6 @@ $dbSyncFolder = "/home/sjones/public_html/dev/apps/multiinstance/db_sync/";
 
 
 
-//Linux user to use for nc (netcat)
-$ncPort = "30000"
-\OCP\Config::setAppValue('multiinstance', 'ncUser', "sarah");
-\OCP\Config::setAppValue('multiinstance', 'ncLocalPort', $ncPort);   //the local, client port (on UCSB/central server)
-\OCP\Config::setAppValue('multiinstance', 'ncServerPort', $ncPort);  //the port the nc server is listening on (on village server) ****NOTE: should be the same as ncLocalPort, at least I think so.  :D
-\OCP\Config::setAppValue('multiinstance', 'ncMiddlePort', "30005");  //the tunneling port (will be on nc server) (on village server)
-
-
-
 
 \OCP\Util::connectHook('OC_User', 'post_createUser', 'OCA\MultiInstance\Lib\Hooks', 'createUser');
 \OCP\Util::connectHook('OC_User', 'post_setPassword', 'OCA\MultiInstance\Lib\Hooks', 'updateUser');
