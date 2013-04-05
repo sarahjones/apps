@@ -29,6 +29,7 @@ require_once(__DIR__ . "/../../../owncloud/lib/config.php");
 require_once(__DIR__ . "/../../../owncloud/lib/base.php");
 
 use OCA\MultiInstance\DependencyInjection\DIContainer;
+use OCA\MultiInstance\Lib\MILocation;
 
 /**
  * rsync with UCSB server
@@ -40,19 +41,40 @@ $dicontainer = new DIContainer();
 $api = $dicontainer['API'];
 $appName = $api->getAppName();
 
-$location = $api->getAppValue($appName, 'location');
+$thisLocation = $api->getAppValue($appName, 'location');
 
+$centralServerName = $api->getAppValue($appName, 'centralServer');
 $server = $api->getAppValue($appName, 'centralServerIP');
 
 $output = $api->getAppValue($appName, 'cronErrorLog');
 
 $dbSyncRecvPath = $api->getAppValue($appName, 'dbSyncRecvPath');
 
-$cmd = "rsync --verbose --compress --rsh ssh \
-      --recursive --times --perms --links --delete \
-      --exclude \"*~\" \
-      db_sync/ www-data@" . $server . ":" . $dbSyncRecvPath . "/" . $location . " >>" . $output . " 2>&1";
+$locationList = $dicontainer['LocationMapper']->findAll();
 
-#$safe_cmd = escapeshellcmd($cmd);
-exec($cmd);
+if ($centralServerName === $thisLocation) {
+	foreach ($locationList as $location) {
+		$locationName = $location->getLocation();
+		if ($locationName === $thisLocation) {
+			continue;
+		}
 
+		$cmd = "rsync --verbose --compress --rsh ssh \
+		      --recursive --times --perms --links --delete \
+		      --exclude \"*~\" \
+		      db_sync/{$locationName} www-data@{$server}:{$dbSyncRecvPath}/{$thisLocation} >>{$output} 2>&1";
+
+		#$safe_cmd = escapeshellcmd($cmd);
+		exec($cmd);
+	}
+}
+else { //not-central server
+	$cmd = "rsync --verbose --compress --rsh ssh \
+	      --recursive --times --perms --links --delete \
+	      --exclude \"*~\" \
+	      db_sync/{$centralServerName} www-data@{$server}:{$dbSyncRecvPath}/{$thisLocation} >>{$output} 2>&1";
+
+	#$safe_cmd = escapeshellcmd($cmd);
+	exec($cmd);
+
+}

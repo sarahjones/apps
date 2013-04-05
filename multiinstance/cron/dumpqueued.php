@@ -33,5 +33,6 @@ use OCA\MultiInstance\DependencyInjection\DIContainer;
 
 
 $c = new DIContainer();
+$c['CronTask']->dumpResponses();
 $c['CronTask']->dumpQueued();
 

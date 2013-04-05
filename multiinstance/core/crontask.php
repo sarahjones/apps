@@ -82,18 +82,24 @@ class CronTask {
 	 * other code on a time interval
 	 */
 	public function dumpQueued() {
+		//TODO need to update for each location
 		foreach (self::$tables as $queuedTable => $receivedTable) {
 			$qTable = $this->dbtableprefix  . $queuedTable;
 			$rTable = $this->dbtableprefix . $receivedTable;
-			$file = "{$this->sendPathPrefix}{$queuedTable}.sql";
-			
-			$cmd = "mysqldump --add-locks --insert  --skip-comments --skip-extended-insert --no-create-info --no-create-db -u{$this->dbuser} -p{$this->dbpassword} {$this->dbname} {$qTable} > {$file}";
-			$escaped_command = escapeshellcmd($cmd); //escape since input is taken from config/conf.php
-			$this->api->exec($escaped_cmd);
-			$replace = "sed -i 's/{$qTable}/{$rTable}/g' {$file}";
-			$this->api->exec(escapeshellcmd($replace));
-			$eof = "sed -i '1i-- done;' {$file}";
-			$this->api->exec($eof);
+			foreach ($locationMapper->findAll() as $location) {
+				if (strpos($location->getLocation(), ";") !== false) {
+					$this->api->log("Location {$location->getLocation()} has a semicolon in it.  This is not allowed.");
+					continue;
+				}
+				$file = "{$this->sendPathPrefix}{$location->getLocation()}/{$queuedTable}.sql";
+
+				$cmd = "mysqldump --add-locks --insert  --skip-comments --skip-extended-insert --no-create-info --no-create-db -u{$this->dbuser} -p{$this->dbpassword} {$this->dbname} {$qTable} --where=\"location='{$location->getLocation}'\" > {$file}";
+				$escaped_command = escapeshellcmd($cmd); //escape since input is taken from config/conf.php
+				$this->api->exec($escaped_cmd);
+				$replace = "sed -i 's/{$qTable}/{$rTable}/g' {$file}";
+				$this->api->exec(escapeshellcmd($replace));
+				$eof = "sed -i '1i-- done;' {$file}";
+				$this->api->exec($eof);
 		}
 	}
 
@@ -107,20 +113,19 @@ class CronTask {
 		$receivedTable = $this->dbtableprefix . "received_responses";
 
 		foreach ($locationMapper->findAll() as $location) {
+			if (strpos($location->getLocation(), ";") !== false) {
+				$this->api->log("Location {$location->getLocation()} has a semicolon in it.  This is not allowed.");
+				continue;
+			}
 			$file = "{$this->sendPathPrefix}{$location->getLocation()}/r{$this->api->microTime()}";
 
-			if (strpos($location->getLocation(), ";") !== false) {
-				$this->api->log("A location has a semicolon in it.  This is not allowed.");
-			}
-			else {
-				$cmd = "mysqldump --add-locks --insert --skip-comments --no-create-info --no-create-db -u{$this->dbuser} -p{$this->dbpassword} {$this->dbname} {$queuedTable} --where=\"location='{$location->getLocation()}'\" > {$file}";
-				$escaped_command = escapeshellcmd($cmd);
-				$this->api->exec($escaped_command);
-				$replace = "sed -i 's/{$queuedTable}/{$receivedTable}/g' {$file}";
-				$this->api->exec(escapeshellcmd($replace));
-				$eof = "sed -i '1i-- done;' {$file}";
-				$this->api->exec($eof);
-			}
+			$cmd = "mysqldump --add-locks --insert --skip-comments --no-create-info --no-create-db -u{$this->dbuser} -p{$this->dbpassword} {$this->dbname} {$queuedTable} --where=\"location='{$location->getLocation()}'\" > {$file}";
+			$escaped_command = escapeshellcmd($cmd);
+			$this->api->exec($escaped_command);
+			$replace = "sed -i 's/{$queuedTable}/{$receivedTable}/g' {$file}";
+			$this->api->exec(escapeshellcmd($replace));
+			$eof = "sed -i '1i-- done;' {$file}";
+			$this->api->exec($eof);
 		}
 	}
 
@@ -149,18 +154,21 @@ class CronTask {
 
 
 	/**
-	 * processAcks processes all unread acknowledgements by executing their contents
+	 * readAcks processes all unread acknowledgements by executing their contents
 	 * which will delete the acknowledged Queued<object> entries.  Acknowledments are
 	 * all files in the db_sync_recv folder which are in the format "a<timestamp-as-a-float>".
 	 * These acknowledement files will be deleted by other code on a time interval.
 	 */
-	public function processAcksAndResponses() {
+	public function readAcksAndResponses() {
 		$dirs = $this->api->glob($this->recvPathPrefix . "*", true );
 
 		foreach ($dirs as $dir){
-			$files1 = $this->api->glob($dir . "/a*");
-			$files2 = $this->api->glob($dir . "/r*");
-			$files = array_merge($files1, $files2);
+			$files = $this->api->glob($dir . "/a*");
+			//Only non-central server should process responses
+			if ($api->getSystemValue('centralServer') !== $api->getSystemValue('location')) {
+				$files2 = $this->api->glob($dir . "/r*");
+				$files = array_merge($files, $files2);
+			}
 			$lastReadFilename = "{$dir}/last_read.txt";  
 			$lastUpdatedFilename = "{$dir}/last_updated.txt";
 			$lastReadStringTime = $this->api->fileGetContents($lastReadFilename);  //this should be in microTime format
@@ -204,7 +212,7 @@ class CronTask {
 
 
 	//Copied from OCA\AppFramework\Db\Mapper for general query execution
-	private function execute($sql, array $params=array(), $limit=null, $offset=null){
+	protected function execute($sql, array $params=array(), $limit=null, $offset=null){
 		$query = $this->api->prepareQuery($sql); //PDO object
 		return $query->execute($params);
 	}
@@ -246,7 +254,7 @@ class CronTask {
 	 * Return the ack (delete query) for a row
 	 * @param $query string
 	 */
-	public function toAckFormat($query, $filename) {
+	protected function toAckFormat($query, $filename) {
 		$matches = array();
 		
 		if (array_key_exists($filename, self::$patterns) !== true) {
@@ -292,7 +300,7 @@ class CronTask {
 	 * @param $ackedList string
 	 * @param $ip string - IP of the village to send the ack back to
 	 */
-	public function ack($ackedList, $locationName){
+	protected function ack($ackedList, $locationName){
 		$time = $this->api->microTime();
 		$filename = "{$this->sendPathPrefix}{$locationName}/a{$time}";
 		$cmd = "echo \"{$ackedList}\" >> {$filename}";
@@ -393,15 +401,15 @@ class CronTask {
 
 /* Methods for ack content (delete queued rows) */
 
-	public function deleteQueuedUserSql($uid, $addedAt) {
+	protected function deleteQueuedUserSql($uid, $addedAt) {
 		return "DELETE IGNORE FROM \`{$this->dbtableprefix}multiinstance_queued_users\` WHERE \`uid\` = {$uid} AND \`added_at\` = {$addedAt}";
 	} 
 
-	public function deleteQueuedFriendshipSql($uid1, $uid2, $updatedAt) {
+	protected function deleteQueuedFriendshipSql($uid1, $uid2, $updatedAt) {
 		return "DELETE IGNORE FROM \`{$this->dbtableprefix}multiinstance_queued_friendships\` WHERE \`friend_uid1\` = {$uid1}  AND \`friend_uid2\` = {$uid2} AND \`updated_at\` = {$updatedAt}";
 	}
 	
-	public function deleteQueuedUserFacebookIdSql($uid, $syncedAt) {
+	protected function deleteQueuedUserFacebookIdSql($uid, $syncedAt) {
 		return "DELETE IGNORE FROM \`{$this->dbtableprefix}multiinstance_queued_user_facebook_ids\` WHERE \`uid\` = {$uid} AND \`friends_synced_at\` = {$syncedAt}";
 	}
 

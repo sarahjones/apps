@@ -28,22 +28,20 @@ require_once(__DIR__ . "/../../../owncloud/lib/public/config.php");
 require_once(__DIR__ . "/../../../owncloud/lib/config.php");
 require_once(__DIR__ . "/../../../owncloud/lib/base.php");
 
-use OCA\MultiInstance\Core\NCTask;
+use OCA\MultiInstance\Lib\CronHelper;
 use OCA\MultiInstance\DependencyInjection\DIContainer;
 
 
-//Input from STDIN should be from nc
+$c = new DIContainer();
+$api = $c['API'];
 
-$in = fopen('php://stdin', 'r');
-while(!feof($in)){
-	$text = fgets($in, 4096); //No line should be larger than this
-	echo "line";
-	
 
-    echo strtolower($text);
-    echo $text;
+$c['CronTask']->readAcksAndResponses(); //This method checks to whether or not it should read responses (only non-central servers should process responses)
+
+//Only the central server should process requests
+if ($api->getAppValue('centralServer') === $api->getAppValue('location')) {
+	$c['CronTask']->processRequests();
 }
-
-
-
-
+else { //only the non-central servers should process responses
+	$c['CronTask']->processResponses();
+}
