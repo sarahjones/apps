@@ -62,12 +62,11 @@ class ReceivedUserMapper extends Mapper {
 	 * @param string $uid: the uid of the ReceivedUser
 	 */
 	public function delete($receivedUser){
-		$sql = 'DELETE FROM `' . $this->tableName . '` WHERE `uid` = ? AND `displayname` = ? AND `password` = ? AND `added_at` = ?';
+		$sql = 'DELETE FROM `' . $this->tableName . '` WHERE `uid` = ? AND `added_at` = ? AND `destination_location` = ?';
 		$params = array(
 			$receivedUser->getUid(),
-			$receivedUser->getDisplayname(),
-			$receivedUser->getPassword(),
-			$receivedUser->getAddedAt()
+			$receivedUser->getAddedAt(),
+			$receivedUser->getDestinationLocation()
 		);
 		
 		return $this->execute($sql, $params);

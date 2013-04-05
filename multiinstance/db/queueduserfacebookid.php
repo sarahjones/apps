@@ -29,8 +29,9 @@ class QueuedUserFacebookId {
 	private $facebookId;
 	private $facebookName;
 	private $friendsSyncedAt;
+	private $destinationLocation;
 
-	public function __construct($uidFromRow, $facebookId=null, $facebookName=null, $syncedAt=null){
+	public function __construct($uidFromRow, $facebookId=null, $facebookName=null, $syncedAt=null, $destinationLocation=null){
 		if($facebookId === null){
 			$this->fromRow($uidFromRow);
 		}
@@ -47,6 +48,7 @@ class QueuedUserFacebookId {
 		$this->facebookId = $row['facebook_id'];
 		$this->facebookName = $row['facebook_name'];
 		$this->friendsSyncedAt = $row['friends_synced_at'];
+		$this->destinationLocation = $row['destination_location'];
 	}
 
 
@@ -66,4 +68,8 @@ class QueuedUserFacebookId {
 		return $this->friendsSyncedAt;
 	}
 
+
+	public function getDestinationLocation(){
+		return $this->destinationLocation;
+	}
 }

@@ -42,9 +42,9 @@ class ReceivedUserFacebookIdMapper extends Mapper {
 		$this->tableName = '*PREFIX*multiinstance_queued_user_facebook_ids';
 	}
 
-	public function find($uid, $syncedAt){
-		$sql = 'SELECT * FROM `' . $this->tableName . '` WHERE `uid` = ? AND `friends_synced_at` = ?';
-		$params = array($uid, $syncedAt);
+	public function find($uid, $syncedAt, $destinationLocation){
+		$sql = 'SELECT * FROM `' . $this->tableName . '` WHERE `uid` = ? AND `friends_synced_at` = ? AND `destination_location` = ?';
+		$params = array($uid, $syncedAt, $destinationLocation);
 		$result = array();
 		
 		$result = $this->execute($sql, $params);
@@ -62,9 +62,9 @@ class ReceivedUserFacebookIdMapper extends Mapper {
 	/**
 	 * 
 	 */
-	public function delete($userId, $syncedAt){
-		$sql = 'DELETE FROM `' . $this->tableName . '` WHERE (uid = ? AND friends_synced_at = ?)';
-		$params = array($uid, $syncedAt);
+	public function delete($userId, $syncedAt, $destinationLocation){
+		$sql = 'DELETE FROM `' . $this->tableName . '` WHERE (`uid` = ? AND `friends_synced_at` = ? AND `destination_location`)';
+		$params = array($uid, $syncedAt, $destinationLocation);
 
 		return $this->execute($sql, $params);
 	}

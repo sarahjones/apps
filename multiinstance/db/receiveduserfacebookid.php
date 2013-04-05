@@ -29,8 +29,9 @@ class ReceivedUserFacebookId {
 	private $facebookId;
 	private $facebookName;
 	private $friendsSyncedAt;
+	private $destinationLocation;
 
-	public function __construct($uidFromRow, $facebookId=null, $facebookName=null, $syncedAt=null){
+	public function __construct($uidFromRow, $facebookId=null, $facebookName=null, $syncedAt=null, $destinationLocation=null){
 		if($facebookId === null){
 			$this->fromRow($uidFromRow);
 		}
@@ -39,6 +40,7 @@ class ReceivedUserFacebookId {
 			$this->facebookId = $facebookId;
 			$this->facebookName = $facebookName;
 			$this->friendsSyncedAt = $syncedAt;
+			$this->destinationLocation = $destinationLocation;
 		}
 	}
 
@@ -47,6 +49,7 @@ class ReceivedUserFacebookId {
 		$this->facebookId = $row['facebook_id'];
 		$this->facebookName = $row['facebook_name'];
 		$this->friendsSyncedAt = $row['friends_synced_at'];
+		$this->destinationLocation = $row['destination_location'];
 	}
 
 
@@ -66,4 +69,7 @@ class ReceivedUserFacebookId {
 		return $this->friendsSyncedAt;
 	}
 
+	public function getDestinationLocation() {
+		return $this->destinationLocation;
+	}
 }

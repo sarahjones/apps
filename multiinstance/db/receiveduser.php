@@ -29,12 +29,14 @@ class ReceivedUser {
 	private $displayname;
 	private $password;
 	private $addedAt;
+	private $destinationLocaiton;
 
-	public function __construct($uid, $displayname, $password, $addedAt){
+	public function __construct($uid, $displayname, $password, $addedAt, $destinationLocation){
 		$this->uid = $uid;
 		$this->displayname = $displayname;
 		$this->password = $password;
 		$this->addedAt = $addedAt;
+		$this->destinationLocation = $destinationLocation;
 
 	}
 
@@ -43,6 +45,7 @@ class ReceivedUser {
 		$this->displayname = $row['displayname'];
 		$this->password = $row['password'];
 		$this->addedAt = $row['added_at'];
+		$this->destinationLocation = $row['destination_location'];
 	}
 
 
@@ -60,5 +63,9 @@ class ReceivedUser {
 
 	public function getAddedAt(){
 		return $this->addedAt;
+	}
+
+	public function getDestinationLocation(){
+		return $this->destinationLocation;
 	}
 }

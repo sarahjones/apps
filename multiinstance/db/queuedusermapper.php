@@ -45,9 +45,9 @@ class QueuedUserMapper extends Mapper {
 	 * @throws DoesNotExistException: if the item does not exist
 	 * @return the item
 	 */
-	public function find($uid, $addedAt){
-		$sql = 'SELECT * FROM `' . $this->tableName . '` WHERE `uid` = ? AND `added_at` = ?';
-		$params = array($uid, $addedAt);
+	public function find($uid, $addedAt, $destinationLocation){
+		$sql = 'SELECT * FROM `' . $this->tableName . '` WHERE `uid` = ? AND `added_at` = ? AND `destination_location`';
+		$params = array($uid, $addedAt, $destinationLocation);
 
 		$result = array();
 		
@@ -55,17 +55,17 @@ class QueuedUserMapper extends Mapper {
 		$row = $result->fetchRow();
 
 		if ($row === false) {
-			throw new DoesNotExistException("QueuedUser with uid {$uid} and addedAt = {$addedAt} does not exist!");
+			throw new DoesNotExistException("QueuedUser with uid {$uid} and addedAt = {$addedAt} and destinationLocation {$destinationLocation} does not exist!");
 		} elseif($result->fetchRow() !== false) {
-			throw new MultipleObjectsReturnedException("QueuedUser with uid {$uid} and addedAt = {$addedAt} returned more than one result.");
+			throw new MultipleObjectsReturnedException("QueuedUser with uid {$uid} and addedAt = {$addedAt} and destinationLocation {$destinationLocation} returned more than one result.");
 		}
 		return new QueuedUser($row);
 
 	}
 
-	public function exists($uid, $addedAt){
+	public function exists($uid, $addedAt, $destinationLocation){
 		try{
-			$this->find($uid, $addedAt);
+			$this->find($uid, $addedAt, $destinationLocation);
 		}
 		catch (DoesNotExistException $e){
 			return false;
@@ -103,14 +103,15 @@ class QueuedUserMapper extends Mapper {
 			return false;  //Already exists, do nothing
 		}
 
-		$sql = 'INSERT INTO `'. $this->tableName . '` (`uid`, `displayname`, `password`, `added_at`)'.
-				' VALUES(?, ?, ?, ?)';
+		$sql = 'INSERT INTO `'. $this->tableName . '` (`uid`, `displayname`, `password`, `added_at`, `destination_location`)'.
+				' VALUES(?, ?, ?, ?, ?)';
 
 		$params = array(
 			$queuedUser->getUid(),
 			$queuedUser->getDisplayname(),
 			$queuedUser->getPassword(),
-			$queuedUser->getAddedAt()
+			$queuedUser->getAddedAt(),
+			$queuedUser->getDestinationLocation()
 		);
 
 		return $this->execute($sql, $params);
@@ -123,12 +124,11 @@ class QueuedUserMapper extends Mapper {
 	 * @param string $uid: the uid of the QueuedUser
 	 */
 	public function delete($queuedUser){
-		$sql = 'DELETE FROM `' . $this->tableName . '` WHERE `uid` = ? AND `displayname` = ? AND `password` = ? AND `added_at` = ?';
+		$sql = 'DELETE FROM `' . $this->tableName . '` WHERE `uid` = ?  AND `added_at` = ? AND `destination_location`';
 		$params = array(
 			$queuedUser->getUid(),
-			$queuedUser->getDisplayname(),
-			$queuedUser->getPassword(),
-			$queuedUser->getAddedAt()
+			$queuedUser->getAddedAt(),
+			$queuedUser->getDestinationLocation()
 		);
 		
 		return $this->execute($sql, $params);

@@ -29,8 +29,9 @@ class ReceivedFriendship {
 	private $uid2;
 	private $updatedAt;
 	private $status;
+	private $destinationLocation;
 
-	public function __construct($uid1OrFromRow, $uid2=null, $updatedAt=null, $status=null){
+	public function __construct($uid1OrFromRow, $uid2=null, $updatedAt=null, $status=null, $destionationLocation=null){
 		if($uid2 === null){
 			$this->fromRow($uid1OrFromRow);
 		}
@@ -39,6 +40,7 @@ class ReceivedFriendship {
 			$this->uid2 = $uid2;
 			$this->updatedAt = $updatedAt;
 			$this->status = $status;
+			$this->destinationLocation = $destinationLocation;
 		}
 	}
 
@@ -47,6 +49,7 @@ class ReceivedFriendship {
 		$this->uid2 = $row['friend_uid2'];
 		$this->updatedAt = $row['updated_at'];
 		$this->status = $row['status'];
+		$this->destinationLocation = $row['destination_location'];
 	}
 
 
@@ -64,5 +67,9 @@ class ReceivedFriendship {
 
 	public function getStatus(){
 		return $this->status;
+	}
+
+	public function getDestinationLocation() {
+		return $this->destinationLocation;
 	}
 }

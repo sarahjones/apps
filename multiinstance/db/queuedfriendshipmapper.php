@@ -54,10 +54,10 @@ class QueuedFriendshipMapper extends Mapper {
 	 * @throws MultipleObjectsReturnedException: if more than one friendship with those ids exists
 	 * @return a friendship object
 	 */
-	public function find($userId1, $userId2, $updatedAt){
+	public function find($userId1, $userId2, $updatedAt, $destinationLocation){
 		//$uids = $this->sortUids($userId1, $userId2);
-		$sql = 'SELECT * FROM `' . $this->tableName . '` WHERE friend_uid1 = ? AND friend_uid2 = ? AND updated_at = ?';
-		$params = array($userId1, $userId2, $updatedAt);
+		$sql = 'SELECT * FROM `' . $this->tableName . '` WHERE `friend_uid1` = ? AND `friend_uid2` = ? AND `updated_at` = ? AND `destination_location` = ?';
+		$params = array($userId1, $userId2, $updatedAt, $destinationLocaiton);
 
 		$result = array();
 		
@@ -66,9 +66,9 @@ class QueuedFriendshipMapper extends Mapper {
 
 
 		if ($row === false) {
-			throw new DoesNotExistException('Friendship with users ' . $userId1 . ' and ' . $userId2 . ' does not exist!');
+			throw new DoesNotExistException("Friendship with users {$userId1} and {$userId2} does not exist!");
 		} elseif($result->fetchRow() !== false) {
-			throw new MultipleObjectsReturnedException('Friendship with users ' .$userId1 . ' and ' . $userId2 . ' returned more than one result.');
+			throw new MultipleObjectsReturnedException("Friendship with users  {$userId1} and {$userId2}  returned more than one result.");
 		}
 		return new Friendship($row);
 	}	
@@ -80,10 +80,10 @@ class QueuedFriendshipMapper extends Mapper {
 	 * @param $userId2 - the second user id
 	 * @return boolean: whether or not it exists (note: will return true if more than one is found)
 	 */
-	public function exists($userId1, $userId2, $updatedAt){
+	public function exists($userId1, $userId2, $updatedAt, $destinationLocation){
 		try{
 			//sorted in find
-			$f = $this->find($userId1, $userId2, $updatedAt);
+			$f = $this->find($userId1, $userId2, $updatedAt, $destinationLocation);
 		}
 		catch (DoesNotExistException $e){
 			return false;
@@ -99,13 +99,13 @@ class QueuedFriendshipMapper extends Mapper {
 	 */
 	public function save($friendship) {
 		error_log($friendship->getUid1());
-		if ($this->exists($friendship->getUid1(), $friendship->getUid2(), $friendship->getUpdatedAt())){
-			throw new AlreadyExistsException("An QueuedFriendshp entry already exists for uid1 = {$friendship->getUid1()}, uid2 = {$friendship->getUid2()}, updated_at = {$friendship->getUpdatedAt()}");
+		if ($this->exists($friendship->getUid1(), $friendship->getUid2(), $friendship->getUpdatedAt()), $friendship->getDestinationLocation()){
+			throw new AlreadyExistsException("An QueuedFriendshp entry already exists for uid1 = {$friendship->getUid1()}, uid2 = {$friendship->getUid2()}, updated_at = {$friendship->getUpdatedAt()}, destination = {$friendship->getDestinationLocation()}");
 		}
 
-		$sql = 'INSERT INTO `'. $this->tableName . '` (status, updated_at, friend_uid1, friend_uid2)'.
+		$sql = 'INSERT INTO `'. $this->tableName . '` (status, updated_at, friend_uid1, friend_uid2, destination_location)'.
 			' VALUES(?, ?, ?, ?)';
-		$params = array($friendship->getStatus(), $friendship->getUpdatedAt(), $friendship->getUid1(), $friendship->getUid2());
+		$params = array($friendship->getStatus(), $friendship->getUpdatedAt(), $friendship->getUid1(), $friendship->getUid2(), $friendship->getDestinationLocation());
 		return $this->execute($sql, $params);
 		
 	}

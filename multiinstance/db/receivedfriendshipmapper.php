@@ -54,8 +54,8 @@ class ReceivedFriendshipMapper extends Mapper {
 	 * @throws MultipleObjectsReturnedException: if more than one friendship with those ids exists
 	 * @return a friendship object
 	 */
-	public function find($userId1, $userId2, $updatedAt){
-		$sql = 'SELECT * FROM `' . $this->tableName . '` WHERE friend_uid1 = ? AND friend_uid2 = ? AND updated_at = ?';
+	public function find($userId1, $userId2, $updatedAt, $destinationLocation){
+		$sql = 'SELECT * FROM `' . $this->tableName . '` WHERE `friend_uid1` = ? AND `friend_uid2` = ? AND `updated_at` = ? AND `destination_location = ?';
 		$params = array($userId1, $userId2, $updatedAt);
 
 		$result = array();
@@ -72,9 +72,9 @@ class ReceivedFriendshipMapper extends Mapper {
 		return new Friendship($row);
 	}	
 
-	public function delete($userId1, $userId2, $updatedAt) {
-		$sql = 'DELETE FROM `' . $this->tableName . '` WHERE (friend_uid1 = ? AND friend_uid2 = ? AND updated_at = ?)';
-		$params = array($userId1, $userId2, $syncedAt);
+	public function delete($userId1, $userId2, $destinationLocation) {
+		$sql = 'DELETE FROM `' . $this->tableName . '` WHERE (`friend_uid1` = ? AND `friend_uid2` = ? AND `updated_at` = ? AND `destination_location` = ?)';
+		$params = array($userId1, $userId2, $syncedAt, $destinationLocation);
 
 		return $this->execute($sql, $params);
 	}

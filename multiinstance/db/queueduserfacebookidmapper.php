@@ -42,18 +42,18 @@ class QueuedUserFacebookIdMapper extends Mapper {
 		$this->tableName = '*PREFIX*multiinstance_queued_user_facebook_ids';
 	}
 
-	public function find($uid, $syncedAt){
-		$sql = 'SELECT * FROM `' . $this->tableName . '` WHERE `uid` = ? AND `friends_synced_at` = ?';
-		$params = array($uid, $syncedAt);
+	public function find($uid, $syncedAt, $destinationLocation){
+		$sql = 'SELECT * FROM `' . $this->tableName . '` WHERE `uid` = ? AND `friends_synced_at` = ? AND `destination_location` = ?';
+		$params = array($uid, $syncedAt, $destinationLocation);
 		$result = array();
 		
 		$result = $this->execute($sql, $params);
 		$row = $result->fetchRow();
 
 		if ($row === false) {
-			throw new DoesNotExistException('UserFacebookId with uid ' . $uid . ' and syncedAt ' . $syncedAt . ' does not exist!');
+			throw new DoesNotExistException("UserFacebookId with uid {$uid} and syncedAt {$syncedAt} and destinationLocation {$destinationLocation}  does not exist!");
 		} elseif($result->fetchRow() !== false) {
-			throw new MultipleObjectsReturnedException('UserFacebookId with uid ' . $uid . ' and syncedAt ' . $syncedAt . ' returned more than one result.');
+			throw new MultipleObjectsReturnedException("UserFacebookId with uid {$uid} and syncedAt {$syncedAt} and destinationLocation {$destinationLocation}  returned more than one result.");
 		}
 		return new QueuedUserFacebookId($row);
 
@@ -62,12 +62,11 @@ class QueuedUserFacebookIdMapper extends Mapper {
 	/** 
 	 * Checks to see if a row already exists
 	 * @param $uid - the owncloud uid of a user
-	 * @param $facebookId - the Facebook identifier of the same user
 	 * @return boolean: whether or not it exists (note: will return true if more than one is found)
 	 */
-	public function exists($uid, $syncedAt){
+	public function exists($uid, $syncedAt, $destinationLocation){
 		try{
-			$this->find($uid, $syncedAt);
+			$this->find($uid, $syncedAt, $destinationLocation);
 		}
 		catch (DoesNotExistException $e){
 			return false;
@@ -84,17 +83,18 @@ class QueuedUserFacebookIdMapper extends Mapper {
 	 * @return true if successful
 	 */
 	public function save($userFacebookId){
-		if ($this->exists($userFacebookId->getUid(), $userFacebookId->getFriendsSyncedAt())){
-			throw new AlreadyExistsException('Cannot save UserFacebookId with uid = ' . $userFacebookId->getUid() . ' because it already exists');
+		if ($this->exists($userFacebookId->getUid(), $userFacebookId->getFriendsSyncedAt()), $userFacebookId()->getDestinationLocation()){
+			return false;
 		}
-		$sql = 'INSERT INTO `'. $this->tableName . '` (`uid`, `facebook_id`, `facebook_name`, `friends_synced_at`)'.
-				' VALUES(?, ?, ?, ?)';
+		$sql = 'INSERT INTO `'. $this->tableName . '` (`uid`, `facebook_id`, `facebook_name`, `friends_synced_at`, `destination_location`)'.
+				' VALUES(?, ?, ?, ?, ?)';
 
 		$params = array(
 			$userFacebookId->getUid(),
 			$userFacebookId->getFacebookId(),
 			$userFacebookId->getFacebookName(),
-			$userFacebookId->getFriendsSyncedAt()
+			$userFacebookId->getFriendsSyncedAt(),
+			$userFacebookId->getDestinationLocation()
 		);
 
 		return $this->execute($sql, $params);
@@ -105,11 +105,11 @@ class QueuedUserFacebookIdMapper extends Mapper {
 	 * @param 
 	 * @param 
 	 */
-	public function delete($userId, $syncedAt){
+	public function delete($userId, $syncedAt, $destinationLocation){
 		
 		//must check both ways to delete friend
-		$sql = 'DELETE FROM `' . $this->tableName . '` WHERE (uid = ? AND friends_synced_at = ?)';
-		$params = array($uid, $syncedAt);
+		$sql = 'DELETE FROM `' . $this->tableName . '` WHERE (`uid` = ? AND `friends_synced_at` = ? AND `destination_location` = ?)';
+		$params = array($uid, $syncedAt, $destinationLocation);
 		
 		return $this->execute($sql, $params);
 	
