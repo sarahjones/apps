@@ -34,29 +34,38 @@ class Hooks{
 	//TODO: try catch with rollback
 	static public function createUser($parameters) {
 		$c = new DIContainer();
-#		Addressbook::addDefault($parameters['uid']);
-		$uid = $parameters['uid'];
-		$displayname = '';
-		$password = $parameters['password'];
-		
-		$date = $c['API']->getTime();
-		$queuedUser = new QueuedUser($uid, $displayname, $password, $date);
-		$userUpdate = new UserUpdate($uid, $date);
-		$c['API']->beginTransaction();
-		$c['QueuedUserMapper']->save($queuedUser);
-		$c['UserUpdateMapper']->save($userUpdate);
-		$c['API']->commit();
-		return true;
+		$centralServerName = $c['API']->getAppValue['centralServer'];
+		if ( $centralServerName !== $c['API']->getAppValue('location')) {
+			$uid = $parameters['uid'];
+			$displayname = '';
+			$password = $parameters['password'];
+			
+			$date = $c['API']->getTime();
+			$queuedUser = new QueuedUser($uid, $displayname, $password, $date, $centralServerName);
+			$userUpdate = new UserUpdate($uid, $date, $centralServerName);
+			$c['API']->beginTransaction();
+			$c['QueuedUserMapper']->save($queuedUser);
+			$c['UserUpdateMapper']->save($userUpdate);
+			$c['API']->commit();
+		}
 	}
 
 	static public function updateUser($parameters) {
 		$c = new DIContainer();
-		$uid = $parameters['uid'];
-		$displayname = '';
-		$password = $parameters['password'];
-		$queuedUser = new QueuedUser($uid, $displayname, $password);
-		$c['QueuedUserMapper']->update($queuedUser);
-		return true;
+		$centralServerName = $c['API']->getAppValue['centralServer'];
+		if ($centralServerName !== $c['API']->getAppValue('location')) {
+			$uid = $parameters['uid'];
+			$displayname = '';
+			$password = $parameters['password'];
+			$date = $c['API']->getTime();
+			$queuedUser = new QueuedUser($uid, $displayname, $password, $date, $centralServerName);
+			$userUpdate = new UserUpdate($uid, $date, $centralServerName);
+
+			$c['API']->beginTransaction();
+			$c['QueuedUserMapper']->save($queuedUser);
+			$c['UserUpdateMapper']->save($userUpdate);
+			$c['API']->commit();
+		}	
 	}
 
 }

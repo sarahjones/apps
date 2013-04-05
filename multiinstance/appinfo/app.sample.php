@@ -36,6 +36,7 @@ namespace OCA\MultiInstance;
 
 //ip or domain name of UCSB server (or whatever the central server is)
 \OCP\Config::setAppValue('multiinstance', 'centralServerIP', '192.168.56.101');
+\OCP\Config::setAppValue('multiinstance', 'centralServer', 'UCSB');
 
 
 //path to apps/multiinstance/cron/error.txt

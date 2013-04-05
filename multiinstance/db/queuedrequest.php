@@ -35,7 +35,7 @@ class QueuedRequest {
 	private $addedAt;
 	private $field1;
 
-	public function __construct($typeOrFromRow, $id==null, $sendingLocation=null, $addedAt=null, $field1=null){
+	public function __construct($typeOrFromRow, $sendingLocation=null, $addedAt=null, $field1=null){
 		if($sendingLocation === null){
 			$this->fromRow($typeOrFromRow);
 		}

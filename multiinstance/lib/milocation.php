@@ -76,32 +76,64 @@ class MILocation{
 	}
 
 
-	static public function userExistsAtCentralServer($uid) {
-
+	static public function userExistsAtCentralServer($uid, $mockQueuedUserMapper=null, $mockApi=null) {
+		self::pullUserFromCentralServer($uid, QueuedRequest::USER_EXISTS, $mockQueuedUserMapper, $mockApi);	
 	}
 
-	static public function createQueuedFriendship($friend_uid1, $friend_uid2, $updated_at, $status, $queuedFriendshipMapper=null) {
-		if ($queuedFriendshipMapper !== null) {
+	static public function fetchUserFromCentralServer($uid, $mockQueuedUserMapper=null, $mockApi=null) {
+		self::pullUserFromCentralServer($uid, QueuedRequest::FETCH_USER, $mockQueuedUserMapper, $mockApi);	
+	}
+
+	static protected function pullUserFromCentralServer($uid, $type, $mockQueuedUserMapper=null, $mockApi=null) {
+		if ($mockQueuedUserMapper !== null && $mockApi !== null) {
+			$qum = $mockQueuedUserMapper;
+			$api = $mockApi;
+		}
+		else {
+			$di = new DIContainer();
+			$qum = $di['QueuedUserMapper'];
+			$api = $di['API'];
+		}
+		$instanceName = $api->getAppValue('location');		
+		$centralServerName = $api->getAppValue('centralServer');
+		if ($centralServerName !== $instanceName) {
+			$request = new QueuedRequest($type, $instanceName, $this->api->nowTime(), $uid);
+			$qum->save($request);
+		}
+	}
+
+	static public function createQueuedFriendship($friend_uid1, $friend_uid2, $updated_at, $status, $queuedFriendshipMapper=null, $mockApi=null) {
+		if ($queuedFriendshipMapper !== null && $mockApi !== null) {
 			$qfm = $queuedFriendshipMapper;
+			$api = $mockApi;
 		}
 		else {
 			$di = new DIContainer();
 			$qfm = $di['QueuedFriendshipMapper'];
+			$api = $di['API'];
 		}
-		$queuedFriendship = new QueuedFriendship($friend_uid1, $friend_uid2, $updated_at, $status);
-		return $qfm->save($queuedFriendship);
+		$centralServerName = $api->getAppValue('centralServer');
+		if ($centralServerName !== $api->getAppValue('location')) {
+			$queuedFriendship = new QueuedFriendship($friend_uid1, $friend_uid2, $updated_at, $status, $centralServerName);
+			$qfm->save($queuedFriendship);
+		}
 	}
 
-	static public function createQueuedUserFacebookId($uid, $facebookId, $facebookName, $syncedAt, $queuedUserFacebookIdMapper=null) {
-		if ($queuedUserFacebookIdMapper !== null) {
+	static public function createQueuedUserFacebookId($uid, $facebookId, $facebookName, $syncedAt, $queuedUserFacebookIdMapper=null, $mockApi=null) {
+		if ($queuedUserFacebookIdMapper !== null && $mockApi !==null) {
 			$qm = $queuedUserFacebookIdMapper;
+			$api = $mockApi;
 		}
 		else {
 			$di = new DIContainer();
 			$qm = $di['QueuedUserFacebookIdMapper'];
+			$api = $di['API'];
 		}
-		$queuedUserFacebookId = new QueuedUserFacebookId($uid, $facebookId, $facebookName, $syncedAt);
-		return $qm->save($queuedUserFacebookId);
+		$centralServerName = $api->getAppValue('centralServer');
+		if ($centralServerName !== $api->getAppValue('location')) {
+			$queuedUserFacebookId = new QueuedUserFacebookId($uid, $facebookId, $facebookName, $syncedAt);
+			$qm->save($queuedUserFacebookId);
+		}
 		
 	}
 }
