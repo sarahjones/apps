@@ -99,7 +99,7 @@ class QueuedUserMapper extends Mapper {
 	 * @return the item with the filled in id
 	 */
 	public function save($queuedUser){
-		if ($this->exists($queuedUser->getUid(), $queuedUser->getAddedAt()), $queuedUser->getDestinationLocation()) {
+		if ($this->exists($queuedUser->getUid(), $queuedUser->getAddedAt(), $queuedUser->getDestinationLocation()) {
 			return false;  //Already exists, do nothing
 		}
 
