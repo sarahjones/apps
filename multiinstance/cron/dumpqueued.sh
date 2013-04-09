@@ -25,6 +25,6 @@ if ps -ef | grep -v grep | grep dumpqueued.php ; then
         exit 0
 else
 	#Change this path to be the path to multiinstance/cron/sendrequests.php
-        /home/sarah/public_html/apps/multiinstance/cron/dumpqueued.php >> /home/sarah/public_html/apps/multiinstance/cron/error.txt &
+        php5 /home/sarah/public_html/apps/multiinstance/cron/dumpqueued.php >> /home/sarah/public_html/apps/multiinstance/cron/error.txt &
         exit 0
 fi

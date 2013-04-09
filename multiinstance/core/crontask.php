@@ -100,6 +100,7 @@ class CronTask {
 				$this->api->exec(escapeshellcmd($replace));
 				$eof = "sed -i '1i-- done;' {$file}";
 				$this->api->exec($eof);
+			}
 		}
 	}
 
