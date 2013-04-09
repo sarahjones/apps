@@ -10,6 +10,8 @@ Use `id` command to verify gid is www-data
 
 Files that need to add group write permissions:
 cd <oc_directory>; sudo chown 660 config/config.php 
+sudo chmod 770 config
+sudo chmod 770 apps
 
 
 ****APP CONFIG****

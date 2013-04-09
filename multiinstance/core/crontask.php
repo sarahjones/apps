@@ -86,7 +86,7 @@ class CronTask {
 		foreach (self::$tables as $queuedTable => $receivedTable) {
 			$qTable = $this->dbtableprefix  . $queuedTable;
 			$rTable = $this->dbtableprefix . $receivedTable;
-			foreach ($locationMapper->findAll() as $location) {
+			foreach ($this->locationMapper->findAll() as $location) {
 				if (strpos($location->getLocation(), ";") !== false) {
 					$this->api->log("Location {$location->getLocation()} has a semicolon in it.  This is not allowed.");
 					continue;
@@ -113,7 +113,7 @@ class CronTask {
 		$queuedTable = $this->dbtableprefix . "responses";
 		$receivedTable = $this->dbtableprefix . "received_responses";
 
-		foreach ($locationMapper->findAll() as $location) {
+		foreach ($this->locationMapper->findAll() as $location) {
 			if (strpos($location->getLocation(), ";") !== false) {
 				$this->api->log("Location {$location->getLocation()} has a semicolon in it.  This is not allowed.");
 				continue;
@@ -227,7 +227,7 @@ class CronTask {
 		$first = true;
 		$ackedList = "";
 		$filebase = $this->api->baseName($filename);
-		$acks = $filebase !== "requests.sql" ? true : false //Don't want to delete with acknowledgement, want to delete with answer
+		$acks = $filebase !== "requests.sql" ? true : false; //Don't want to delete with acknowledgement, want to delete with answer
 		if ($file = $this->api->fileGetContents($filename)){
 			foreach(explode(";", $file) as $query){
 				$query = trim($query);
@@ -338,7 +338,7 @@ class CronTask {
 					
 					break;
 				default:
-					throw \Exception("Invalid request_type {$type} for request from {$location} added_at {$addedAt)}, field1 = {$field1}";
+					throw \Exception("Invalid request_type {$type} for request from {$location} added_at {$addedAt}, field1 = {$field1})";
 					break;
 			}
 
@@ -392,7 +392,7 @@ class CronTask {
 					
 					break;	
 				default:
-					$this->api->log("Invalid request_type {$type} for request id {$requestId} from {$location} added_at {$addedAt)}, field1 = {$field1}");
+					$this->api->log("Invalid request_type {$type} for request id {$requestId} from {$location} added_at {$addedAt}, field1 = {$field1}");
 					continue;
 					break;
 			}
