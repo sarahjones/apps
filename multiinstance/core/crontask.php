@@ -110,7 +110,7 @@ class CronTask {
 	 * reduce how often sync is necessary.
 	 */
 	public function dumpResponses() {
-		$queuedTable = $this->dbtableprefix . "responses";
+		$queuedTable = $this->dbtableprefix . "queued_responses";
 		$receivedTable = $this->dbtableprefix . "received_responses";
 
 		foreach ($this->locationMapper->findAll() as $location) {
