@@ -46,7 +46,7 @@ class QueuedUserMapper extends Mapper {
 	 * @return the item
 	 */
 	public function find($uid, $addedAt, $destinationLocation){
-		$sql = 'SELECT * FROM `' . $this->tableName . '` WHERE `uid` = ? AND `added_at` = ? AND `destination_location`';
+		$sql = 'SELECT * FROM `' . $this->tableName . '` WHERE `uid` = ? AND `added_at` = ? AND `destination_location` = ?';
 		$params = array($uid, $addedAt, $destinationLocation);
 
 		$result = array();
@@ -99,7 +99,7 @@ class QueuedUserMapper extends Mapper {
 	 * @return the item with the filled in id
 	 */
 	public function save($queuedUser){
-		if ($this->exists($queuedUser->getUid(), $queuedUser->getAddedAt())) {
+		if ($this->exists($queuedUser->getUid(), $queuedUser->getAddedAt()), $queuedUser->getDestinationLocation()) {
 			return false;  //Already exists, do nothing
 		}
 

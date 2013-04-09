@@ -63,7 +63,7 @@ class Hooks{
 
 			$c['API']->beginTransaction();
 			$c['QueuedUserMapper']->save($queuedUser);
-			$c['UserUpdateMapper']->save($userUpdate);
+			$c['UserUpdateMapper']->update($userUpdate);
 			$c['API']->commit();
 		}	
 	}
