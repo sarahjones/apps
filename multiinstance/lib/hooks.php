@@ -34,7 +34,7 @@ class Hooks{
 	//TODO: try catch with rollback
 	static public function createUser($parameters) {
 		$c = new DIContainer();
-		$centralServerName = $c['API']->getAppValue['centralServer'];
+		$centralServerName = $c['API']->getAppValue('centralServer');
 		if ( $centralServerName !== $c['API']->getAppValue('location')) {
 			$uid = $parameters['uid'];
 			$displayname = '';
@@ -52,7 +52,7 @@ class Hooks{
 
 	static public function updateUser($parameters) {
 		$c = new DIContainer();
-		$centralServerName = $c['API']->getAppValue['centralServer'];
+		$centralServerName = $c['API']->getAppValue('centralServer');
 		if ($centralServerName !== $c['API']->getAppValue('location')) {
 			$uid = $parameters['uid'];
 			$displayname = '';

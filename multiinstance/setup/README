@@ -90,4 +90,5 @@ sudo grep CRON /var/log/syslog
 
 ****SETUP LOCATIONS****
 Add locations to db
-
+mysql -u<user> -p <databasename> < setup/locations.sql
+Verify by visiting login page that locations are there.
