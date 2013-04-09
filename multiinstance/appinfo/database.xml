@@ -560,7 +560,7 @@
                 </declaration>
         </table>
         <table>
-                <name>*dbprefix*multiinstance_queued_response</name>
+                <name>*dbprefix*multiinstance_queued_responses</name>
                 <declaration>
 			<field>
 				<name>request_id</name>
@@ -597,7 +597,7 @@
                 </declaration>
         </table>
         <table>
-                <name>*dbprefix*multiinstance_received_response</name>
+                <name>*dbprefix*multiinstance_received_responses</name>
                 <declaration>
 			<field>
 				<name>request_id</name>
