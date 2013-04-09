@@ -338,7 +338,7 @@ class CronTask {
 					
 					break;
 				default:
-					throw \Exception("Invalid request_type {$type} for request from {$location} added_at {$addedAt}, field1 = {$field1})";
+					throw \Exception("Invalid request_type {$type} for request from {$location} added_at {$addedAt}, field1 = {$field1}");
 					break;
 			}
 
