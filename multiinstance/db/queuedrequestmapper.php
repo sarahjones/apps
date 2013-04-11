@@ -48,9 +48,9 @@ class QueuedRequestMapper extends Mapper {
 	 * @brief: Checks to see if this request has already been made
 	 * e.g. Has a particular user already been fetched?
 	 */
-	public function exists($type, $sendingLocation, $field1) {
-		$sql = 'SELECT * FROM `'. $this->tableName . '` WHERE `type` = ? AND `sending_location` = ? AND `field1` = ?';
-		$params = array($type, $sendingLocation, $field1);
+	public function exists($type, $destinationLocation, $field1) {
+		$sql = 'SELECT * FROM `'. $this->tableName . '` WHERE `request_type` = ? AND `destination_location` = ? AND `field1` = ?';
+		$params = array($type, $destinationLocation, $field1);
 
 		$result = $this->execute($sql, $params);
 		if ($result->fetchRow()) {
@@ -65,18 +65,17 @@ class QueuedRequestMapper extends Mapper {
 	 * @returns the result of saving, or if it is already in the db, true.
 	 */
 	public function save($request) {
-		if ($this->exists($request->getType(), $request->getSendingLocation(), $request->getField1())) {
+		if ($this->exists($request->getType(), $request->getDestinationLocation(), $request->getField1())) {
 			return true;
 		}
-		//Do not need to check if it already exists, because it will be using the unique key of the location and id (which is autoincrementing)
-		$sql = 'INSERT INTO `'. $this->tableName . '` (request_type, sending_location, added_at, field1)'.
-			' VALUES(?, ?, ?, ?)';
-		$params = array($request->getType(), $request->getSendingLocation(), $request->getAddedAt(), $request->getField1());
+		$sql = 'INSERT INTO `'. $this->tableName . '` (`request_type`, `sending_location`, `added_at`, `destination_location`, `field1`)'.
+			' VALUES(?, ?, ?, ?, ?)';
+		$params = array($request->getType(), $request->getSendingLocation(), $request->getAddedAt(), $request->getDestinationLocation(), $request->getField1());
 		return $this->execute($sql, $params);
 	}
 
 	public function delete($id) {
-		$sql = 'DELETE FROM `' . $this->tableName . '` WHERE `id`  = ?';
+		$sql = 'DELETE FROM `' . $this->tableName . '` WHERE `id` = ?';
 		$params = array($id);
 
 		return $this->execute($sql, $params);

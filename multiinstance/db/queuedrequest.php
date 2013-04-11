@@ -32,14 +32,14 @@ class QueuedRequest {
 	private $addedAt;
 	private $field1;
 
-	public function __construct($typeOrFromRow, $sendingLocation=null, $addedAt=null, $field1=null){
+	public function __construct($typeOrFromRow, $sendingLocation=null, $addedAt=null, $destinationLocation=null, $field1=null){
 		if($sendingLocation === null){
 			$this->fromRow($typeOrFromRow);
 		}
 		else {
 			$this->type = $typeOrFromRow;
 			$this->sendingLocation = $sendingLocation;
-			$this->id = $id;
+			$this->destinationLocation = $destinationLocation;
 			$this->addedAt = $addedAt;
 			$this->field1 = $field1;
 		}
@@ -49,6 +49,7 @@ class QueuedRequest {
 		$this->id = $row['id'];
 		$this->type = $row['request_type'];
 		$this->sendingLocation = $row['sending_location'];
+		$this->destinationLocation = $row['destination_location'];
 		$this->addedAt = $row['added_at'];
 		$this->field1 = $row['field1'];
 	}
@@ -71,6 +72,10 @@ class QueuedRequest {
 
 	public function getField1(){
 		return $this->field1;
+	}
+
+	public function getDestinationLocation(){
+		return $this->destinationLocation;
 	}
 	
 }
