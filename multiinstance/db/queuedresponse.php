@@ -25,9 +25,6 @@ namespace OCA\MultiInstance\Db;
 
 class QueuedResponse {
 
-	//Request types
-	const USER_EXISTS = 1;
-	const FETCH_USER = 2;
 	
 	private $requestId;
 	private $destinationLocation;

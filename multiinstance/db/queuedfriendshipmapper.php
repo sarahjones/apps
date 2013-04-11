@@ -99,7 +99,7 @@ class QueuedFriendshipMapper extends Mapper {
 	 */
 	public function save($friendship) {
 		error_log($friendship->getUid1());
-		if ($this->exists($friendship->getUid1(), $friendship->getUid2(), $friendship->getUpdatedAt()), $friendship->getDestinationLocation()){
+		if ($this->exists($friendship->getUid1(), $friendship->getUid2(), $friendship->getUpdatedAt(), $friendship->getDestinationLocation())){
 			throw new AlreadyExistsException("An QueuedFriendshp entry already exists for uid1 = {$friendship->getUid1()}, uid2 = {$friendship->getUid2()}, updated_at = {$friendship->getUpdatedAt()}, destination = {$friendship->getDestinationLocation()}");
 		}
 
