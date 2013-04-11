@@ -70,6 +70,38 @@ class FriendshipMapper extends Mapper {
 		return $result;
 	}
 
+        /**
+         * @brief Get a list of all friends' display names
+         * @returns array with  all displayNames (value) and the correspondig uids (key)
+         *
+         * Get a list of all friends' display names and user ids.
+         */
+        public function getDisplayNames($uid, $search = '', $limit = null, $offset = null) {
+                $displayNames = array();
+		$sql = 'SELECT `friends`.`uid`, `*PREFIX*users`.`displayname` 
+			FROM
+				(SELECT `friend_uid1` as `uid` FROM `' . $this->tableName . '` WHERE (`friend_uid2` = ? AND `status` = ?)
+				UNION
+				SELECT `friend_uid2` as `uid` FROM `' . $this->tableName . '` WHERE (`friend_uid1` = ? AND `status` = ?)
+				) as `friends`, `*PREFIX*users`
+			WHERE `friends`.`uid` = `*PREFIX*users`.`uid`
+				AND ((LOWER(`displayname`) LIKE LOWER(?)) OR LOWER(`friends`.`uid`) LIKE LOWER(?))';
+		$params = array($uid, Friendship::ACCEPTED, $uid, Friendship::ACCEPTED, $search.'%', $search.'%'); 
+		$query_result = $this->execute($sql, $params, $limit, $offset);
+		while($row =  $query_result->fetchRow()){
+			if (trim( $row['displayname']) === '') {
+                        	$displayNames[$row['uid']] = $row['uid'];
+			} 
+			else {	
+                        	$displayNames[$row['uid']] = $row['displayname'];
+			}
+		}
+
+
+                return $displayNames;
+        }
+
+
 	/**
 	 * Finds all users requesting friendship of the user 
 	 * @param string $userId: the id of the user that we want to find friendship requests for
