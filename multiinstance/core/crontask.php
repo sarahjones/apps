@@ -115,7 +115,7 @@ class CronTask {
 			$file = "{$this->sendPathPrefix}{$location->getLocation()}/r{$this->api->microTime()}";
 			#TODO: add if this directory is writable
 
-			$cmd = "mysqldump --add-locks --insert --skip-comments --no-create-info --no-create-db -u{$this->dbuser} -p{$this->dbpassword} {$this->dbname} {$queuedTable} --where=\"location='{$location->getLocation()}'\" > {$file}";
+			$cmd = "mysqldump --add-locks --insert --skip-comments --no-create-info --no-create-db -u{$this->dbuser} -p{$this->dbpassword} {$this->dbname} {$queuedTable} --where=\"destination_location='{$location->getLocation()}'\" > {$file}";
 			$escaped_command = escapeshellcmd($cmd);
 			$this->api->exec($escaped_command);
 			$replace = "sed -i 's/{$queuedTable}/{$receivedTable}/g' {$file}";

@@ -32,6 +32,12 @@ use OCA\MultiInstance\DependencyInjection\DIContainer;
 
 
 $c = new DIContainer();
-$c['CronTask']->dumpResponses();
+$api = $c['API'];
+
+//Only central-server will be sending responses
+if ($api->getAppValue('centralServer') === $api->getAppValue('location')) {
+	$c['CronTask']->dumpResponses();
+}
+
 $c['CronTask']->dumpQueued();
 
