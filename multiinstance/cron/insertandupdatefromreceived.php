@@ -34,6 +34,6 @@ use OCA\MultiInstance\DependencyInjection\DIContainer;
 
 $c = new DIContainer();
 $c['CronTask']->insertReceived();
-$c['CronTask']->updateUsersWithReceivedUsers();
-$c['CronTask']->updateFriendshipsWithReceivedFriendships();
-$c['CronTask']->updateUserFacebookIdsWithReceivedUserFacebookIds();
+$c['UpdateReceived']->updateUsersWithReceivedUsers();
+$c['UpdateReceived']->updateFriendshipsWithReceivedFriendships();
+$c['UpdateReceived']->updateUserFacebookIdsWithReceivedUserFacebookIds();

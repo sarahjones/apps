@@ -42,8 +42,8 @@ namespace OCA\MultiInstance;
 //path to apps/multiinstance/cron/error.txt
 $errorLog =  "/home/sarah/public_html/apps/multiinstance/cron/error.txt";
 \OCP\Config::setAppValue('multiinstance', 'cronErrorLog', $errorLog);
-//path to apps/multiinstance/db_sync_recv
-$dbSyncRecvPath = "/home/sarah/public_html/apps/multiinstance/db_sync_recv";
+//path to apps/multiinstance/db_sync_recv/ PATH MUST HAVE ENDING SLASH
+$dbSyncRecvPath = "/home/sarah/public_html/apps/multiinstance/db_sync_recv/";
 \OCP\Config::setAppValue('multiinstance', 'dbSyncRecvPath', $dbSyncRecvPath);
 $dbSyncFolder = "/home/sarah/public_html/apps/multiinstance/db_sync/";
 \OCP\Config::setAppValue('multiinstance', 'dbSyncPath', $dbSyncFolder);

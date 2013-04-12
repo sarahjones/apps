@@ -2,7 +2,7 @@
 www-data is a pseudo-user, but we need a real user for some of the syncing tasks.
 <user> should be whatever user "owns" the owncloud code.  This use should not have sudo access.
 
-sudo usermod -a -G www-data <user>
+sudo usermod -a -G www-data <user> # <user> should be owncloud
 sudo usermod -g www-data <user>
 
 Restart machine

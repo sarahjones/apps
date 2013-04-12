@@ -142,10 +142,6 @@ class CronTask {
 
 		foreach ($dirs as $dir){
 			$locationName = $this->api->baseName($dir);	
-			$ip = $this->locationMapper->findIPByLocation($locationName);
-			if ($ip === null) {
-				throw new \Exception("Location {$dir} does not have an IP address.");
-			}
 			foreach (self::$tables as $queuedTable => $receivedTable) {
 				$full_file =  "{$dir}/{$queuedTable}.sql";
 				if(!$this->api->fileExists($full_file)) {
