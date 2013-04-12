@@ -52,7 +52,7 @@ class UpdateReceived {
 
 		foreach ($receivedUsers as $receivedUser){
 			$id = $receivedUser->getUid();
-			$receivedTimestamp = $receivedUser->AddedAt();
+			$receivedTimestamp = $receivedUser->getAddedAt();
 
 			if ($this->api->userExists($id)) {
 				$this->api->beginTransaction();
