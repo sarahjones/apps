@@ -45,7 +45,7 @@ $errorLog =  "/home/sarah/public_html/apps/multiinstance/cron/error.txt";
 //path to apps/multiinstance/db_sync_recv
 $dbSyncRecvPath = "/home/sarah/public_html/apps/multiinstance/db_sync_recv";
 \OCP\Config::setAppValue('multiinstance', 'dbSyncRecvPath', $dbSyncRecvPath);
-$dbSyncFolder = "/home/sjones/public_html/dev/apps/multiinstance/db_sync/";
+$dbSyncFolder = "/home/sarah/public_html/apps/multiinstance/db_sync/";
 \OCP\Config::setAppValue('multiinstance', 'dbSyncPath', $dbSyncFolder);
 
 

@@ -1,6 +1,6 @@
 ****CONFIGURE APACHE GROUP****
 www-data is a pseudo-user, but we need a real user for some of the syncing tasks.
-<user> should be whatever user "owns" the owncloud code.
+<user> should be whatever user "owns" the owncloud code.  This use should not have sudo access.
 
 sudo usermod -a -G www-data <user>
 sudo usermod -g www-data <user>
@@ -9,10 +9,14 @@ Restart machine
 Use `id` command to verify gid is www-data
 
 Files that need to add group write permissions:
-cd <oc_directory>; sudo chown 660 config/config.php 
+cd <oc_directory>
+sudo chown 660 config/config.php 
 sudo chmod 770 config
 sudo chmod 770 apps
 
+cd apps/multiinstance
+sudo chmod -R 770 db_sync
+sudo chmod -R 770 db_sync_recv
 
 ****APP CONFIG****
 #from public_html
@@ -62,7 +66,7 @@ For the passphrase, just press enter.
 
 Add your instance's www-data public key to the UCSB .ssh/authorized_keys file and add UCSB's public key to your instance's /home/<user>/.ssh/authorized_keys file the authorized_keys file).
 ssh-copy-id -i ~/.ssh/id_rsa.pub <other_machine>
-chmod 600 ~.ssh/authorized_keys
+chmod 600 ~/.ssh/authorized_keys #otherwise it will still ask for passwords
 
 Test that this has worked with:
 ssh sarah@<UCSB_IP>
@@ -84,13 +88,16 @@ tail -f /var/log/rsyncd.log
 
 
 Add task to /etc/crontab:
-#Rsync client
-2,17,32,47 * * * * www-data php5 /home/sarah/public_html/apps/multiinstance/cron/rsync.php >> /home/sarah/public_html/apps/multiinstance/cron/error.txt 2>&1
+#Syncing Script for non-central server:
+5,15,25,35,45,55 * * * * sarah  php5 /home/sarah/public_html/apps/multiinstance/cron/sync.sh >> /home/sarah/public_html/apps/multiinstance/cron/error.txt 2>&1
+#Syncing Script for central server:
+0,10,20,30,40,50 * * * * sarah  php5 /home/sarah/public_html/apps/multiinstance/cron/sync.sh >> /home/sarah/public_html/apps/multiinstance/cron/error.txt 2>&1
 
-To verify that it is running (it should run 2 minutes after the hour and every fifteen minutes after that)
+To verify that it is running at the appropriate time
 sudo grep CRON /var/log/syslog
 
 ****SETUP LOCATIONS****
 Add locations to db
 mysql -u<user> -p <databasename> < setup/locations.sql
 Verify by visiting login page that locations are there.
+Future locations must be added manually

@@ -28,10 +28,7 @@ class CronTask {
 	
 
 	private $api; 
-	private $receivedUserMapper;
 	private $userUpdateMapper;
-	private $receivedFriendshipMapper;
-	private $receivedUserFacebookIdMapper;
 	private $locationMapper;
 
 	private $dbuser;
@@ -58,12 +55,9 @@ class CronTask {
 	/**
 	 * @param API $api: an api wrapper instance
 	 */
-	public function __construct($api, $receivedUserMapper, $userUpdateMapper, $locationMapper, $receivedFriendshipMapper, $receivedUserFacebookIdMapper){
+	public function __construct($api, $userUpdateMapper, $locationMapper){
 		$this->api = $api;
-		$this->receivedUserMapper = $receivedUserMapper;
 		$this->userUpdateMapper = $userUpdateMapper;
-		$this->receivedFriendshipMapper = $receivedFriendshipMapper;
-		$this->receivedUserFacebookIdMapper = $receivedUserFacebookIdMapper;
 		$this->locationMapper = $locationMapper;
 
 		$this->dbuser = $this->api->getSystemValue('dbuser'); 
@@ -119,6 +113,7 @@ class CronTask {
 				continue;
 			}
 			$file = "{$this->sendPathPrefix}{$location->getLocation()}/r{$this->api->microTime()}";
+			#TODO: add if this directory is writable
 
 			$cmd = "mysqldump --add-locks --insert --skip-comments --no-create-info --no-create-db -u{$this->dbuser} -p{$this->dbpassword} {$this->dbname} {$queuedTable} --where=\"location='{$location->getLocation()}'\" > {$file}";
 			$escaped_command = escapeshellcmd($cmd);

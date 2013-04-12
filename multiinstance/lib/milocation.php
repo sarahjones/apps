@@ -27,6 +27,8 @@ use OCA\MultiInstance\Db\LocationMapper;
 use OCA\MultiInstance\DependencyInjection\DIContainer;
 use OCA\MultiInstance\Db\QueuedFriendship;
 use OCA\MultiInstance\Db\QueuedUserFacebookId;
+use OCA\MultiInstance\Db\QueuedRequest;
+
 
 /**
  * This is a static library methods for MultiInstance app.
@@ -76,29 +78,29 @@ class MILocation{
 	}
 
 
-	static public function userExistsAtCentralServer($uid, $mockQueuedUserMapper=null, $mockApi=null) {
-		self::pullUserFromCentralServer($uid, QueuedRequest::USER_EXISTS, $mockQueuedUserMapper, $mockApi);	
+	static public function userExistsAtCentralServer($uid, $mockQueuedRequestMapper=null, $mockApi=null) {
+		self::pullUserFromCentralServer($uid, QueuedRequest::USER_EXISTS, $mockRequestUserMapper, $mockApi);	
 	}
 
-	static public function fetchUserFromCentralServer($uid, $mockQueuedUserMapper=null, $mockApi=null) {
-		self::pullUserFromCentralServer($uid, QueuedRequest::FETCH_USER, $mockQueuedUserMapper, $mockApi);	
+	static public function fetchUserFromCentralServer($uid, $mockQueuedRequestMapper=null, $mockApi=null) {
+		self::pullUserFromCentralServer($uid, QueuedRequest::FETCH_USER, $mockQueuedRequestMapper, $mockApi);	
 	}
 
-	static protected function pullUserFromCentralServer($uid, $type, $mockQueuedUserMapper=null, $mockApi=null) {
-		if ($mockQueuedUserMapper !== null && $mockApi !== null) {
-			$qum = $mockQueuedUserMapper;
+	static protected function pullUserFromCentralServer($uid, $type, $mockQueuedRequestMapper=null, $mockApi=null) {
+		if ($mockQueuedRequestMapper !== null && $mockApi !== null) {
+			$qrm = $mockQueuedRequestMapper;
 			$api = $mockApi;
 		}
 		else {
 			$di = new DIContainer();
-			$qum = $di['QueuedUserMapper'];
+			$qrm = $di['QueuedRequestMapper'];
 			$api = $di['API'];
 		}
 		$instanceName = $api->getAppValue('location');		
 		$centralServerName = $api->getAppValue('centralServer');
 		if ($centralServerName !== $instanceName) {
-			$request = new QueuedRequest($type, $instanceName, $this->api->nowTime(), $uid);
-			$qum->save($request);
+			$request = new QueuedRequest($type, $instanceName, $api->getTime(), $centralServerName,  $uid);
+			$qrm->save($request);
 		}
 	}
 
