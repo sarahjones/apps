@@ -50,7 +50,7 @@ class ReceivedUserMapper extends Mapper {
 		$entityList = array();
 		while($row = $result->fetchRow()){
 			$entity = new ReceivedUser($row);
-			array_push($entityList, $row);
+			array_push($entityList, $entity);
 		}
 
 		return $entityList;
