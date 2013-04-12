@@ -26,6 +26,7 @@ namespace OCA\MultiInstance\Cron;
 require_once(__DIR__ . "/../tests/classloader.php");
 require_once(__DIR__ . "/../../../owncloud/lib/public/config.php");
 require_once(__DIR__ . "/../../../owncloud/lib/config.php");
+require_once(__DIR__ . "/../../../owncloud/lib/base.php");
 
 use OCA\MultiInstance\Lib\CronHelper;
 use OCA\MultiInstance\DependencyInjection\DIContainer;
