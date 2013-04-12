@@ -23,6 +23,7 @@
 
 namespace OCA\MultiInstance\Core;
 
+use OCA\MultiInstance\Db\UserUpdate;
 
 /* Methods for updating instance db rows based on received rows */
 class UpdateReceived {
