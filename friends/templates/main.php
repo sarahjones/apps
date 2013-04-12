@@ -19,7 +19,6 @@
 		<div ng-show="tab==0" ng-controller="FriendshipController">
 				<div ng-repeat="friendship in friendships">
 					<span>[[friendship]]</span>
-					<span ng-click="removeFriendship(friendship)" style="float: right;">Remove</span>
 					<br />
 				</div>
 				<p ng-hide="friendships">
