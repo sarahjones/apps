@@ -49,6 +49,9 @@ $dbSyncFolder = "/home/sarah/public_html/apps/multiinstance/db_sync/";
 \OCP\Config::setAppValue('multiinstance', 'dbSyncPath', $dbSyncFolder);
 
 
+//This user should be the same for all instances in the network (this user contains the code and will be used for rsync)
+\OCP\Config::setAppValue('multiinstance', 'user', 'owncloud');
+
 
 
 \OCP\Util::connectHook('OC_User', 'post_createUser', 'OCA\MultiInstance\Lib\Hooks', 'createUser');

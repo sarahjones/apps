@@ -39,16 +39,16 @@ use OCA\MultiInstance\Lib\MILocation;
 
 $dicontainer = new DIContainer();
 $api = $dicontainer['API'];
-$appName = $api->getAppName();
 
-$thisLocation = $api->getAppValue($appName, 'location');
+$thisLocation = $api->getAppValue('location');
 
-$centralServerName = $api->getAppValue($appName, 'centralServer');
-$server = $api->getAppValue($appName, 'centralServerIP');
+$centralServerName = $api->getAppValue('centralServer');
+$server = $api->getAppValue('centralServerIP');
 
-$output = $api->getAppValue($appName, 'cronErrorLog');
+$output = $api->getAppValue('cronErrorLog');
 
-$dbSyncRecvPath = $api->getAppValue($appName, 'dbSyncRecvPath');
+$dbSyncRecvPath = $api->getAppValue('dbSyncRecvPath');
+$user = $api->getAppValue('user');
 
 $locationList = $dicontainer['LocationMapper']->findAll();
 
@@ -62,7 +62,7 @@ if ($centralServerName === $thisLocation) {
 		$cmd = "rsync --verbose --compress --rsh ssh \
 		      --recursive --times --perms --links --delete \
 		      --exclude \"*~\" \
-		      db_sync/{$locationName} www-data@{$server}:{$dbSyncRecvPath}/{$thisLocation} >>{$output} 2>&1";
+		      db_sync/{$locationName} {$user}@{$server}:{$dbSyncRecvPath}/{$thisLocation} >>{$output} 2>&1";
 
 		#$safe_cmd = escapeshellcmd($cmd);
 		exec($cmd);
@@ -72,7 +72,7 @@ else { //not-central server
 	$cmd = "rsync --verbose --compress --rsh ssh \
 	      --recursive --times --perms --links --delete \
 	      --exclude \"*~\" \
-	      db_sync/{$centralServerName} www-data@{$server}:{$dbSyncRecvPath}/{$thisLocation} >>{$output} 2>&1";
+	      db_sync/{$centralServerName} {$user}@{$server}:{$dbSyncRecvPath}/{$thisLocation} >>{$output} 2>&1";
 
 	#$safe_cmd = escapeshellcmd($cmd);
 	exec($cmd);
