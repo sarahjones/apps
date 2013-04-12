@@ -23,6 +23,7 @@
 
 namespace OCA\MultiInstance\Core;
 
+use OCA\MultiInstance\Db\Location;
 
 class CronTask {
 	
