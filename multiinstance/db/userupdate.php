@@ -52,6 +52,6 @@ class UserUpdate {
 
 
 	public function setUpdatedAt($datetime){
-		$this->updatedAt($datetime);
+		$this->updatedAt = $datetime;
 	}
 }
