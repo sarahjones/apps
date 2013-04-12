@@ -51,7 +51,7 @@ class UpdateReceived {
 		$receivedUsers = $this->receivedUserMapper->findAll();		
 
 		foreach ($receivedUsers as $receivedUser){
-			$id = $receiverUser->getUid();
+			$id = $receivedUser->getUid();
 			$receivedTimestamp = $receivedUser->getUpdatedAt();
 
 			if ($this->api->userExists($id)) {

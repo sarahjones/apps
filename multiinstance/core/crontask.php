@@ -226,7 +226,7 @@ class CronTask {
 		$first = true;
 		$ackedList = "";
 		$filebase = $this->api->baseName($filename);
-		$acks = $filebase !== "requests.sql" ? true : false; //Don't want to delete with acknowledgement, want to delete with answer
+		$acks = $filebase !== "multiinstance_queued_requests.sql" ? true : false; //Don't want to delete with acknowledgement, want to delete with answer
 		if ($file = $this->api->fileGetContents($filename)){
 			foreach(explode(";", $file) as $query){
 				$query = trim($query);

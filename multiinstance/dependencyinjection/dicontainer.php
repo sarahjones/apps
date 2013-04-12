@@ -44,6 +44,7 @@ use OCA\MultiInstance\Db\LocationMapper;
 
 use OCA\MultiInstance\Core\MultiInstanceAPI;
 use OCA\MultiInstance\Core\CronTask;
+use OCA\MultiInstance\Core\UpdateReceived;
 
 use OCA\MultiInstance\Lib\Hooks;
 use OCA\MultiInstance\Lib\Location;
@@ -139,7 +140,7 @@ class DIContainer extends BaseContainer {
 			
 		});
 		$this['UpdateReceived'] = $this->share(function($c){
-			return new CronTask($c['API'], $c['ReceivedUserMapper'], $c['UserUpdateMapper'], $c['ReceivedFriendshipMapper'], $c['ReceivedUserFacebookIdMapper']);
+			return new UpdateReceived($c['API'], $c['ReceivedUserMapper'], $c['UserUpdateMapper'], $c['ReceivedFriendshipMapper'], $c['ReceivedUserFacebookIdMapper']);
 			
 		});
 
