@@ -76,20 +76,27 @@ class CronTask {
 	 * other code on a time interval
 	 */
 	public function dumpQueued() {
-		//TODO need to update for each location
 		foreach (self::$tables as $queuedTable => $receivedTable) {
 			$qTable = $this->dbtableprefix  . $queuedTable;
 			$rTable = $this->dbtableprefix . $receivedTable;
-			foreach ($this->locationMapper->findAll() as $location) {
+
+			if ($this->api->getAppValue('location') === $this->api->getAppValue('centralServer')) {
+				$locations = $this->locationMapper->findAll();
+			}
+			else {
+				$location = array( 'location' => $this->api->getAppValue('centralServer'))
+				$locations = array(new Location($location));
+			}
+			foreach ($locations as $location) {
 				if (strpos($location->getLocation(), ";") !== false) {
 					$this->api->log("Location {$location->getLocation()} has a semicolon in it.  This is not allowed.");
 					continue;
 				}
 				$file = "{$this->sendPathPrefix}{$location->getLocation()}/{$queuedTable}.sql";
 
-				$cmd = "mysqldump --add-locks --insert  --skip-comments --skip-extended-insert --no-create-info --no-create-db -u{$this->dbuser} -p{$this->dbpassword} {$this->dbname} {$qTable} --where=\"location='{$location->getLocation}'\" > {$file}";
-				$escaped_command = escapeshellcmd($cmd); //escape since input is taken from config/conf.php
-				$this->api->exec($escaped_cmd);
+				$cmd = "mysqldump --add-locks --insert  --skip-comments --skip-extended-insert --no-create-info --no-create-db -u{$this->dbuser} -p{$this->dbpassword} {$this->dbname} {$qTable} --where=\"destination_location='{$location->getLocation()}'\" > {$file}";
+				//$escaped_command = escapeshellcmd($cmd); //escape since input is taken from config/conf.php
+				$this->api->exec($cmd);
 				$replace = "sed -i 's/{$qTable}/{$rTable}/g' {$file}";
 				$this->api->exec(escapeshellcmd($replace));
 				$eof = "sed -i '1i-- done;' {$file}";
