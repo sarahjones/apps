@@ -73,9 +73,7 @@ class UpdateReceived {
 				$this->api->commit();
 			}
 			else {
-				$userUpdate = new UserUpdate();
-				$userUpdate->setUpdatedAt($receivedTimestamp);
-				$userUpdate->setUid($id);
+				$userUpdate = new UserUpdate($id, $receivedTimestamp);
 
 				$this->api->beginTransaction();
 				//TODO: createUser will cause the user to be sent back to UCSB, maybe add another parameter?
