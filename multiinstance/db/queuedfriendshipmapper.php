@@ -57,7 +57,7 @@ class QueuedFriendshipMapper extends Mapper {
 	public function find($userId1, $userId2, $updatedAt, $destinationLocation){
 		//$uids = $this->sortUids($userId1, $userId2);
 		$sql = 'SELECT * FROM `' . $this->tableName . '` WHERE `friend_uid1` = ? AND `friend_uid2` = ? AND `updated_at` = ? AND `destination_location` = ?';
-		$params = array($userId1, $userId2, $updatedAt, $destinationLocaiton);
+		$params = array($userId1, $userId2, $updatedAt, $destinationLocation);
 
 		$result = array();
 		
@@ -104,7 +104,7 @@ class QueuedFriendshipMapper extends Mapper {
 		}
 
 		$sql = 'INSERT INTO `'. $this->tableName . '` (status, updated_at, friend_uid1, friend_uid2, destination_location)'.
-			' VALUES(?, ?, ?, ?)';
+			' VALUES(?, ?, ?, ?, ?)';
 		$params = array($friendship->getStatus(), $friendship->getUpdatedAt(), $friendship->getUid1(), $friendship->getUid2(), $friendship->getDestinationLocation());
 		return $this->execute($sql, $params);
 		

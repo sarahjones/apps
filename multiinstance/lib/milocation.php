@@ -28,7 +28,7 @@ use OCA\MultiInstance\DependencyInjection\DIContainer;
 use OCA\MultiInstance\Db\QueuedFriendship;
 use OCA\MultiInstance\Db\QueuedUserFacebookId;
 use OCA\MultiInstance\Db\QueuedRequest;
-
+use OCA\MultiInstance\Db\QueuedFileCache;
 
 /**
  * This is a static library methods for MultiInstance app.
@@ -137,5 +137,25 @@ class MILocation{
 			$qm->save($queuedUserFacebookId);
 		}
 		
+	}
+
+
+	static public function writeFile($parameters, $storage, $queuedFileCacheMapper=null, $mockApi=null) {
+error_log(print_r($parameters, TRUE));
+		if ($queuedFileCacheMapper !== null && $mockApi !==null) {
+			$qm = $queuedFileCacheMapper;
+			$api = $mockApi;
+		}
+		else {
+			$di = new DIContainer();
+			$qm = $di['QueuedFileCacheMapper'];
+			$api = $di['API'];
+		}
+
+		$centralServerName = $api->getAppValue('centralServer');
+		if ($centralServerName !== $api->getAppValue('location')) {
+			$queuedFileCache = new QueuedFileCache($storage, $parameters[5], $parameters[7], $parameters[8], $parameters[1], $parameters[0], $parameters[3], $parameters[2], $parameters[9], $parameters[4], $api->getTime(),  $centralServerName);
+			$qm->save($queuedFileCache);
+		}
 	}
 }

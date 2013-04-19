@@ -86,7 +86,7 @@ class UserUpdateMapper extends Mapper {
 		$entityList = array();
 		while($row = $result->fetchRow()){
 			$entity = new UserUpdate($row);
-			array_push($entityList, $row);
+			array_push($entityList, $entity);
 		}
 
 		return $entityList;

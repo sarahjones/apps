@@ -79,6 +79,7 @@ class UpdateReceived {
 				//TODO: createUser will cause the user to be sent back to UCSB, maybe add another parameter?
 				$this->api->createUser($id, $receivedUser->getPassword());
 				$this->userUpdateMapper->save($userUpdate);
+				$this->receivedUserMapper->delete($id, $receivedTimestamp);
 				$this->api->commit();
 			}
 

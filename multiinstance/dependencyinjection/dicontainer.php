@@ -40,6 +40,8 @@ use OCA\MultiInstance\Db\ReceivedRequestMapper;
 use OCA\MultiInstance\Db\QueuedResponseMapper;
 use OCA\MultiInstance\Db\ReceivedResponseMapper;
 
+use OCA\MultiInstance\Db\QueuedFileCacheMapper;
+
 use OCA\MultiInstance\Db\LocationMapper;
 
 use OCA\MultiInstance\Core\MultiInstanceAPI;
@@ -131,6 +133,9 @@ class DIContainer extends BaseContainer {
 			return new ReceivedResponseMapper($c['API']);
 		});
 				
+		$this['QueuedFileCacheMapper'] = $this->share(function($c){
+			return new QueuedFileCacheMapper($c['API']);
+		});
 
 		/**
 		 * Core

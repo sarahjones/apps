@@ -86,7 +86,7 @@ class QueuedUserMapper extends Mapper {
 		$entityList = array();
 		while($row = $result->fetchRow()){
 			$entity = new QueuedUser($row);
-			array_push($entityList, $row);
+			array_push($entityList, $entity);
 		}
 
 		return $entityList;
